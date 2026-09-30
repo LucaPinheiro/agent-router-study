@@ -173,12 +173,7 @@ async def test_validate_models_ok_and_missing():
     tags = respx.get("http://localhost:11434/api/tags")
     pulled = httpx.Response(
         200,
-        json={
-            "models": [
-                {"name": n}
-                for n in ("qwen3:8b-q8_0", "qwen3:32b-q4_K_M", "qwen3-embedding:8b-q8_0")
-            ]
-        },
+        json={"models": [{"name": n} for n in ("qwen3:8b-q8_0", "qwen3-embedding:8b-q8_0")]},
     )
     tags.mock(return_value=pulled)
     info = await validate_models(s)

@@ -337,15 +337,15 @@ def test_extra_llm_strategies_are_a_name_to_model_mapping():
 
 def test_shadow_set_keeps_local_llms_out_when_models_do_not_fit():
     s = load_settings("config/experiments/e9_regex_jev_llm.yaml", _env_file=None)
-    # embedder + 8B + 32B = 3 local models > 1 loaded at a time
+    # embedder + 8B = 2 local models > 1 loaded at a time
     assert shadow_set(s) == ["regex", "bm25", "embedding", "llm", "jev", "hybrid"]
-    s.ollama_max_loaded_models = 3
-    assert "llm_local" in shadow_set(s) and "llm_local_large" in shadow_set(s)
+    s.ollama_max_loaded_models = 2
+    assert "llm_local" in shadow_set(s)
     s.routing.shadow_strategies = ["regex", "llm_local"]
     assert shadow_set(s) == ["regex", "llm_local"]
     e6b = load_settings("config/experiments/e6b_llm_qwen3_local.yaml", _env_file=None)
-    # its own pipeline step stays; the other local LLM does not join the pass
-    assert "llm_local" in shadow_set(e6b) and "llm_local_large" not in shadow_set(e6b)
+    # its own pipeline step stays in the pass
+    assert "llm_local" in shadow_set(e6b)
 
 
 @respx.mock
@@ -397,6 +397,5 @@ def test_num_ctx_is_served_as_a_derived_ollama_tag(settings):
     assert chat_model_for(settings, cfg).model_name == "qwen3:8b-q8_0-ctx8192"
     with pytest.raises(ValueError, match="num_ctx"):
         LLMStrategy(provider="bedrock", model=SONNET, num_ctx=8192)
-    for p in ("e6b_llm_qwen3_local", "e5b_llm_qwen32_local"):
-        st = load_settings(f"config/experiments/{p}.yaml", _env_file=None).strategies
-        assert st.llm_local.num_ctx == st.llm_local_large.num_ctx == st.embedding.num_ctx == 8192
+    st = load_settings("config/experiments/e6b_llm_qwen3_local.yaml", _env_file=None).strategies
+    assert st.llm_local.num_ctx == st.embedding.num_ctx == 8192

@@ -106,7 +106,6 @@ async def test_run_refuses_when_projection_exceeds_the_cap(monkeypatch):
             "typesafe/jev-router": (1e-6, 1e-6),
             "qwen3-embedding:8b-q8_0": (0.0, 0.0),
             "qwen3:8b-q8_0": (0.0, 0.0),
-            "qwen3:32b-q4_K_M": (0.0, 0.0),
         }
 
     monkeypatch.setattr(estimate, "list_prices", prices)

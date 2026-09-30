@@ -23,7 +23,7 @@ from pydantic_settings import (
 from routing_study.routers.calibration import Calibration
 
 FIXED_STRATEGIES: tuple[str, ...] = ("regex", "bm25", "embedding", "llm", "jev", "hybrid")
-# Extra LLM routers: any `strategies.llm_<suffix>` block (e.g. llm_local, llm_local_large) is
+# Extra LLM routers: any `strategies.llm_<suffix>` block (e.g. llm_local) is
 # one more LLMRouter with its own model/provider; the name is the strategy name everywhere.
 _EXTRA_LLM = re.compile(r"^llm(_[a-z0-9]+)+$")
 
@@ -335,7 +335,7 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434/v1"
     # Local models Ollama keeps loaded at once (run the server with the same
     # OLLAMA_MAX_LOADED_MODELS). Shadow runs only add local LLM routers when all local models
-    # of the pass fit; otherwise those routers get their own routing-only runs (e5b, e6b).
+    # of the pass fit; otherwise those routers get their own routing-only runs (e6b).
     ollama_max_loaded_models: int = Field(default=1, ge=1)
     # Requests the local server runs at once (OLLAMA_NUM_PARALLEL): callers queue client-side
     # beyond it, so the wait is reported as queue_ms and not as model latency.

@@ -7,7 +7,7 @@ Usage:
 track (`canonical`, `tuned`). For every experiment config, every LLM / Jev strategy block gets
 `prompt_track`, `prompt_variant` and `calibration` of its model on the config's track:
 
-- tuned track: the cascades (E7-E9) and the `*_tuned.yaml` copies of E4, E5, E5b, E6, E6b
+- tuned track: the cascades (E7-E9) and the `*_tuned.yaml` copies of E4, E5, E6, E6b
   (created here from the canonical file);
 - canonical track: every other config.
 
@@ -27,7 +27,6 @@ EXPERIMENTS = Path("config/experiments")
 TUNED_COPIES = (
     "e4_jev",
     "e5_llm_sonnet",
-    "e5b_llm_qwen32_local",
     "e6_llm_haiku",
     "e6b_llm_qwen3_local",
 )

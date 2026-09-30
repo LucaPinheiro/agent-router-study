@@ -22,7 +22,7 @@ HAIKU = "global.anthropic.claude-haiku-4-5-20251001-v1:0"
 
 def test_all_experiments_load():
     names = [p.stem.split("_")[0] for p in EXPERIMENTS]
-    assert names == ["e0", "e1", "e2", "e3", "e4", "e5", "e5b", "e6", "e6b", "e7", "e8", "e9"]
+    assert names == ["e0", "e1", "e2", "e3", "e4", "e5", "e6", "e6b", "e7", "e8", "e9"]
     for path in EXPERIMENTS:
         s = load_settings(path)
         ex = s.executor
@@ -43,15 +43,12 @@ def test_all_experiments_load():
             assert (st.jev.provider, st.jev.model) == ("openrouter", "typesafe/jev-router")
             assert (st.llm_local.provider, st.llm_local.model) == ("ollama", "qwen3:8b-q8_0")
             assert st.llm_local.reasoning.enabled is False  # Qwen3 thinking off
-            big = st.llm_local_large
-            assert (big.provider, big.model) == ("ollama", "qwen3:32b-q4_K_M")
-            assert set(st.llm_strategies()) == {"llm", "llm_local", "llm_local_large"}
+            assert set(st.llm_strategies()) == {"llm", "llm_local"}
     by = {p.stem.split("_")[0]: load_settings(p) for p in EXPERIMENTS}
     assert by["e0"].routing.mode == "native"
     assert (by["e6"].strategies.llm.model, by["e6"].strategies.llm.temperature) == (HAIKU, 0)
     assert (by["e5"].strategies.llm.model, by["e5"].strategies.llm.temperature) == (SONNET, None)
     assert [st.strategy for st in by["e6b"].routing.skill.pipeline] == ["llm_local"]
-    assert [st.strategy for st in by["e5b"].routing.tool.pipeline] == ["llm_local_large"]
 
 
 def test_env_overrides_with_list_index_and_nesting(monkeypatch):
