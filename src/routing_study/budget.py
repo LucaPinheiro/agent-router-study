@@ -8,13 +8,20 @@
 - `reserve()` runs BEFORE a call: cumulative spend + in-flight reservations + this call's
   upper-bound cost must stay within the account's cap, else `BudgetExceededError` (never
   retried). `settle()` replaces the reservation with the real cost.
+- Multi-process safe: committed spend and every process's reservations are re-read under an
+  exclusive file lock at each check (see `SpendLedger`).
 """
 
 from __future__ import annotations
 
+import fcntl
 import json
+import os
 import threading
 import time
+import uuid
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -82,20 +89,110 @@ def load_prices(path: str | Path) -> dict[tuple[str, str], Price]:
     return out
 
 
+class Reservation(float):
+    """The reserved upper bound (a float, for callers that add it up) + its entry id in the
+    shared reservation file."""
+
+    rid: str | None = None
+
+    def __new__(cls, usd: float, rid: str | None = None) -> Reservation:
+        obj = super().__new__(cls, usd)
+        obj.rid = rid
+        return obj
+
+
+def _pid_alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:  # exists, owned by someone else
+        return True
+    return True
+
+
 class SpendLedger:
-    """Append-only JSONL ledger with per-account caps. Thread-safe (Bedrock calls run in
-    worker threads); totals are loaded from the file once, then kept in memory."""
+    """Append-only JSONL ledger with per-account caps, safe across threads AND processes
+    (tune_router workers, parallel runs share one file).
+
+    Every check/reserve/settle holds an exclusive `fcntl.flock` on `<ledger>.lock`, re-reads
+    the rows other processes committed since the last look (incremental, by file offset) and
+    the in-flight reservations of every process (`<ledger>.reservations.json`: entries of dead
+    processes are dropped), so two processes can never both spend the same headroom."""
 
     def __init__(self, path: str | Path, caps: dict[str, float]) -> None:
         self.path = Path(path)
         self.caps = caps
         self._lock = threading.Lock()
-        self._pending: dict[str, float] = {}
+        self._offset = 0
         self.spent: dict[str, float] = {}
-        for row in self.rows():
+        self.lock_path = self.path.with_name(self.path.name + ".lock")
+        self.reservations_path = self.path.with_name(self.path.name + ".reservations.json")
+        with self._locked():
+            pass  # loads the committed totals
+
+    # ------------------------------------------------------------ file state (lock held)
+
+    @contextmanager
+    def _locked(self) -> Iterator[None]:
+        with self._lock:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            with self.lock_path.open("a") as fh:
+                fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
+                try:
+                    self._refresh()
+                    yield
+                finally:
+                    fcntl.flock(fh.fileno(), fcntl.LOCK_UN)
+
+    def _refresh(self) -> None:
+        """Add the rows appended since `_offset` (from any process) to `spent`."""
+        if not self.path.exists():
+            self._offset, self.spent = 0, {}
+            return
+        with self.path.open("rb") as fh:
+            size = fh.seek(0, os.SEEK_END)
+            if size < self._offset:  # truncated / replaced: start over
+                self._offset, self.spent = 0, {}
+            fh.seek(self._offset)
+            chunk = fh.read()
+        end = chunk.rfind(b"\n") + 1  # complete lines only
+        for line in chunk[:end].decode("utf-8").splitlines():
+            if not line.strip():
+                continue
+            row = json.loads(line)
             acct = ACCOUNTS.get(row.get("provider", ""))
             if acct:
                 self.spent[acct] = self.spent.get(acct, 0.0) + float(row.get("cost_usd") or 0)
+        self._offset += end
+
+    def _read_reservations(self) -> dict[str, dict[str, Any]]:
+        try:
+            data = json.loads(self.reservations_path.read_text(encoding="utf-8"))
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {}
+        return {k: v for k, v in data.items() if _pid_alive(int(v.get("pid", 0)))}
+
+    def _write_reservations(self, data: dict[str, dict[str, Any]]) -> None:
+        tmp = self.reservations_path.with_suffix(f".{os.getpid()}.tmp")
+        tmp.write_text(json.dumps(data), encoding="utf-8")
+        os.replace(tmp, self.reservations_path)
+
+    def _pending(self, acct: str, data: dict[str, dict[str, Any]]) -> float:
+        return sum(float(v["usd"]) for v in data.values() if v.get("acct") == acct)
+
+    def _check(self, acct: str, projected: float, what: str, pending: float) -> None:
+        cap = self.caps.get(acct)
+        if cap is None:
+            return
+        used = self.spent.get(acct, 0.0) + pending
+        if used + projected > cap:
+            raise BudgetExceededError(
+                f"{acct} budget: spent ${used:.4f} + {what} ${projected:.4f} "
+                f"> cap ${cap:.2f} (ledger {self.path})"
+            )
+
+    # ------------------------------------------------------------ API
 
     def rows(self) -> list[dict[str, Any]]:
         if not self.path.exists():
@@ -107,48 +204,53 @@ class SpendLedger:
         ]
 
     def check(self, provider: str, projected_usd: float, what: str = "run") -> None:
-        """Raise when spent + in-flight + `projected_usd` would exceed the account cap."""
+        """Raise when spent + in-flight (all processes) + `projected_usd` would exceed the cap."""
         acct = ACCOUNTS.get(provider)
         if acct is None:
             return
-        with self._lock:
-            self._check(acct, projected_usd, what)
+        with self._locked():
+            pending = self._pending(acct, self._read_reservations())
+            self._check(acct, projected_usd, what, pending)
 
-    def _check(self, acct: str, projected: float, what: str) -> None:
-        cap = self.caps.get(acct)
-        if cap is None:
-            return
-        used = self.spent.get(acct, 0.0) + self._pending.get(acct, 0.0)
-        if used + projected > cap:
-            raise BudgetExceededError(
-                f"{acct} budget: spent ${used:.4f} + {what} ${projected:.4f} "
-                f"> cap ${cap:.2f} (ledger {self.path})"
-            )
-
-    def reserve(self, provider: str, upper_bound_usd: float) -> float:
+    def reserve(self, provider: str, upper_bound_usd: float) -> Reservation:
         acct = ACCOUNTS.get(provider)
         if acct is None:
-            return 0.0
-        with self._lock:
-            self._check(acct, upper_bound_usd, "this call (upper bound)")
-            self._pending[acct] = self._pending.get(acct, 0.0) + upper_bound_usd
-        return upper_bound_usd
+            return Reservation(0.0)
+        with self._locked():
+            data = self._read_reservations()
+            self._check(acct, upper_bound_usd, "this call (upper bound)", self._pending(acct, data))
+            rid = f"{os.getpid()}-{uuid.uuid4().hex}"
+            data[rid] = {"acct": acct, "usd": upper_bound_usd, "pid": os.getpid()}
+            self._write_reservations(data)
+        return Reservation(upper_bound_usd, rid)
 
     def settle(self, provider: str, reserved: float, record: dict[str, Any] | None) -> None:
         """Release a reservation and, when the call returned, append its real usage."""
         acct = ACCOUNTS.get(provider)
-        with self._lock:
-            if acct is not None:
-                self._pending[acct] = max(0.0, self._pending.get(acct, 0.0) - reserved)
+        with self._locked():
+            if acct is not None and reserved:
+                data = self._read_reservations()
+                rid = getattr(reserved, "rid", None)
+                if rid is None:  # a bare float: this process's first entry of that amount
+                    rid = next(
+                        (
+                            k
+                            for k, v in data.items()
+                            if v.get("pid") == os.getpid()
+                            and v.get("acct") == acct
+                            and float(v["usd"]) == float(reserved)
+                        ),
+                        None,
+                    )
+                if data.pop(rid, None) is not None:
+                    self._write_reservations(data)
             if record is None:
                 return
             row = {"ts": datetime.now(UTC).isoformat(timespec="seconds"), "provider": provider}
             row.update(record)
-            if acct is not None:
-                self.spent[acct] = self.spent.get(acct, 0.0) + float(row.get("cost_usd") or 0)
-            self.path.parent.mkdir(parents=True, exist_ok=True)
             with self.path.open("a", encoding="utf-8") as fh:
                 fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+            self._refresh()
 
 
 _ledgers: dict[str, SpendLedger] = {}

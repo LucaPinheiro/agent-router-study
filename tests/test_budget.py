@@ -112,10 +112,11 @@ async def test_run_refuses_when_projection_exceeds_the_cap(monkeypatch):
     s = load_settings(E9, _env_file=None)
     runner = Runner(s, split="dev", mode="e2e", run_name="t")
     await runner.check_budget(10)  # a few cents: fine
-    ledger_for(s).spent["aws"] = s.budget.aws_usd_cap - 0.01
+    led = ledger_for(s)  # spend committed to the ledger file (as another process would)
+    led.settle("bedrock", 0.0, {"model": "m", "cost_usd": s.budget.aws_usd_cap - 0.01})
     with pytest.raises(BudgetExceededError, match="projected run"):
         await runner.check_budget(10)
-    ledger_for(s).spent["aws"] = 0.0
+    led.settle("bedrock", 0.0, {"model": "m", "cost_usd": -(s.budget.aws_usd_cap - 0.01)})
     s.budget.openrouter_usd_cap = 0.0  # jev projected > 0 on OpenRouter
     with pytest.raises(BudgetExceededError, match="openrouter budget"):
         await runner.check_budget(10)
