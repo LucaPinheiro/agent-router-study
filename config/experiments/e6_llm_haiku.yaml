@@ -1,0 +1,24 @@
+# E6 — LLM Haiku 4.5: how much a cheap LLM loses
+routing:
+  mode: single
+  skill:
+    pipeline:
+      - { strategy: llm }
+    on_abstain: escalate
+  tool:
+    expose_top_k: 2
+    pipeline:
+      - { strategy: llm }
+
+strategies:
+  regex:     { rules_path: config/regex_rules.yaml }
+  bm25:      { k1: 1.5, b: 0.75 }
+  embedding: { model: qwen/qwen3-embedding-8b, similarity: max_example, confidence: softmax, softmax_temperature: 0.05 }
+  llm:       { model: anthropic/claude-haiku-4.5, temperature: 0, confidence: self_reported }
+  jev:       { model: typesafe/jev-router, parse_retries: 1 }
+  hybrid:    { rrf_k: 60 }
+
+executor:
+  model: anthropic/claude-sonnet-5   # fills arguments and answers
+  temperature: 0
+  max_tool_iterations: 3
