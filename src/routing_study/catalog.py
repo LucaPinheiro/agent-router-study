@@ -187,8 +187,10 @@ def _text(result: list[Any]) -> str:
     return "\n".join(getattr(c, "text", "") for c in result)
 
 
-async def fetch_catalog(settings: Settings) -> Catalog:
-    async with mcp_client(settings) as client:
+async def fetch_catalog(settings: Settings, client: Client | None = None) -> Catalog:
+    """`client`: an unopened client to use instead of `mcp_client(settings)` (e.g. an
+    in-process `Client(mcp_server.server.mcp)` for offline tuning)."""
+    async with client or mcp_client(settings) as client:
         tools: list[mt.Tool] = []
         cursor: str | None = None
         ttl_ms: int | None = None

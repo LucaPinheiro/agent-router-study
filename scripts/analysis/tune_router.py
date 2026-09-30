@@ -1,0 +1,317 @@
+"""Tune a routing config on the DEV split with stratified k-fold cross-validation.
+
+Usage:
+  uv run python scripts/analysis/tune_router.py config/experiments/e2_bm25.yaml \\
+      [--set strategies.bm25.k1=1.2] [--grid strategies.bm25.b=0.3,0.5,0.75] \\
+      [--folds 5] [--seed 0] [--calibrate] [--errors]
+
+Runs the config's skill + tool pipelines exactly like `study run --mode routing-only` (same
+`RoutingPipeline`, same shared scorer `routing_scores`) over data/dataset_dev.jsonl. The
+catalog comes from the in-process MCP server (no network); regex/BM25 make no paid call, and a
+paid strategy (embedding, llm, jev, hybrid) reuses its response cache, so a grid over
+pipeline-only parameters costs one pass.
+
+Protocol (nested, so the reported number is an estimate of the TUNING PROCEDURE, not of the
+best grid point on the data that chose it):
+- every grid point is scored on every dev case (routers have no data-fitted state);
+- per fold: pick the grid point with the best mean joint accuracy on the other k-1 folds
+  (ties -> first in grid order), score it on the held-out fold;
+- `--calibrate`: per fold, fit an isotonic map raw confidence -> P(correct) per level on the
+  train folds and apply it to the held-out fold (ECE before/after, precision at thresholds);
+  finally the best grid point and maps are refit on all of dev and printed as config YAML.
+The test split is never read.
+"""
+
+from __future__ import annotations
+
+import argparse
+import asyncio
+import itertools
+import json
+import random
+import sys
+from collections import defaultdict
+from pathlib import Path
+from statistics import mean, pstdev
+from typing import Any
+
+import yaml
+from fastmcp import Client
+
+from routing_study.catalog import Catalog, fetch_catalog
+from routing_study.eval.scorers import routing_scores
+from routing_study.routers.base import GLOBAL_OPTION, Message, RoutingInput
+from routing_study.routers.calibration import Calibration, ece, fit_isotonic
+from routing_study.routers.pipeline import build_pipeline, build_routers
+from routing_study.settings import (
+    RoutingConfig,
+    Settings,
+    StrategiesConfig,
+    _set_path,
+    load_settings,
+)
+
+DEV = Path("data/dataset_dev.jsonl")  # the only split this script reads
+CATEGORIES = ("direto", "parafrase", "ambiguo", "multiturno", "fora_escopo", "adversarial")
+METRICS = ("skill_correct", "tool_correct", "joint_correct")
+LEVELS = ("skill", "tool")
+THRESHOLDS = (0.5, 0.7, 0.8, 0.9)
+
+
+# ---------------------------------------------------------------- data / config
+
+
+def load_dev() -> list[dict[str, Any]]:
+    return [json.loads(ln) for ln in DEV.read_text(encoding="utf-8").splitlines() if ln.strip()]
+
+
+def folds_of(rows: list[dict[str, Any]], k: int, seed: int) -> dict[str, int]:
+    """case id -> fold, stratified by category, seeded."""
+    rng = random.Random(seed)
+    out: dict[str, int] = {}
+    by_cat: dict[str, list[str]] = defaultdict(list)
+    for r in rows:
+        by_cat[r["category"]].append(r["id"])
+    offset = 0
+    for cat in sorted(by_cat):
+        ids = sorted(by_cat[cat])
+        rng.shuffle(ids)
+        for i, cid in enumerate(ids):
+            out[cid] = (offset + i) % k
+        offset += len(ids)  # spreads category remainders over different folds
+    return out
+
+
+def parse_assign(raw: str) -> tuple[list[str], list[Any]]:
+    """`a.b.c=v1,v2` -> (path, [values]); values are YAML scalars (a `[..]` list stays one)."""
+    key, _, vals = raw.partition("=")
+    if not key or not vals:
+        raise SystemExit(f"bad assignment {raw!r}: expected key.path=value[,value...]")
+    parts = [vals] if vals.lstrip().startswith(("[", "{")) else vals.split(",")
+    return key.strip().split("."), [yaml.safe_load(v) for v in parts]
+
+
+def patched(settings: Settings, assigns: list[tuple[list[str], Any]]) -> Settings:
+    data = settings.model_dump(mode="json", include={"routing", "strategies"})
+    for path, value in assigns:
+        if path[0] not in data:
+            raise SystemExit(f"only routing.* / strategies.* can be set (got {'.'.join(path)})")
+        _set_path(data, path, value)
+    return settings.model_copy(
+        update={
+            "routing": RoutingConfig.model_validate(data["routing"]),
+            "strategies": StrategiesConfig.model_validate(data["strategies"]),
+        }
+    )
+
+
+async def dev_catalog(settings: Settings) -> Catalog:
+    from mcp_server.server import mcp
+
+    return await fetch_catalog(settings, Client(mcp))
+
+
+# ---------------------------------------------------------------- evaluation
+
+
+def _input(case: dict[str, Any], level: str, skill: str | None = None) -> RoutingInput:
+    turns = case["turns"]
+    return RoutingInput(
+        message=turns[-1]["content"],
+        level=level,  # type: ignore[arg-type]
+        loaded_skill=skill,
+        history=[Message(role=t["role"], content=t["content"]) for t in turns[:-1]],
+    )
+
+
+def _raw(decision: Any) -> float:
+    return float(decision.usage.get("raw_confidence", decision.confidence))
+
+
+async def evaluate(
+    settings: Settings, rows: list[dict[str, Any]], catalog: Catalog, concurrency: int = 4
+) -> dict[str, dict[str, Any]]:
+    """case id -> {category, scores, per-level (choice, raw confidence)} for one config."""
+    stages = (settings.routing.skill, settings.routing.tool)
+    wanted = {s.strategy for st in stages for s in st.pipeline}
+    routers = build_routers(settings, wanted)
+    skill_p, tool_p = (build_pipeline(settings, lv, routers) for lv in LEVELS)  # type: ignore[arg-type]
+    sem = asyncio.Semaphore(concurrency)
+
+    async def one(case: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+        async with sem:
+            sk = await skill_p.run(_input(case, "skill"), catalog.skill_options())
+            skill = sk.decision.choice
+            rec: dict[str, Any] = {
+                "category": case["category"],
+                "message": case["turns"][-1]["content"],
+                "expected": case["expected"],
+                "skill": skill,
+                "skill_conf": _raw(sk.decision) if skill else None,
+                "tool": None,
+                "tool_conf": None,
+            }
+            if skill is not None:
+                inp = _input(case, "tool", None if skill == GLOBAL_OPTION else skill)
+                tl = await tool_p.run(inp, catalog.tool_options(skill))
+                rec["tool"] = tl.decision.choice
+                rec["tool_conf"] = _raw(tl.decision) if tl.decision.choice else None
+            return case["id"], rec | routing_scores(skill, rec["tool"], case["expected"])
+
+    return dict(await asyncio.gather(*(one(c) for c in rows)))
+
+
+def acc(recs: list[dict[str, Any]], metric: str) -> float:
+    return mean(r[metric] for r in recs) if recs else float("nan")
+
+
+def pairs(recs: list[dict[str, Any]], level: str) -> tuple[list[float], list[float]]:
+    """(raw confidence, correct) of the decisions a level actually made (abstentions out)."""
+    got = [r for r in recs if r[f"{level}_conf"] is not None]
+    return [r[f"{level}_conf"] for r in got], [r[f"{level}_correct"] for r in got]
+
+
+# ---------------------------------------------------------------- report
+
+
+def fmt(xs: list[float]) -> str:
+    return f"{100 * mean(xs):5.1f} ± {100 * pstdev(xs):4.1f}"
+
+
+def label(assign: tuple[tuple[str, Any], ...]) -> str:
+    return " ".join(f"{k}={v}" for k, v in assign) or "(config as is)"
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    ap.add_argument("config")
+    ap.add_argument("--set", action="append", default=[], help="fixed override key.path=value")
+    ap.add_argument("--grid", action="append", default=[], help="key.path=v1,v2,... (cartesian)")
+    ap.add_argument("--folds", type=int, default=5)
+    ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--calibrate", action="store_true", help="fit isotonic maps on train folds")
+    ap.add_argument("--errors", action="store_true", help="print wrong cases of the best point")
+    ap.add_argument("--top", type=int, default=10, help="grid points shown in the full-dev table")
+    ap.add_argument("--concurrency", type=int, default=4)
+    args = ap.parse_args()
+
+    base = load_settings(args.config)
+    fixed = [(p, v[0]) for p, v in map(parse_assign, args.set)]
+    grid_axes = [(".".join(p), vs) for p, vs in map(parse_assign, args.grid)]
+    points = [
+        tuple(zip([k for k, _ in grid_axes], combo, strict=True))
+        for combo in itertools.product(*(vs for _, vs in grid_axes))
+    ]
+    rows = load_dev()
+    fold = folds_of(rows, args.folds, args.seed)
+    catalog = asyncio.run(dev_catalog(base))
+
+    results: list[dict[str, dict[str, Any]]] = []
+    for pt in points:
+        s = patched(base, fixed + [(k.split("."), v) for k, v in pt])
+        results.append(asyncio.run(evaluate(s, rows, catalog, args.concurrency)))
+
+    # ---- full-dev table per grid point (optimistic: chosen on the same data)
+    order = sorted(
+        range(len(points)), key=lambda i: -acc(list(results[i].values()), "joint_correct")
+    )
+    print(f"# {args.config}  dev n={len(rows)}  folds={args.folds} seed={args.seed}")
+    if fixed:
+        print("# fixed:", " ".join(f"{'.'.join(p)}={v}" for p, v in fixed))
+    if len(points) > 1:
+        print(f"\n## full dev per grid point (top {args.top} of {len(points)}; optimistic)")
+        print(f"{'skill':>6} {'tool':>6} {'joint':>6}  point")
+        for i in order[: args.top]:
+            recs = list(results[i].values())
+            print(" ".join(f"{100 * acc(recs, m):6.1f}" for m in METRICS) + f"  {label(points[i])}")
+
+    # ---- nested CV
+    per_fold: dict[str, list[float]] = defaultdict(list)
+    held: list[dict[str, Any]] = []  # pooled held-out records (with calibrated confidences)
+    chosen: list[int] = []
+    for f in range(args.folds):
+        train_ids = [cid for cid, fo in fold.items() if fo != f]
+        test_ids = [cid for cid, fo in fold.items() if fo == f]
+        best = max(
+            range(len(points)),
+            key=lambda i: (acc([results[i][c] for c in train_ids], "joint_correct"), -i),
+        )
+        chosen.append(best)
+        test = [dict(results[best][c]) for c in test_ids]
+        for m in METRICS:
+            per_fold[m].append(acc(test, m))
+        if args.calibrate:
+            train = [results[best][c] for c in train_ids]
+            for lv in LEVELS:
+                xs, ys = pairs(train, lv)
+                cal = fit_isotonic(xs, ys) if xs else None
+                for r in test:
+                    if r[f"{lv}_conf"] is not None:
+                        r[f"{lv}_cal"] = cal(r[f"{lv}_conf"]) if cal else r[f"{lv}_conf"]
+        held.extend(test)
+
+    print(f"\n## {args.folds}-fold CV (held-out; mean ± std over folds)")
+    for m in METRICS:
+        print(f"{m:14s} {fmt(per_fold[m])}")
+    picks = defaultdict(int)
+    for i in chosen:
+        picks[label(points[i])] += 1
+    print("selected per fold:", "; ".join(f"{k} x{v}" for k, v in picks.items()))
+
+    print("\n## per category (pooled held-out, %)")
+    print(f"{'category':12s} {'n':>3} {'skill':>6} {'tool':>6} {'joint':>6}")
+    for cat in CATEGORIES:
+        recs = [r for r in held if r["category"] == cat]
+        if recs:
+            print(
+                f"{cat:12s} {len(recs):3d} "
+                + " ".join(f"{100 * acc(recs, m):6.1f}" for m in METRICS)
+            )
+
+    print("\n## calibration (pooled held-out; decisions made, abstentions excluded)")
+    for lv in LEVELS:
+        conf, ok = pairs(held, lv)
+        accuracy = 100 * mean(ok) if ok else 0.0
+        line = f"{lv:5s} n={len(conf):3d} acc={accuracy:5.1f}  ECE raw={ece(conf, ok):.3f}"
+        if args.calibrate:
+            got = [r for r in held if r.get(f"{lv}_cal") is not None]
+            cal_conf = [r[f"{lv}_cal"] for r in got]
+            cal_ok = [r[f"{lv}_correct"] for r in got]
+            line += f"  calibrated={ece(cal_conf, cal_ok):.3f}"
+            prec = []
+            for t in THRESHOLDS:
+                sel = [o for c, o in zip(cal_conf, cal_ok, strict=True) if c >= t]
+                prec.append(
+                    f">={t}: cov {100 * len(sel) / len(cal_ok):.0f}% prec "
+                    + (f"{100 * mean(sel):.0f}%" if sel else "-")
+                )
+            line += "\n      " + " | ".join(prec)
+        print(line)
+
+    # ---- final refit on all dev
+    best = order[0]
+    all_recs = list(results[best].values())
+    print(f"\n## final (all dev): {label(points[best])}")
+    if args.calibrate:
+        cal_cfg: dict[str, dict[str, list[float]]] = {}
+        for lv in LEVELS:
+            xs, ys = pairs(all_recs, lv)
+            if xs:
+                c: Calibration = fit_isotonic(xs, ys)
+                cal_cfg[lv] = c.model_dump()
+        print(yaml.safe_dump({"calibration": cal_cfg}, default_flow_style=None, sort_keys=False))
+    if args.errors:
+        print("## wrong joint (all dev, best point)")
+        for cid, r in sorted(results[best].items(), key=lambda kv: kv[1]["category"]):
+            if not r["joint_correct"]:
+                exp = r["expected"]
+                print(
+                    f"- [{r['category']}] {cid}: {r['message']!r}\n"
+                    f"    skill {r['skill']} (conf {r['skill_conf']})"
+                    f" want {exp['acceptable_skills']}\n"
+                    f"    tool  {r['tool']} (conf {r['tool_conf']}) want {exp['acceptable_tools']}"
+                )
+
+
+if __name__ == "__main__":
+    sys.exit(main())
