@@ -2,6 +2,7 @@
 
 Usage:
   uv run python scripts/analysis/prompt_apex_report.py results/prompt_apex/e5_*.json ...
+  uv run python scripts/analysis/prompt_apex_report.py --merge "Sonnet 5" a.json b.json
 
 One row per (file, grid point): CV joint mean ± std, skill/tool accuracy, raw ECE per level,
 prompt tokens (static / dynamic estimate), cache read / write, output tokens, cost per 1k
@@ -42,6 +43,11 @@ def table(items: list[tuple[str, dict[str, Any]]]) -> str:
 
 
 def main() -> None:
+    if sys.argv[1:2] == ["--merge"]:  # one table over several files (e.g. two full-dev runs)
+        title, paths = sys.argv[2], sys.argv[3:]
+        print(f"\n### {title}\n")
+        print(table([r for p in paths for r in rows(Path(p))]))
+        return
     for arg in sys.argv[1:]:
         path = Path(arg)
         print(f"\n### {path.stem}\n")

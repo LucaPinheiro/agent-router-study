@@ -70,6 +70,7 @@ CATEGORIES = ("direto", "parafrase", "ambiguo", "multiturno", "fora_escopo", "ad
 METRICS = ("skill_correct", "tool_correct", "joint_correct")
 LEVELS = ("skill", "tool")
 THRESHOLDS = (0.5, 0.7, 0.8, 0.9)
+ERROR_RETRIES = 3
 
 
 # ---------------------------------------------------------------- data / config
@@ -171,6 +172,7 @@ def call_usage(steps: list[Any]) -> dict[str, Any]:
         0.0,
     )
     out["parse_fail"] = False
+    out["error"] = False
     for d in steps:
         u = d.usage
         prompt = float(u.get("prompt_tokens") or 0)
@@ -184,7 +186,8 @@ def call_usage(steps: list[Any]) -> dict[str, Any]:
         out["cache_write"] += float(u.get("cache_write") or 0)
         out["static"] += prompt * share
         out["dynamic"] += prompt * (1 - share)
-        out["parse_fail"] |= bool(u.get("parse_fail") or u.get("error"))
+        out["parse_fail"] |= bool(u.get("parse_fail"))
+        out["error"] |= bool(u.get("error"))
     return out
 
 
@@ -198,9 +201,20 @@ async def evaluate(
     skill_p, tool_p = (build_pipeline(settings, lv, routers) for lv in LEVELS)  # type: ignore[arg-type]
     sem = asyncio.Semaphore(concurrency)
 
+    async def run(pipe: Any, inp: RoutingInput, options: list[Any]) -> Any:
+        """A routing error (throttling, timeout: infrastructure, excluded from accuracy by
+        `study run`) is retried; failures are never cached, so only they are re-sent. A
+        parse failure is the router's own answer and is scored."""
+        for attempt in range(ERROR_RETRIES + 1):
+            res = await pipe.run(inp, options)
+            if not res.routing_error or attempt == ERROR_RETRIES:
+                return res
+            await asyncio.sleep(5 * (attempt + 1))
+        return res
+
     async def one(case: dict[str, Any]) -> tuple[str, dict[str, Any]]:
         async with sem:
-            sk = await skill_p.run(_input(case, "skill"), catalog.skill_options())
+            sk = await run(skill_p, _input(case, "skill"), catalog.skill_options())
             skill = sk.decision.choice
             rec: dict[str, Any] = {
                 "category": case["category"],
@@ -215,7 +229,7 @@ async def evaluate(
             }
             if skill is not None:
                 inp = _input(case, "tool", None if skill == GLOBAL_OPTION else skill)
-                tl = await tool_p.run(inp, catalog.tool_options(skill))
+                tl = await run(tool_p, inp, catalog.tool_options(skill))
                 rec["tool"] = tl.decision.choice
                 rec["tool_conf"] = _raw(tl.decision) if tl.decision.choice else None
                 rec["tool_u"] = call_usage(tl.steps)
@@ -266,6 +280,7 @@ def point_metrics(
         "p95_ms": pct(case_ms, 95),
         "tool_p50_ms": median([r["tool_u"]["ms"] for r in rows if r["tool_u"]["ms"]] or [0.0]),
         "parse_fail": sum(r[f"{lv}_u"]["parse_fail"] for r in rows for lv in LEVELS),
+        "errors": sum(r[f"{lv}_u"].get("error", False) for r in rows for lv in LEVELS),
     }
     for key in ("prompt", "static", "dynamic", "cache_read", "cache_write", "completion"):
         out[f"{key}_tokens"] = mean(c[key] for c in calls) if calls else 0.0
