@@ -164,20 +164,33 @@ async def test_validate_models_ok_and_missing():
     s = load_settings(
         "config/experiments/e9_regex_jev_llm.yaml", openrouter_api_key="k", openrouter_base_url=BASE
     )
-    chat, emb = configured_models(s)
-    assert chat == {"anthropic/claude-sonnet-5", "typesafe/jev-router"}
-    assert emb == {"qwen/qwen3-embedding-8b"}
+    chat, emb = configured_models(s)  # OpenRouter slugs only (Bedrock / Ollama elsewhere)
+    assert chat == {"typesafe/jev-router"}
+    assert emb == set()
     respx.get(f"{BASE}/models").mock(
         return_value=httpx.Response(200, json=_models_payload(sorted(chat)))
     )
-    respx.get(f"{BASE}/embeddings/models").mock(
-        return_value=httpx.Response(200, json=_models_payload(sorted(emb)))
+    tags = respx.get("http://localhost:11434/api/tags")
+    pulled = httpx.Response(
+        200,
+        json={
+            "models": [
+                {"name": n}
+                for n in ("qwen3:8b-q8_0", "qwen3:32b-q4_K_M", "qwen3-embedding:8b-q8_0")
+            ]
+        },
     )
+    tags.mock(return_value=pulled)
     info = await validate_models(s)
     assert info["typesafe/jev-router"] == ["temperature"]
 
+    tags.mock(return_value=httpx.Response(200, json={"models": [{"name": "qwen3:8b-q8_0"}]}))
+    with pytest.raises(UnknownModelError, match="qwen3-embedding:8b-q8_0"):
+        await validate_models(s)
+
+    tags.mock(return_value=pulled)
     respx.get(f"{BASE}/models").mock(
-        return_value=httpx.Response(200, json=_models_payload(["anthropic/claude-sonnet-5"]))
+        return_value=httpx.Response(200, json=_models_payload(["x/other"]))
     )
     with pytest.raises(UnknownModelError, match="typesafe/jev-router"):
         await validate_models(s)

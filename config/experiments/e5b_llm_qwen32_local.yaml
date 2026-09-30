@@ -1,15 +1,14 @@
-# E7 — regex -> Jev (skill), Jev (tool): cascade without LLM
+# E5b — local mid-size LLM Qwen3-32B (Ollama, q4_K_M, thinking off) as router; executor stays Sonnet 5 on Bedrock
 routing:
-  mode: cascade
+  mode: single
   skill:
     pipeline:
-      - { strategy: regex, min_confidence: 0.90 }
-      - { strategy: jev }             # last step: always accepts
+      - { strategy: llm_local_large }
     on_abstain: escalate
   tool:
     expose_top_k: 2
     pipeline:
-      - { strategy: jev }
+      - { strategy: llm_local_large }
 
 strategies:
   regex:

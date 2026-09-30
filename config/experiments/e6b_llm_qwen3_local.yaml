@@ -1,15 +1,14 @@
-# E7 — regex -> Jev (skill), Jev (tool): cascade without LLM
+# E6b — local LLM Qwen3-8B (Ollama, q8_0, thinking off): how much a free local LLM loses
 routing:
-  mode: cascade
+  mode: single
   skill:
     pipeline:
-      - { strategy: regex, min_confidence: 0.90 }
-      - { strategy: jev }             # last step: always accepts
+      - { strategy: llm_local }
     on_abstain: escalate
   tool:
     expose_top_k: 2
     pipeline:
-      - { strategy: jev }
+      - { strategy: llm_local }
 
 strategies:
   regex:
@@ -35,7 +34,7 @@ strategies:
     softmax_temperature: 0.05
     # Qwen3-Embedding model card: queries carry the task instruction, documents do not
     query_instruction: "Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:"
-  llm:       { provider: bedrock, model: global.anthropic.claude-sonnet-5, temperature: null, confidence: self_reported }  # Bedrock Sonnet 5 rejects temperature
+  llm:       { provider: bedrock, model: global.anthropic.claude-haiku-4-5-20251001-v1:0, temperature: 0, confidence: self_reported }
   llm_local: { provider: ollama, model: "qwen3:8b-q8_0", temperature: 0, confidence: self_reported }  # thinking off (reasoning.enabled=false)
   llm_local_large: { provider: ollama, model: "qwen3:32b-q4_K_M", temperature: 0, confidence: self_reported }  # router only; thinking off
   jev:       { provider: openrouter, model: typesafe/jev-router, parse_retries: 1 }
