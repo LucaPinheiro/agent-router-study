@@ -15,7 +15,7 @@ from typing import Any, ClassVar
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 
 from routing_study.llm import RetryStats, call_with_retry, extract_call_usage
-from routing_study.prompts.routers import parse_variant
+from routing_study.prompts.routers import parse_variant, templates
 from routing_study.routers.base import ABSTAIN, RouteDecision, RouteOption, RoutingInput
 from routing_study.routers.calibration import Calibration
 from routing_study.routers.common import (
@@ -25,6 +25,7 @@ from routing_study.routers.common import (
     normalize,
 )
 from routing_study.routers.llm import (
+    _json_shape,
     build_messages,
     chat_params,
     prompt_chars,
@@ -122,7 +123,9 @@ def parse_ranked_reply(
     obj = _ranking_object(text or "")
     if obj is None:
         choice, conf, raw = parse_reply(text, valid)
-        return choice, conf, raw, parse_ranking(text, valid) if choice else []
+        if choice is not None:
+            return choice, conf, raw, parse_ranking(text, valid)
+        return _ranking_fallback(text or "", valid)
     items: list[tuple[str, Any]] = []
     for it in obj["ranking"]:
         if isinstance(it, dict):
@@ -138,6 +141,34 @@ def parse_ranked_reply(
     return items[0][0], conf, raw, [(c, _to_conf(v) or 0.0) for c, v in items[1:]]
 
 
+def _ids_after_ranking(text: str, valid: list[str]) -> list[str]:
+    """Valid ids written after a `ranking` key, in order, deduplicated (regex, so a cut or
+    unquoted ranking still yields them)."""
+    key = re.search(r"""["']?ranking["']?\s*[:=]""", text, re.IGNORECASE)
+    if key is None or not valid:
+        return []
+    alts = "|".join(re.escape(v) for v in sorted(valid, key=len, reverse=True))
+    ids: list[str] = []
+    for m in re.finditer(rf"(?<![\w.\-])({alts})(?![\w.\-])", text[key.end() :]):
+        if m.group(1) not in ids:
+            ids.append(m.group(1))
+    return ids
+
+
+def _ranking_fallback(
+    text: str, valid: list[str]
+) -> tuple[str | None, float | None, Any, list[tuple[str, float]]]:
+    """Malformed ranking (cut mid-object, unquoted ids, `ranking: [...]` prose): its ids in
+    order (first = choice) and the confidence if one is written."""
+    ids = _ids_after_ranking(text, valid)
+    if not ids:
+        return None, None, None, []
+    c = _CONF.search(text)
+    raw = (c.group(1) + (c.group(2) or "")) if c else None
+    conf = _to_conf(c.group(1), bool(c.group(2))) if c else None
+    return ids[0], conf, raw, [(i, 0.0) for i in ids[1:]]
+
+
 def parse_ranking(text: str, valid: list[str]) -> list[tuple[str, float]]:
     """`ranking` of the reply object as [(id, confidence)]; [] when absent or malformed."""
     found = _choice_object(text or "", valid)
@@ -147,6 +178,8 @@ def parse_ranking(text: str, valid: list[str]) -> list[tuple[str, float]]:
         cid = _match_id(str(item.get("id", "")), valid) if isinstance(item, dict) else None
         if cid is not None:
             out.append((cid, _to_conf(item.get("confidence")) or 0.0))
+    if not out and found is None:  # no parseable object: the ids a regex can still read
+        out = [(i, 0.0) for i in _ids_after_ranking(text or "", valid)]
     return out
 
 
@@ -216,7 +249,19 @@ class JevRouter(BaseRouter):
             spec=self.spec,
         )
 
+    def _correction(self, inp: RoutingInput, options: list[RouteOption]) -> str:
+        """Corrective retry text. Skill stage: `{choice, confidence}` + the valid ids (the
+        pre-study text, cache keys unchanged). Tool stage: the variant's full reply shape, so
+        the retry keeps asking for the ranking the host exposes."""
+        valid = [o.id for o in options] + ([ABSTAIN] if self.allow_abstain else [])
+        if inp.level != "tool":
+            return _CORRECTION + ", ".join(valid)
+        ids = [o.id for o in options]
+        t = templates(self.spec.language)
+        return "Invalid answer. " + _json_shape("tool", ids, self.allow_abstain, self.spec, t)
+
     def cache_params(self, inp: RoutingInput, options: list[RouteOption]) -> dict[str, Any]:
+        correction = _CORRECTION if inp.level != "tool" else self._correction(inp, options)
         return {
             "model": self._model,
             "history_turns": self.history_turns,
@@ -224,7 +269,7 @@ class JevRouter(BaseRouter):
             "parse_retries": self.parse_retries,
             "chat": chat_params(self.chat),
             "prompt": rendered(self._messages(inp, options)),
-            "correction": _CORRECTION,
+            "correction": correction,
         }
 
     async def _decide(self, inp: RoutingInput, options: list[RouteOption]) -> RouteDecision:
@@ -300,7 +345,7 @@ class JevRouter(BaseRouter):
                 messages = [
                     *messages,
                     AIMessage(raw_text),
-                    HumanMessage(_CORRECTION + ", ".join(valid)),
+                    HumanMessage(self._correction(inp, options)),
                 ]
         usage: dict[str, Any] = {
             "calls": len(served),

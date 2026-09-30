@@ -180,7 +180,7 @@ class BM25FieldRepeats(_Config):
 class BM25Strategy(_Config):
     k1: float = Field(default=1.5, ge=0.0)
     b: float = Field(default=0.75, ge=0.0, le=1.0)
-    variant: Literal["okapi", "l"] = "okapi"  # l = BM25L (IDF stays > 0 on tiny corpora)
+    variant: Literal["okapi", "l"] = "okapi"  # l = rank_bm25's BM25L (IDF > 0 on tiny corpora)
     delta: float = Field(default=0.5, ge=0.0)  # BM25L only
     stemmer: Literal["none", "light", "prefix"] = "none"
     prefix_len: int = Field(default=5, ge=2)

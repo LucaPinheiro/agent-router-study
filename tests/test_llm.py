@@ -397,3 +397,30 @@ async def test_billed_reply_that_the_client_rejects_still_reaches_the_ledger(set
     usage = info.value.call_usage  # type: ignore[attr-defined]
     assert usage["cost_usd"] == pytest.approx(0.0042) and usage["completion_tokens"] == 64
     assert usage["served_model"] == "anthropic/claude-sonnet-5"
+
+
+@pytest.mark.parametrize(
+    ("tool_choice", "native"),
+    [
+        (None, {"type": "auto", "disable_parallel_tool_use": True}),
+        ("get_order", {"type": "tool", "name": "get_order", "disable_parallel_tool_use": True}),
+    ],
+)
+async def test_bedrock_executor_disables_parallel_tool_calls(settings, tool_choice, native):
+    """F9: Converse has no parallel-tool switch (ToolConfiguration = tools + toolChoice), so
+    `parallel_tool_calls=False` goes as Anthropic's native tool_choice (additional fields)."""
+    from langchain_core.messages import HumanMessage
+    from test_providers import FakeConverse, bedrock, converse_reply
+
+    client = FakeConverse(converse_reply([{"text": "ok"}], {"inputTokens": 3, "outputTokens": 1}))
+    tool = {
+        "type": "function",
+        "function": {"name": "get_order", "description": "d", "parameters": {"type": "object"}},
+    }
+    chat = bedrock(settings, client)
+    bound = chat.bind_tools([tool], tool_choice=tool_choice, parallel_tool_calls=False)
+    await bound.ainvoke([HumanMessage("x")])
+    req = client.requests[0]
+    assert req["additionalModelRequestFields"] == {"tool_choice": native}
+    assert "toolChoice" not in req["toolConfig"]  # one source of truth for the choice
+    assert chat.additional_model_request_fields is None  # the shared client is not mutated

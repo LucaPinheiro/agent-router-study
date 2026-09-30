@@ -258,7 +258,10 @@ class BedrockChat(_Metered, ChatBedrockConverse):
     - SDK retries are off (`max_retries=0`): `call_with_retry` owns ThrottlingException.
     - `tool_choice="none"` has no Converse equivalent: it is sent as Anthropic's native
       `tool_choice: {type: none}` via `additional_model_request_fields` (on a copy).
-    - `parallel_tool_calls` is dropped (Converse has no such flag)."""
+    - `parallel_tool_calls=False`: Converse has no such flag (ToolConfiguration = tools +
+      toolChoice), so on Anthropic models the choice goes as the native
+      `tool_choice: {type: auto|any|tool, disable_parallel_tool_use: true}` instead (same
+      copy mechanism); on other models it is dropped."""
 
     ledger: Any = Field(default=None, exclude=True)
     price: Any = Field(default=None, exclude=True)
@@ -289,13 +292,31 @@ class BedrockChat(_Metered, ChatBedrockConverse):
         return next((o for o in llm_outputs if o), {})
 
     def bind_tools(self, tools: Any, *, tool_choice: Any = None, **kwargs: Any) -> Runnable:
-        kwargs.pop("parallel_tool_calls", None)
-        if tool_choice == "none":  # a copy whose requests carry the native tool_choice
-            fields = {**(self.additional_model_request_fields or {})}
-            fields["tool_choice"] = {"type": "none"}
-            clone = self.model_copy(update={"additional_model_request_fields": fields})
-            return ChatBedrockConverse.bind_tools(clone, tools, **kwargs)
-        return super().bind_tools(tools, tool_choice=tool_choice, **kwargs)
+        parallel = kwargs.pop("parallel_tool_calls", None)
+        native: dict[str, Any] | None = None
+        if tool_choice == "none":
+            native = {"type": "none"}
+        elif (
+            parallel is False and "anthropic" in self.model_id and self._native_choice(tool_choice)
+        ):
+            native = {**self._native_choice(tool_choice), "disable_parallel_tool_use": True}
+        if native is None:
+            return super().bind_tools(tools, tool_choice=tool_choice, **kwargs)
+        # a copy whose requests carry Anthropic's native tool_choice (no Converse toolChoice)
+        fields = {**(self.additional_model_request_fields or {}), "tool_choice": native}
+        clone = self.model_copy(update={"additional_model_request_fields": fields})
+        return ChatBedrockConverse.bind_tools(clone, tools, **kwargs)
+
+    @staticmethod
+    def _native_choice(tool_choice: Any) -> dict[str, Any] | None:
+        """LangChain tool_choice -> Anthropic's; None when it has no native spelling here."""
+        if tool_choice in (None, "auto"):
+            return {"type": "auto"}
+        if tool_choice in ("any", "required"):
+            return {"type": "any"}
+        if isinstance(tool_choice, str):
+            return {"type": "tool", "name": tool_choice}
+        return None
 
 
 def provider_extra_body(

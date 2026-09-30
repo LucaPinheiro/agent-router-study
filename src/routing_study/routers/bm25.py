@@ -1,9 +1,11 @@
 """BM25 router (local) over the catalog text of each option (description, examples, keywords).
 
-- Variant: `okapi` (original) or `l` (BM25L). With 4-8 option documents Okapi's IDF is 0 for a
-  term in exactly half of them and floored for more, so shared-but-discriminative words
-  ("devolver" in a skill and in `__global__`) score nothing; BM25L's log((N+1)/(n+0.5)) stays
-  positive.
+- Variant: `okapi` (original) or `l` = rank_bm25's `BM25L` class (Lv & Zhai 2011 length
+  normalization with `delta`, and rank_bm25's own IDF log((N+1)/(n+0.5)); not a separate
+  implementation, so results are rank_bm25's variant as shipped). With 4-8 option documents
+  Okapi's IDF is 0 for a term in exactly half of them and floored for more, so
+  shared-but-discriminative words ("devolver" in a skill and in `__global__`) score nothing;
+  that BM25L IDF stays positive.
 - Text: accent-free tokens, pt-BR stopwords (`basic` | `extended` = + courtesy/filler words),
   optional stemming (`light` suffix stripper | `prefix` truncation).
 - Fields: one document per option = description + examples + keywords, each field's tokens

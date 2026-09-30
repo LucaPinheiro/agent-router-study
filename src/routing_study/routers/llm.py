@@ -217,12 +217,47 @@ def ranked_candidates(
     return out
 
 
+_CHAT_KEYS = ("model_name", "temperature", "seed", "max_tokens", "extra_body")
+# request fields already represented by `_CHAT_KEYS` (or by the rest of the cache key)
+_COVERED = {
+    "model",
+    "modelId",
+    "messages",
+    "stream",
+    "temperature",
+    "seed",
+    "max_tokens",
+    "max_completion_tokens",
+    "extra_body",
+    "maxTokens",
+}
+
+
+def _sent_params(chat: Any) -> dict[str, Any]:
+    """Generation params the client actually puts on the wire (tools/prompt excluded)."""
+    try:
+        if hasattr(chat, "_converse_params"):  # Bedrock Converse
+            params = dict(chat._converse_params())
+            params.update(params.pop("inferenceConfig", None) or {})
+            return params
+        if hasattr(chat, "_get_request_payload"):  # OpenAI-compatible (OpenRouter, Ollama)
+            return chat._get_request_payload([HumanMessage("")])
+    except Exception:  # a test double or an unknown client: the legacy keys only
+        return {}
+    return {}
+
+
 def chat_params(chat: Any) -> dict[str, Any]:
-    """Sampling/provider params of a chat model that change its output (cache key part)."""
-    return {
-        k: getattr(chat, k, None)
-        for k in ("model_name", "temperature", "seed", "max_tokens", "extra_body")
-    }
+    """Sampling/provider params of a chat model that change its output (cache key part):
+    the legacy keys + every other generation param actually sent (e.g. Ollama
+    `reasoning_effort` = thinking on/off, `logprobs`). Params that are not sent add no key,
+    so the keys of existing cache entries (OpenRouter, Bedrock) are unchanged."""
+    out = {k: getattr(chat, k, None) for k in _CHAT_KEYS}
+    sent = _sent_params(chat)
+    out.update(
+        {k: sent[k] for k in sorted(sent) if k not in _COVERED and sent[k] not in (None, {}, [])}
+    )
+    return out
 
 
 def rendered(messages: list[BaseMessage]) -> list[dict[str, Any]]:
