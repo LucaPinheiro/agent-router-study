@@ -9,12 +9,16 @@ prompt/completion tokens, `cost`, `prompt_tokens_details.cached_tokens/cache_wri
 so `extract_call_usage` and the tracing callbacks are provider-agnostic. Every call goes
 through the spend ledger (`routing_study.budget`): reserved before, recorded after.
 - The served model and provider are read from the response, not from config.
-- Retries: tenacity with exponential backoff; concurrency: one asyncio semaphore per provider.
+- Retries: tenacity with exponential backoff; throttling/capacity errors (Bedrock
+  Throttling/ServiceUnavailable/ModelNotReady/ModelTimeout, HTTP 429/503) are waited out with
+  jittered backoff for up to `throttle_retry_budget_s`; SDK retries are off everywhere.
+  Concurrency: one asyncio semaphore per provider; optional RPM cap per model id.
 """
 
 from __future__ import annotations
 
 import asyncio
+import random
 import time
 import weakref
 from collections.abc import Awaitable, Callable, Iterable
@@ -550,8 +554,20 @@ class RpmLimiter:
 _rpm_limiters: dict[tuple[int, str], RpmLimiter] = {}
 
 
+def rpm_cap(model: str, settings: Settings) -> int | None:
+    """Requests/minute cap of a model id (the id the call actually uses: OpenRouter slug,
+    Bedrock id or Ollama served name): `settings.rpm_limits[model]` and the `rpm_limit` of
+    every configured model block with that id; the tightest one wins."""
+    caps = [settings.rpm_limits.get(model)]
+    caps += [
+        cfg.rpm_limit for _, cfg in model_configs(settings) if model in (cfg.model, cfg.served_name)
+    ]
+    found = [c for c in caps if c]
+    return min(found) if found else None
+
+
 def rpm_limiter(model: str, settings: Settings) -> RpmLimiter | None:
-    rpm = settings.rpm_limits.get(model)
+    rpm = rpm_cap(model, settings)
     if not rpm:
         return None
     key = (id(asyncio.get_running_loop()), model)
@@ -605,15 +621,27 @@ def _rate_limit_reset_s(exc: BaseException) -> float | None:
         return None
 
 
-# Bedrock: throttling / capacity / transient server errors (ClientError code)
-_BEDROCK_RETRY = {
+# Bedrock capacity errors (ClientError code): retried for up to `throttle_retry_budget_s`
+_BEDROCK_THROTTLE = {
     "ThrottlingException",
     "ServiceUnavailableException",
-    "InternalServerException",
     "ModelNotReadyException",
     "ModelTimeoutException",
     "TooManyRequestsException",
 }
+# other transient Bedrock errors: retried up to `http_retries` times
+_BEDROCK_RETRY = _BEDROCK_THROTTLE | {"InternalServerException"}
+_THROTTLE_STATUS = {429, 503}
+
+
+def _is_throttle(exc: BaseException | None) -> bool:
+    """Capacity / rate errors: worth waiting out (long jittered backoff, time-bounded)."""
+    if exc is None:
+        return False
+    if isinstance(exc, botocore.exceptions.ClientError):
+        return exc.response.get("Error", {}).get("Code") in _BEDROCK_THROTTLE
+    status, _, _ = _error_parts(exc)
+    return status in _THROTTLE_STATUS
 
 
 def _is_retryable(exc: BaseException) -> bool:
@@ -668,17 +696,38 @@ async def call_with_retry[T](
             stats.errors.append(repr(state.outcome.exception())[:200])
 
     backoff = wait_exponential_jitter(initial=0.5, max=8.0)
+    budget = settings.throttle_retry_budget_s
+    by_count = stop_after_attempt(settings.http_retries + 1)
+
+    def _exc(state: RetryCallState) -> BaseException | None:
+        return state.outcome.exception() if state.outcome else None
+
+    def _left(state: RetryCallState) -> float:
+        return budget - (time.monotonic() - state.start_time)
 
     def _wait(state: RetryCallState) -> float:
-        exc = state.outcome.exception() if state.outcome else None
+        exc = _exc(state)
         reset = _rate_limit_reset_s(exc) if exc else None
         if reset is not None:
-            return min(reset + 0.5, settings.max_rate_limit_wait_s)
-        return backoff(state)
+            wait = min(reset + 0.5, settings.max_rate_limit_wait_s)
+        elif _is_throttle(exc):  # equal jitter: [cap/2, cap], cap doubling per attempt
+            cap = min(
+                settings.throttle_backoff_max_s,
+                settings.throttle_backoff_initial_s * 2 ** (state.attempt_number - 1),
+            )
+            wait = cap * random.uniform(0.5, 1.0)
+        else:
+            return backoff(state)
+        return max(0.0, min(wait, _left(state))) if _is_throttle(exc) else wait
+
+    def _stop(state: RetryCallState) -> bool:
+        if _is_throttle(_exc(state)):  # time-bounded, however many attempts that takes
+            return _left(state) <= 0
+        return by_count(state)
 
     limiter = rpm_limiter(model, settings)
     retrying = AsyncRetrying(
-        stop=stop_after_attempt(settings.http_retries + 1),
+        stop=_stop,
         wait=_wait,
         retry=retry_if_exception(_is_retryable),
         after=_record,

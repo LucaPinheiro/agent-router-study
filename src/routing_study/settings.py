@@ -94,6 +94,10 @@ class ModelEndpoint(_Config):
     # as a derived tag `<model>-ctx<num_ctx>` (same weights, PARAMETER num_ctx), created on
     # preload. Bounds the KV cache: the default 32768 doubled resident memory.
     num_ctx: int | None = Field(default=None, ge=512)
+    # Client-side requests-per-minute cap for THIS model id (Bedrock inference profile,
+    # OpenRouter slug or Ollama name), shared by every role calling the same id. Operational,
+    # not decision-shaping: excluded from dumps so it never changes a run's config hash.
+    rpm_limit: int | None = Field(default=None, ge=1, exclude=True)
 
     @model_validator(mode="before")
     @classmethod
@@ -351,11 +355,19 @@ class Settings(BaseSettings):
     cache_dir: str = ".cache"
     max_concurrency_per_provider: int = Field(default=8, ge=1)
     http_retries: int = Field(default=3, ge=0)
-    # Client-side requests-per-minute caps per model slug (OpenRouter new-account limits).
+    # Client-side requests-per-minute caps per model id (any provider: OpenRouter slug,
+    # Bedrock id, Ollama name). A model block's own `rpm_limit` is merged in (min wins).
     rpm_limits: dict[str, int] = Field(
         default_factory=lambda: {"anthropic/claude-sonnet-5": 18, "anthropic/claude-sonnet-5.5": 18}
     )
     max_rate_limit_wait_s: float = 65.0
+    # Throttling / capacity errors (Bedrock ThrottlingException, ServiceUnavailable,
+    # ModelNotReady, ModelTimeout; HTTP 429/503) are retried with jittered exponential backoff
+    # until this many seconds have passed since the first attempt (`http_retries` bounds the
+    # other transient errors only).
+    throttle_retry_budget_s: float = Field(default=180.0, ge=0.0)
+    throttle_backoff_initial_s: float = Field(default=1.0, gt=0.0)
+    throttle_backoff_max_s: float = Field(default=30.0, gt=0.0)
     request_timeout_s: float = 60.0
 
     routing: RoutingConfig = Field(default_factory=RoutingConfig)
