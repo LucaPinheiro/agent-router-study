@@ -87,12 +87,19 @@ def chosen_skill(rec: dict[str, Any]) -> str:
     if not rec["native"]:
         skill = rec.get("skill") or {}
         return ABSTAIN if skill.get("abstained") or not skill.get("choice") else skill["choice"]
-    for c in rec.get("calls", []):  # native: the first skill it loaded, else the tool's skill
+    # native: the first skill it loaded or whose tool it called; a global tool called before
+    # that (e.g. a help-center search, then load_skill) does not decide the skill: __global__
+    # only when no skill was ever loaded (F5)
+    used_global = False
+    for c in rec.get("calls", []):
         if c["name"] == LOAD_SKILL and c["args"].get("skill"):
             return c["args"]["skill"]
         if c["name"] != LOAD_SKILL and c.get("status") != REFUSED:
-            return c.get("skill") or GLOBAL_OPTION
-    return ABSTAIN
+            skill = c.get("skill")
+            if skill and skill != GLOBAL_OPTION:
+                return skill
+            used_global = True
+    return GLOBAL_OPTION if used_global else ABSTAIN
 
 
 def chosen_tool(rec: dict[str, Any]) -> str:
@@ -146,25 +153,46 @@ def _arg_match(key: str, expected: Any, args: dict[str, Any], params: dict[str, 
     return _match(expected, args.get(key))
 
 
+def user_order_ids(turns: list[dict[str, str]] | None) -> set[str]:
+    """Order ids the customer wrote (normalized like the mock server)."""
+    out: set[str] = set()
+    for t in turns or []:
+        if t.get("role") == "user":
+            out |= {o for m in _ORDER_ID.findall(t.get("content") or "") if (o := _order_id(m))}
+    return out
+
+
 def call_args_valid(
-    call: dict[str, Any], expected: dict[str, Any], schemas: dict[str, dict[str, Any]]
+    call: dict[str, Any],
+    expected: dict[str, Any],
+    schemas: dict[str, dict[str, Any]],
+    turns: list[dict[str, str]] | None = None,
 ) -> bool:
+    """Schema-valid, the gold args match, and an `order_id` the call passed is one the
+    customer wrote when they wrote any (F5: enforced even when the gold omits order_id)."""
     schema = schemas.get(call["name"])
     if schema is None or any(True for _ in Draft202012Validator(schema).iter_errors(call["args"])):
         return False
     params = schema.get("properties") or {}
+    written = user_order_ids(turns)
+    called = _order_id(call["args"].get("order_id"))
+    if written and "order_id" in params and called is not None and called not in written:
+        return False
     return all(
         _arg_match(k, v, call["args"], params) for k, v in (expected.get("args") or {}).items()
     )
 
 
 def args_valid(
-    rec: dict[str, Any], expected: dict[str, Any], schemas: dict[str, dict[str, Any]]
+    rec: dict[str, Any],
+    expected: dict[str, Any],
+    schemas: dict[str, dict[str, Any]],
+    turns: list[dict[str, str]] | None = None,
 ) -> bool:
     call = completion_call(rec)
     if call is None:
         return ABSTAIN in expected["acceptable_tools"]
-    return call_args_valid(call, expected, schemas)
+    return call_args_valid(call, expected, schemas, turns)
 
 
 # ---------------------------------------------------------------- clarification / invention
@@ -180,6 +208,26 @@ _DATE_HINT = re.compile(
     r"proxima semana|segunda|terca|quarta|quinta|sexta|sabado|domingo|janeiro|fevereiro|"
     r"marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\b"
 )
+# the customer already gave a free-text required field (accent-free, casefolded user turns):
+# lexical cues per field, documented in docs/metrics.md (F5). A field whose cue matches is not
+# missing, so asking for it earns no clarification credit.
+_ADDRESS_CUE = re.compile(r"\b(rua|r|avenida|av|alameda|travessa|rodovia|cep|\d{5}-?\d{3})\b")
+_PROVIDED = {
+    "defect_description": re.compile(
+        r"\b(defeit\w*|quebr\w*|parou|para de|nao (liga|funciona|carrega|acende|conecta|"
+        r"fecha|abre)|rasg\w*|manch\w*|trinc\w*|riscad\w*|amassad\w*|vaz\w*|estragad\w*|"
+        r"falh\w*|descostur\w*|desligando|esquent\w*|chiado|barulho)"
+    ),
+    "reason": re.compile(
+        r"\b(porque|pois|motivo|por causa|desisti\w*|arrepend\w*|nao (quero|preciso|gostei|"
+        r"serviu|coube|reconheco)|errad\w*|atras\w*|cobrad\w* (duas|2) vezes|duplicad\w*)"
+    ),
+    "new_variant": re.compile(
+        r"\b(tamanho|numero|numeracao|cor|modelo|voltagem|110|220|pp|p|m|g|gg|xg|\d{2}|"
+        r"azul|preto|preta|branco|branca|vermelh\w*|verde|rosa|cinza|amarel\w*|bege|marrom)\b"
+    ),
+    **dict.fromkeys(_ADDRESS_FIELDS, _ADDRESS_CUE),
+}
 # words of a reply that asks the customer for a required field (accent-free, casefolded)
 _ASKS_FOR = {
     "new_date": ("data", "dia", "quando"),
@@ -262,21 +310,50 @@ def missing_required(
             continue
         if not enum and f == "new_date" and _DATE_HINT.search(user):
             continue
+        if not enum and f in _PROVIDED and _PROVIDED[f].search(user):
+            continue
         out.append(f)
     return out
 
 
+_QUESTION = re.compile(r"[^.!?\n]*\?")
+# the reply says it already did the action: then it is not a clarifying question
+_SUCCESS_CLAIM = re.compile(
+    r"\b(pronto|sucesso|conclui\w*|realizad[oa]s?|efetuad[oa]s?|ja (cancelei|abri|registrei|"
+    r"solicitei|alterei|troquei|gerei|reagendei|atualizei|fiz)|foi (cancelad|registrad|abert|"
+    r"alterad|reagendad|solicitad|criad|gerad|emitid|atualizad|contestad)\w*)"
+)
+
+
+def questions(answer: str) -> list[str]:
+    """The question sentences of a reply (accent-free, casefolded)."""
+    return _QUESTION.findall(_plain(answer))
+
+
 def _asks_for(answer: str, field: str) -> bool:
-    text = _plain(answer)
-    return "?" in text and any(w in text for w in _ASKS_FOR.get(field, (field.replace("_", " "),)))
+    """A question sentence of the reply names the field (word-start match): a keyword
+    outside the questions (e.g. "Entendi o problema.") does not count (F5)."""
+    words = _ASKS_FOR.get(field, (field.replace("_", " "),))
+    return any(re.search(r"\b" + re.escape(w), q) for q in questions(answer) for w in words)
+
+
+def claims_success(answer: str) -> bool:
+    return bool(_SUCCESS_CLAIM.search(_plain(answer)))
+
+
+def offers_order_choice(answer: str, ids: Iterable[str]) -> bool:
+    """A which-order clarification: a question, at least two of the ids offered, and no
+    claim that an action was already done (F5)."""
+    text = answer.casefold()
+    offered = {str(i).casefold() for i in ids if str(i).casefold() in text}
+    return bool(questions(answer)) and len(offered) >= 2 and not claims_success(answer)
 
 
 def _asks_which_order(rec: dict[str, Any], expected: dict[str, Any], answer: str) -> bool:
     if "order_id" in (expected.get("args") or {}):
         return False
     owned = [str(o.get("order_id")) for o in (rec.get("customer") or {}).get("orders") or []]
-    text = answer.casefold()
-    return len(owned) >= 2 and sum(o.casefold() in text for o in owned) >= 2
+    return len(owned) >= 2 and offers_order_choice(answer, owned)
 
 
 def clarified_without_call(
@@ -318,6 +395,7 @@ def recovered_call(
     expected: dict[str, Any],
     schemas: dict[str, dict[str, Any]],
     read_only: Collection[str] = (),
+    turns: list[dict[str, str]] | None = None,
 ) -> dict[str, Any] | None:
     """A later business call to an acceptable tool that completed with valid args: the
     customer's goal was reached even if the first attempt was another tool. Only when no
@@ -330,7 +408,7 @@ def recovered_call(
         if (
             c["name"] in expected["acceptable_tools"]
             and c.get("status") == "completed"
-            and call_args_valid(c, expected, schemas)
+            and call_args_valid(c, expected, schemas, turns)
         ):
             return c
     return None
@@ -391,15 +469,15 @@ def asked_which_order(
     call: dict[str, Any] | None, expected: dict[str, Any], answer: str | None
 ) -> bool:
     """Correct clarification: the user named no order, the customer has several, the tool
-    answered a recoverable VALIDATION_ERROR listing them and the reply offers them back."""
+    answered a recoverable VALIDATION_ERROR listing them and the reply asks a question
+    offering at least two of them back, without claiming an action was done (F5)."""
     if call is None or "order_id" in (expected.get("args") or {}) or not answer:
         return False
     err = call.get("structured") or {}
     options = (err.get("details") or {}).get("options") or []
     if not (err.get("code") == "VALIDATION_ERROR" and err.get("recoverable") and len(options) > 1):
         return False
-    text = answer.casefold()
-    return any(str(o).casefold() in text for o in options)
+    return offers_order_choice(answer, options)
 
 
 # ---------------------------------------------------------------- shared routing scores
@@ -520,7 +598,7 @@ def score_turn(
         rec.get("outcome") == "abstained" or escalated, expected
     )
     scores["resolved_by"] = resolved_by
-    args_ok = True if clarified else args_valid(rec, expected, schemas)
+    args_ok = True if clarified else args_valid(rec, expected, schemas, turns)
     call = completion_call(rec)
     scores["args_valid"] = float(args_ok)
     answer = rec.get("final_answer")
@@ -536,7 +614,7 @@ def score_turn(
     # tool_correct stays strict (first call); e2e_success is the customer's outcome, so a
     # later completed call to an acceptable tool with valid args also counts.
     first_ok = bool(scores["tool_correct"]) and args_ok and finished
-    recovered = None if first_ok else recovered_call(rec, expected, schemas, read_only)
+    recovered = None if first_ok else recovered_call(rec, expected, schemas, read_only, turns)
     success = bool(scores["skill_correct"]) and (first_ok or recovered is not None)
     scores["e2e_success"] = float(success)
     # H3: the call that decided the outcome filled a required fact nobody gave

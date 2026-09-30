@@ -299,3 +299,91 @@ def test_l3_read_only_comes_from_the_readonlyhint_annotation() -> None:
     assert ok["e2e_success"] == 1.0
     # without the annotation the earlier completed call is an action: never rescued
     assert score_turn(_rec(calls), cancel, SCHEMAS, read_only=frozenset())["e2e_success"] == 0.0
+
+
+# ---------------------------------------------------------------- F5 (methodology-final M5)
+
+CLARIFY_3 = {
+    "status": "error",
+    "code": "VALIDATION_ERROR",
+    "recoverable": True,
+    "details": {"options": ["O0001", "O0002", "O0003"]},
+}
+CANCEL_ANY = {
+    "acceptable_skills": ["pedidos_logistica"],
+    "acceptable_tools": ["cancel_order"],
+    "args": {},
+}
+
+
+def test_f5_asked_which_order_needs_a_question_two_ids_and_no_success_claim() -> None:
+    from routing_study.eval.scorers import asked_which_order
+
+    call = _call("cancel_order", status="error", structured=CLARIFY_3)
+    assert asked_which_order(call, CANCEL_ANY, "Qual pedido quer cancelar: O0001 ou O0002?")
+    # a statement offering the ids is not a question
+    assert not asked_which_order(call, CANCEL_ANY, "Seus pedidos são O0001 e O0002.")
+    # one id offered is not a choice
+    assert not asked_which_order(call, CANCEL_ANY, "Quer cancelar o O0001?")
+    # claims it already acted
+    assert not asked_which_order(
+        call, CANCEL_ANY, "Pronto, o pedido O0001 foi cancelado! Quer cancelar o O0002 também?"
+    )
+
+
+def test_f5_direct_which_order_clarification_rejects_a_success_claim() -> None:
+    rec = _rec(
+        [],
+        answer="Já cancelei o O0001. Deseja algo com o O0002?",
+        exposed=["cancel_order"],
+        tool="cancel_order",
+    )
+    assert score_turn(rec, CANCEL_ANY, SCHEMAS)["e2e_success"] == 0.0
+
+
+def test_f5_missing_required_checks_free_text_fields_against_the_user_turns() -> None:
+    from routing_study.eval.scorers import missing_required
+
+    exp = {"acceptable_tools": ["open_warranty_claim"], "args": {"order_id": "O0001"}}
+    said = [{"role": "user", "content": "o fone do pedido O0001 parou de funcionar"}]
+    assert missing_required("open_warranty_claim", exp, SCHEMAS, said) == []
+    silent = [{"role": "user", "content": "quero abrir garantia do pedido O0001"}]
+    assert missing_required("open_warranty_claim", exp, SCHEMAS, silent) == ["defect_description"]
+
+
+def test_f5_clarification_credit_needs_the_field_asked_in_a_question() -> None:
+    turns = [{"role": "user", "content": "Preciso abrir garantia do pedido O0001"}]
+    base = dict(skill="trocas_devolucoes", exposed=["open_warranty_claim"])
+    base |= {"tool": "open_warranty_claim"}
+    stray = _rec(
+        [], answer="Entendi o problema. Posso ajudar com mais alguma coisa?", **base
+    )  # keyword "problema" outside the question
+    assert score_turn(stray, WARRANTY, SCHEMAS, turns=turns)["e2e_success"] == 0.0
+    asked = _rec([], answer="Entendi. Qual defeito o produto apresenta?", **base)
+    assert score_turn(asked, WARRANTY, SCHEMAS, turns=turns)["e2e_success"] == 1.0
+    # the customer already described the defect: asking again earns nothing
+    said = [{"role": "user", "content": "abrir garantia do O0001, a tela quebrou"}]
+    assert score_turn(asked, WARRANTY, SCHEMAS, turns=said)["e2e_success"] == 0.0
+
+
+def test_f5_call_args_valid_enforces_order_ids_the_user_wrote() -> None:
+    from routing_study.eval.scorers import call_args_valid
+
+    turns = [{"role": "user", "content": "quero cancelar o pedido O0002"}]
+    wrong = _call("cancel_order", {"order_id": "O0001"})
+    right = _call("cancel_order", {"order_id": "o0002"})
+    assert not call_args_valid(wrong, CANCEL_ANY, SCHEMAS, turns)
+    assert call_args_valid(right, CANCEL_ANY, SCHEMAS, turns)
+    assert call_args_valid(wrong, CANCEL_ANY, SCHEMAS, None)  # no user id: not enforced
+    s = score_turn(_rec([wrong]), CANCEL_ANY, SCHEMAS, turns=turns)
+    assert s["args_valid"] == 0.0 and s["e2e_success"] == 0.0
+
+
+def test_f5_native_skill_is_the_skill_loaded_after_a_global_tool() -> None:
+    from routing_study.eval.scorers import chosen_skill
+
+    search = _call("search_help_center", {"query": "prazo"}, skill="__global__")
+    load = _call("load_skill", {"skill": "trocas_devolucoes"})
+    assert chosen_skill(_rec([search, load], native=True)) == "trocas_devolucoes"
+    assert chosen_skill(_rec([search], native=True)) == "__global__"
+    assert chosen_skill(_rec([], native=True)) == "__abstain__"
