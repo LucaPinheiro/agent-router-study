@@ -876,6 +876,29 @@ async def _check_ollama(
             raise UnknownModelError(f"Ollama at {base} has not pulled: {missing}")
 
 
+async def preload_ollama(
+    settings: Settings, names: set[str] | None = None, keep_alive: str = "30m"
+) -> dict[str, float]:
+    """Load the run's local models before timing starts (`/api/generate` with no prompt), so
+    a model load never lands in a measured routing latency. Returns model -> load seconds."""
+    out: dict[str, float] = {}
+    async with httpx.AsyncClient(timeout=600) as client:
+        for _, cfg in model_configs(settings, names):
+            if cfg.provider != "ollama" or cfg.model in out:
+                continue
+            base = (cfg.base_url or settings.ollama_base_url).rstrip("/").removesuffix("/v1")
+            t0 = time.perf_counter()
+            if cfg is settings.strategies.embedding:
+                body = {"model": cfg.model, "input": "", "keep_alive": keep_alive}
+                r = await client.post(f"{base}/api/embed", json=body)
+            else:
+                body = {"model": cfg.model, "keep_alive": keep_alive}
+                r = await client.post(f"{base}/api/generate", json=body)
+            r.raise_for_status()
+            out[cfg.model] = time.perf_counter() - t0
+    return out
+
+
 async def validate_models(
     settings: Settings, http: httpx.AsyncClient | None = None, names: set[str] | None = None
 ) -> dict[str, list[str]]:

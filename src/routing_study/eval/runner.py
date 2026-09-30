@@ -33,7 +33,7 @@ from routing_study.graph import nodes as graph_nodes
 from routing_study.graph.builder import build_graph, redis_checkpointer
 from routing_study.graph.nodes import max_tool_rounds
 from routing_study.graph.state import RunContext
-from routing_study.llm import chat_model_for, model_configs, validate_models
+from routing_study.llm import chat_model_for, model_configs, preload_ollama, validate_models
 from routing_study.prompts import AVAILABLE_SKILLS, HOST_RULES
 from routing_study.routers import llm as llm_router
 from routing_study.routers.base import Message, RouteOption, RoutingInput
@@ -327,6 +327,7 @@ class Runner:
 
         supported = await validate_models(self.settings, names=self.model_roles())
         await self.check_budget(len(cases) * self.reps)
+        await preload_ollama(self.settings, self.model_roles())
         redis = aioredis.from_url(self.settings.redis_url)
         self.catalog = CatalogProvider(self.settings, redis)
         catalog, _ = await self.catalog.get()
