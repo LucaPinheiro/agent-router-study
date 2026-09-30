@@ -111,3 +111,108 @@ def test_point_metrics_and_selection_tie_break():
     assert m["p50_ms"] == 500.0 and m["p95_ms"] == 800.0
     cheap = dict(m, cost_per_1k=1.0)
     assert tune_router.selection_key(cheap) > tune_router.selection_key(m)
+
+
+# ---------------------------------------------------------------- F2: failures are errors
+
+
+class _Pipe:
+    """A pipeline stub: returns scripted PipelineResults in order (last one repeats)."""
+
+    def __init__(self, results):
+        self.results = list(results)
+        self.calls = 0
+
+    async def run(self, inp, options):
+        self.calls += 1
+        return self.results[min(self.calls - 1, len(self.results) - 1)]
+
+
+def _result(choice, *, strategy="llm", error=None, parse_fail=False):
+    from routing_study.routers.base import RouteDecision
+    from routing_study.routers.pipeline import PipelineResult
+
+    usage = {"error": error} if error else {"parse_fail": True} if parse_fail else {}
+    d = RouteDecision(choice=choice, confidence=0.9 if choice else 0.0, strategy=strategy)
+    d.usage = usage
+    return PipelineResult(
+        decision=d,
+        resolved_by=strategy if choice else None,
+        abstained=choice is None,
+        mode="single",
+        steps=[d],
+        routing_error=f"{strategy}: {error}" if error and not choice else None,
+    )
+
+
+class _Catalog:
+    def skill_options(self):
+        return []
+
+    def tool_options(self, skill):
+        return []
+
+
+OOS_CASE = {
+    "id": "oos",
+    "category": "fora_escopo",
+    "turns": [{"role": "user", "content": "qual a capital da franca?"}],
+    "expected": {"acceptable_skills": ["__abstain__"], "acceptable_tools": ["__abstain__"]},
+}
+
+
+@pytest.mark.parametrize("kw", [{"error": "Timeout"}, {"parse_fail": True}])
+async def test_f2_failed_stage_is_an_error_scored_wrong_never_an_abstention(monkeypatch, kw):
+    """An out-of-scope gold would score a failed (choice None) skill stage as a CORRECT
+    abstention; under ITT it is an error and counts as wrong."""
+    monkeypatch.setattr(tune_router, "ERROR_RETRIES", 0)
+    pipe = _Pipe([_result(None, **kw)])
+    monkeypatch.setattr(tune_router, "build_routers", lambda s, w: {})
+    monkeypatch.setattr(tune_router, "build_pipeline", lambda s, lv, r: pipe)
+    base = Settings(_env_file=None)
+    recs = await tune_router.evaluate(base, [OOS_CASE], _Catalog())
+    rec = recs["oos"]
+    assert rec["error"] and rec["joint_correct"] == rec["skill_correct"] == 0.0
+    assert rec["abstain_correct"] == 0.0
+
+
+async def test_f2_infra_error_is_retried_and_a_recovery_is_scored(monkeypatch):
+    monkeypatch.setattr(tune_router.asyncio, "sleep", _nosleep)
+    skill = _Pipe([_result(None, error="Throttling"), _result("__global__")])
+    tool = _Pipe([_result("escalate_to_human")])
+    pipes = iter([skill, tool])
+    monkeypatch.setattr(tune_router, "build_routers", lambda s, w: {})
+    monkeypatch.setattr(tune_router, "build_pipeline", lambda s, lv, r: next(pipes))
+    recs = await tune_router.evaluate(Settings(_env_file=None), [OOS_CASE], _Catalog())
+    assert skill.calls == 2 and recs["oos"]["error"] is None
+    assert recs["oos"]["joint_correct"] == 1.0
+
+
+async def _nosleep(_s):
+    return None
+
+
+def test_f2_point_metrics_count_errors_and_selection_penalizes_them():
+    def rec(ok: bool, error: str | None = None) -> dict:
+        u = dict.fromkeys(("prompt", "completion", "cache_read", "cache_write"), 0.0)
+        u |= {"static": 0.0, "dynamic": 0.0, "cost": 0.0, "ms": 1.0, "parse_fail": False}
+        u["error"] = bool(error)
+        return {
+            "skill_correct": float(ok),
+            "tool_correct": float(ok),
+            "joint_correct": float(ok),
+            "skill_conf": None,
+            "tool_conf": None,
+            "skill_u": u,
+            "tool_u": u,
+            "error": error,
+        }
+
+    fold = {f"c{i}": 0 for i in range(4)}
+    clean = tune_router.point_metrics({f"c{i}": rec(i < 2) for i in range(4)}, fold, 1)
+    failing = tune_router.point_metrics(
+        {f"c{i}": rec(i < 2, None if i < 3 else "llm: Timeout") for i in range(4)}, fold, 1
+    )
+    assert failing["errors"] == 1 and failing["error_rate"] == 0.25
+    assert failing["joint_correct_mean"] == 0.5  # the error row counts as wrong (ITT)
+    assert tune_router.selection_key(clean) > tune_router.selection_key(failing)

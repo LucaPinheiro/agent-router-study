@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from routing_study.eval.report import render, summarize
 from routing_study.eval.simulate import aggregate, simulate_rows
 from routing_study.settings import PipelineStep, RoutingConfig, Settings, StageConfig
@@ -104,7 +106,25 @@ def test_m4_shadow_error_or_parse_fail_is_an_error_not_an_abstention() -> None:
     for strategy in ("jev", "llm"):
         [res] = simulate_rows([row], _single(strategy))
         assert res["error"], strategy
-    assert aggregate(simulate_rows([row], _single("jev")))["n"] == 0
+    agg = aggregate(simulate_rows([row], _single("jev")))
+    # F2 (ITT): the error row stays in the denominator and counts as wrong
+    assert (agg["n"], agg["errors"], agg["n_ok"]) == (1, 1, 0)
+    assert agg["joint_acc"] == agg["skill_acc"] == 0.0 and agg["error_rate"] == 1.0
+    assert agg["joint_acc_error_free"] is None
+
+
+def test_f2_simulate_itt_counts_error_rows_as_wrong_and_keeps_error_free_sensitivity() -> None:
+    ok = _shadow_row(
+        "a",
+        {"llm": _d("llm", "pedidos_logistica")},
+        {"llm": _d("llm", "get_order_status")},
+        "pedidos_logistica",
+        SKILLS,
+    )
+    bad = _shadow_row("b", {"llm": _d("llm", None, 0.0, error="Timeout")}, None, None, OOS)
+    agg = aggregate(simulate_rows([ok, bad], _single("llm")))
+    assert agg["n"] == 2 and agg["errors"] == 1 and agg["error_rate"] == 0.5
+    assert agg["joint_acc"] == 0.5 and agg["joint_acc_error_free"] == 1.0
 
 
 def _rescored(run: str, config: str, case: str, joint: float, error: str | None = None) -> dict:
@@ -122,20 +142,26 @@ def _rescored(run: str, config: str, case: str, joint: float, error: str | None 
     }
 
 
-def test_m4_l4_report_compares_runs_on_shared_error_free_cases(tmp_path: Path) -> None:
+def test_f2_report_is_itt_with_error_rate_and_an_error_free_sensitivity(tmp_path: Path) -> None:
     rows = []
     for i in range(20):
         rows.append(_rescored("e5", "e5_llm_sonnet", f"c{i}", 1.0))
         rows.append(_rescored("e3", "e3_embedding", f"c{i}", float(i < 10)))
+    # the scores of an error row are ignored: it is wrong whatever they say (ITT)
     rows.append(_rescored("e3", "e3_embedding", "c20", 1.0, error="timeout"))
     rows.append(_rescored("e5", "e5_llm_sonnet", "c20", 1.0))
     by = {r["run"]: r for r in summarize(rows)}
-    assert by["e5"]["n_shared"] == by["e3"]["n_shared"] == 20  # c20 dropped for both
-    assert by["e3"]["joint_correct"] == [1.0] * 10 + [0.0] * 10
-    assert by["e3"]["mcnemar"][:3] == (20, 0, 10) and by["e3"]["mcnemar"][3] < 0.01
-    assert by["e3"]["headline_ci"][1] < 0.5 < by["e3"]["headline_ci"][2]
+    assert by["e3"]["n"] == 21 and by["e3"]["errors"] == 1
+    assert by["e3"]["error_rate"] == pytest.approx(1 / 21)
+    assert by["e3"]["joint_correct"] == [1.0] * 10 + [0.0] * 11
+    assert by["e3"]["headline_ci"][0] == pytest.approx(10 / 21)
+    # sensitivity: c20 dropped for both runs
+    assert by["e5"]["n_shared"] == by["e3"]["n_shared"] == 20
+    assert by["e3"]["error_free_ci"][0] == pytest.approx(0.5)
+    assert by["e3"]["mcnemar"][:3] == (21, 0, 11)
     path = tmp_path / "r.jsonl"
     path.write_text(json.dumps({"_provenance": {}}) + "\n" + "\n".join(map(json.dumps, rows)))
     text = render([path])
     assert "tool_top1%" in text and "tool_first_call%" not in text  # L1 labels
-    assert "20 case ids error-free in every run" in text
+    assert "intention to treat" in text and "err%" in text
+    assert "SENSITIVITY: 20 case ids error-free in every run" in text

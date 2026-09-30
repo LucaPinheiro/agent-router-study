@@ -241,7 +241,8 @@ def test_report_summarizes_per_run(tmp_path: Path) -> None:
     rows = [_result_row("a", ("x", 1.0), "y"), _result_row("b", ("x", 1.0), "y", error="boom")]
     _write_rescored(path, rows)
     [row] = summarize(rows)
-    assert row["n"] == 2 and row["errors"] == 1 and row["skill_correct"] == [1.0]
+    # F2 (ITT): the error row counts as wrong
+    assert row["n"] == 2 and row["errors"] == 1 and row["skill_correct"] == [1.0, 0.0]
     assert "e9-shadow" in render([path])
 
 

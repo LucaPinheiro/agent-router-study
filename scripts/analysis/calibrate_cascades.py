@@ -88,8 +88,10 @@ def calibrate_config(
         return {"name": name, "skipped": f"{n_combos} combos > {MAX_COMBOS}: coarsen --grid"}
     skill_combos, tool_combos = cal.combos_of(g, len(sk_names)), cal.combos_of(g, len(tl_names))
     t_all = cal.build_tables(rows, settings)
-    keep = ~cal.ever_error(t_all, skill_combos, tool_combos)
-    rows = [r for r, k in zip(rows, keep, strict=True) if k]
+    keep = np.ones(len(rows), bool)
+    if args.error_free:  # sensitivity only: the primary analysis is ITT (errors are wrong)
+        keep = ~cal.ever_error(t_all, skill_combos, tool_combos)
+        rows = [r for r, k in zip(rows, keep, strict=True) if k]
     t = cal.build_tables(rows, settings)
     groups = np.array([fold[c] for c in t.case_ids])
     gs = cal.grid_sums(t, skill_combos, tool_combos, groups)
@@ -183,9 +185,15 @@ def render(
         f"- grid {g[0]:.2f}..{g[-1]:.2f} ({len(g)} values) per non-last step; budget {budget}; "
         f"{args.folds}-fold CV stratified by category over case ids, seed {args.seed}; rule (b) "
         f"min support {args.min_support} accepted cases",
-        "- every number of an experiment is over the rows that are error-free at EVERY grid "
-        "point (fixed denominator: a threshold cannot win by routing failing cases into an "
-        "error); joint %: a tool stage that cannot be replayed (simulated skill "
+        (
+            "- SENSITIVITY (--error-free): every number is over the rows error-free at EVERY "
+            "grid point"
+            if args.error_free
+            else "- intention to treat: every row counts; a failed routing stage (error or "
+            "parse failure) is WRONG, never an abstention, so a threshold cannot win by "
+            "routing failing cases into an error"
+        )
+        + "; joint %: a tool stage that cannot be replayed (simulated skill "
         "differs from the recorded one) counted 0 (lower bound); US$/1k routing cost over covered "
         "rows; 95% CIs: cluster bootstrap over case ids (`eval/stats.py`, fixed seed)",
         "- 'dev' = fitted and scored on all dev rows (optimistic); 'CV held-out' = re-fitted on "
@@ -207,7 +215,7 @@ def render(
         }
         out.append(
             f"skill: {chain['skill']} | tool: {chain['tool']} | {r['combos']} combos | "
-            f"{r['rows']} rows error-free at every grid point ({r['excluded']} excluded) | "
+            f"{r['rows']} rows ({r['excluded']} excluded as ever-error) | "
             f"fast evaluator == simulate_rows at {r['checked']} points\n"
         )
         out.append(
@@ -328,6 +336,11 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--grid", type=float, nargs=3, default=[0.50, 0.99, 0.01])
     ap.add_argument("--min-support", type=int, default=5)
+    ap.add_argument(
+        "--error-free",
+        action="store_true",
+        help="sensitivity: drop rows that are an error at some grid point (default: ITT)",
+    )
     ap.add_argument("--checks", type=int, default=5, help="extra random simulator checks")
     ap.add_argument("--out-dir", type=Path, default=Path("results/calibration"))
     args = ap.parse_args()

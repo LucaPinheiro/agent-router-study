@@ -7,14 +7,16 @@ values of the consulted steps (a cached hit counts what it cost when first compu
 
 Per row (H2, M4):
 - error: the replayed stage had no accepting step and a consulted decision failed
-  (`usage.error` or `parse_fail`): excluded, never a scored abstention;
+  (`usage.error` or `parse_fail`): never a scored abstention. Intention to treat (F2): the
+  headline accuracies count an error row as WRONG (it stays in the denominator);
+  `joint_acc_error_free` (non-error rows only) is a sensitivity analysis;
 - the simulated skill cannot be correct: skill, tool and joint are 0 (the tool stage is not
   needed to know that);
 - the skill can be correct and the recorded run routed to the same skill: the tool stage is
   replayed and scored;
 - the skill can be correct but differs from the recorded one: `tool_unavailable` (joint and
-  cost unknown). The headline `joint_acc` is over ALL non-error rows with unavailable rows
-  counted as 0 (a lower bound); `joint_acc_covered` excludes them.
+  cost unknown). The headline `joint_acc` is over ALL rows with unavailable and error rows
+  counted as 0 (a lower bound); `joint_acc_covered` excludes both.
 Cost/latency are over covered rows (whole route simulated) only, labelled as such.
 """
 
@@ -124,23 +126,29 @@ def simulate_rows(rows: list[dict[str, Any]], settings: Settings) -> list[dict[s
 
 
 def aggregate(results: list[dict[str, Any]], keys: set[Any] | None = None) -> dict[str, Any]:
-    """Accuracy over non-error rows (restricted to `keys` when given), cost over covered rows."""
-    rows = [x for x in results if not x["error"] and (keys is None or x["key"] in keys)]
-    covered = [x for x in rows if x["cost_usd"] is not None]
-    known = [x["joint_correct"] for x in rows if x.get("joint_correct") is not None]
-    unavailable = sum(1 for x in rows if x["tool_unavailable"])
+    """ITT accuracy over every row (restricted to `keys` when given; an error row counts as
+    wrong), the error-free sensitivity, cost over covered rows."""
+    rows = [x for x in results if keys is None or x["key"] in keys]
+    ok = [x for x in rows if not x["error"]]
+    covered = [x for x in ok if x["cost_usd"] is not None]
+    known = [x["joint_correct"] for x in ok if x.get("joint_correct") is not None]
+    unavailable = sum(1 for x in ok if x["tool_unavailable"])
+    n = len(rows)
     return {
-        "n": len(rows),
-        "errors": sum(1 for x in results if x["error"]),
-        "skill_acc": mean(x["skill_correct"] for x in rows) if rows else None,
-        "joint_acc": sum(known) / len(rows) if rows else None,
+        "n": n,
+        "n_ok": len(ok),
+        "errors": n - len(ok),
+        "error_rate": (n - len(ok)) / n if n else None,
+        "skill_acc": sum(x["skill_correct"] for x in ok) / n if n else None,
+        "joint_acc": sum(known) / n if n else None,
+        "joint_acc_error_free": sum(known) / len(ok) if ok else None,
         "joint_acc_covered": mean(known) if known else None,
         "tool_unavailable": unavailable,
-        "tool_coverage": 1 - unavailable / len(rows) if rows else None,
+        "tool_coverage": 1 - unavailable / len(ok) if ok else None,
         "covered_n": len(covered),
         "routing_cost_case": mean(x["cost_usd"] for x in covered) if covered else None,
         "routing_ms_case": mean(x["latency_ms"] for x in covered) if covered else None,
-        "resolved_by": dict(Counter(x["resolved_by"] for x in rows)),
+        "resolved_by": dict(Counter(x["resolved_by"] for x in ok)),
     }
 
 
@@ -164,7 +172,9 @@ def render_simulation(results: Path, settings: Settings) -> str:
     )
     return (
         f"simulated {s['config']} over {results.name}: n={s['n']} errors={s['errors']} "
-        f"skill={_pct(s['skill_acc'])} joint={_pct(s['joint_acc'])} (all rows, unavailable=0) "
+        f"error_rate={_pct(s['error_rate'])} skill={_pct(s['skill_acc'])} "
+        f"joint={_pct(s['joint_acc'])} (ITT: all rows, error/unavailable=0) "
+        f"joint_error_free={_pct(s['joint_acc_error_free'])} (sensitivity) "
         f"joint_covered={_pct(s['joint_acc_covered'])} "
         f"tool_coverage={_pct(s['tool_coverage'])} tool_unavailable={s['tool_unavailable']} "
         f"{cost} (covered rows, n={s['covered_n']}) resolved_by={s['resolved_by']}"

@@ -293,3 +293,16 @@ def test_script_refuses_a_non_dev_split(tmp_path, monkeypatch):
     monkeypatch.setattr(sys, "argv", ["calibrate_cascades.py", str(shadow)])
     with pytest.raises(SystemExit, match="dev only"):
         calibrate_cascades.main()
+
+
+def test_f2_itt_counts_error_rows_as_wrong_in_the_grid_and_the_summary():
+    rows = cheap_vs_expensive_rows()
+    rows[0]["skill"]["shadow"]["llm"] = dec("llm", None, 0.0, 0.01, error="Timeout")
+    t = cal.build_tables(rows, two_step())
+    # threshold 0.99: row 0 (regex conf 0.60) reaches the failing LLM -> an error row
+    m = cal.metrics(cal.grid_sums(t, np.array([[0.99]]), np.zeros((1, 0))).total())
+    assert m["n"][0, 0] == 40 and m["errors"][0, 0] == 1 and m["n_ok"][0, 0] == 39
+    assert m["joint_acc"][0, 0] == pytest.approx(39 / 40)  # the error counts as wrong
+    assert m["joint_acc_error_free"][0, 0] == 1.0
+    s = cal.summarize(cal.row_values(t, (0.99,), ()))
+    assert s["n"] == 40 and s["errors"] == 1 and s["joint_ci"][0] == pytest.approx(39 / 40)

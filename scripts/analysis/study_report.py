@@ -6,9 +6,11 @@ Usage: uv run python scripts/analysis/study_report.py <rescored shadow.jsonl>
 Every entry (isolated strategy, simulated cascade, real single run) is scored by the shared
 scorer through `eval.simulate` (an isolated strategy is a one-step `single` pipeline), so the
 out-of-scope mapping, wrong-skill and error rules are the same everywhere (review H1, H2, M4):
-- accuracy is over the (case_id, rep) keys that are error-free for EVERY entry;
+- intention to treat (F2): accuracy is over the (case_id, rep) keys every entry has, and an
+  error row (a failed routing stage: error or parse failure) counts as WRONG; `err %` is its
+  own column; the keys error-free for EVERY entry give a labelled sensitivity column only;
 - joint % counts a wrong skill as 0 and a tool stage that cannot be replayed (`n_unavail`) as
-  0 too (lower bound); `joint cov.` excludes the latter;
+  0 too (lower bound); `joint cov.` excludes the latter and the error rows;
 - cost / p50 latency are over the keys whose whole route every entry could simulate;
 - 95% CIs: paired cluster bootstrap over case ids (fixed seed, 10k); McNemar vs E5 on joint.
 `--single` adds real (non-shadow) runs, e.g. E6 Haiku, whose LLM differs from the shadow LLM.
@@ -89,15 +91,15 @@ def single_run_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """A real (rescored) run in the shape of `simulate_rows` results."""
     out = []
     for r in rows:
-        s = r.get("scores") or {}
+        s = {} if r.get("error") else r.get("scores") or {}  # an error row is wrong (ITT)
         out.append(
             {
                 "key": (r["case_id"], r["rep"]),
                 "case_id": r["case_id"],
                 "category": r.get("category"),
                 "error": r.get("error"),
-                "skill_correct": s.get("skill_correct"),
-                "joint_correct": s.get("joint_correct"),
+                "skill_correct": s.get("skill_correct", 0.0),
+                "joint_correct": s.get("joint_correct", 0.0),
                 "tool_unavailable": False,
                 "confidence": (r.get("skill") or {}).get("confidence") or 0.0,
                 "resolved_by": s.get("resolved_by"),
@@ -109,39 +111,47 @@ def single_run_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def by_case(rows: list[dict[str, Any]], field: str) -> dict[str, list[float]]:
+    """case id -> values; an error row or a missing value is 0 (ITT)."""
     out: dict[str, list[float]] = defaultdict(list)
     for x in rows:
         v = x.get(field)
-        out[x["case_id"]].append(0.0 if v is None else float(v))
+        out[x["case_id"]].append(0.0 if x.get("error") or v is None else float(v))
     return out
 
 
 def entry_stats(
     name: str,
     res: list[dict[str, Any]],
-    shared: set[Any],
+    keys: set[Any],
+    error_free: set[Any],
     costed: set[Any],
     ref: dict[Any, float] | None,
 ) -> dict[str, Any]:
-    rows = [x for x in res if x["key"] in shared]
+    """ITT over `keys` (an error row is wrong); `error_free` keys give the sensitivity CI."""
+    rows = [x for x in res if x["key"] in keys]
+    ok = [x for x in rows if not x["error"]]
     cost_rows = [x for x in rows if x["key"] in costed]
-    joint = {x["key"]: x["joint_correct"] for x in rows if x.get("joint_correct") is not None}
+    joint = {x["key"]: 0.0 if x["error"] else x.get("joint_correct") or 0.0 for x in rows}
     cats: dict[str, list[float]] = defaultdict(list)
     for x in rows:
-        cats[x["category"]].append(float(x["skill_correct"]))
+        cats[x["category"]].append(0.0 if x["error"] else float(x.get("skill_correct") or 0.0))
     return {
         "name": name,
         "n": len(rows),
-        "errors": sum(1 for x in res if x["error"]),
-        "skill": pct([float(x["skill_correct"]) for x in rows]),
+        "errors": len(rows) - len(ok),
+        "err_pct": pct([float(bool(x["error"])) for x in rows]),
+        "skill": pct([0.0 if x["error"] else float(x.get("skill_correct") or 0.0) for x in rows]),
         "joint_ci": bootstrap_mean(by_case(rows, "joint_correct")),
-        "joint_cov": pct(list(joint.values())),
-        "n_unavail": sum(1 for x in rows if x["tool_unavailable"]),
-        "ece": ece([(float(x.get("confidence") or 0), float(x["skill_correct"])) for x in rows]),
+        "joint_ef_ci": bootstrap_mean(
+            by_case([x for x in rows if x["key"] in error_free], "joint_correct")
+        ),
+        "joint_cov": pct([x["joint_correct"] for x in ok if x.get("joint_correct") is not None]),
+        "n_unavail": sum(1 for x in ok if x["tool_unavailable"]),
+        "ece": ece([(float(x.get("confidence") or 0), float(x["skill_correct"])) for x in ok]),
         "cost_ci": bootstrap_mean(by_case(cost_rows, "cost_usd")),
         "p50_ci": bootstrap_stat(by_case(cost_rows, "latency_ms"), np.median),
         "mcnemar": mcnemar(joint, ref) if ref is not None and name != REFERENCE else None,
-        "resolved_by": dict(Counter(x["resolved_by"] for x in rows)),
+        "resolved_by": dict(Counter(x["resolved_by"] for x in ok)),
         "by_cat": {c: pct(cats[c]) for c in CATEGORIES},
     }
 
@@ -183,37 +193,41 @@ def main() -> None:
         srows = read_rescored(path)[1]
         entries[f"{srows[0]['run_name']} (real run)"] = single_run_rows(srows)
 
-    keys = [{x["key"] for x in res if not x["error"]} for res in entries.values()]
-    shared = set.intersection(*keys)
-    costed = (
-        set.intersection(
-            *({x["key"] for x in res if x["cost_usd"] is not None} for res in entries.values())
+    keys = set.intersection(*({x["key"] for x in res} for res in entries.values()))
+    error_free = keys & set.intersection(
+        *({x["key"] for x in res if not x["error"]} for res in entries.values())
+    )
+    costed = error_free & set.intersection(
+        *(
+            {x["key"] for x in res if not x["error"] and x.get("cost_usd") is not None}
+            for res in entries.values()
         )
-        & shared
     )
     ref_rows = entries.get(REFERENCE) or []
     ref = {
-        x["key"]: x["joint_correct"]
+        x["key"]: 0.0 if x["error"] else x.get("joint_correct") or 0.0
         for x in ref_rows
-        if x["key"] in shared and x.get("joint_correct") is not None
+        if x["key"] in keys
     }
-    stats = [entry_stats(n, res, shared, costed, ref) for n, res in entries.items()]
+    stats = [entry_stats(n, res, keys, error_free, costed, ref) for n, res in entries.items()]
 
     print(f"# shadow run {args.shadow.name}: {len(rows)} rows\n")
     print(
         f"scorer {prov['scorer_hash']} | dataset {prov['dataset']['sha256'][:12]} | "
-        f"run git {prov['run_git_sha']} | {len(shared)} (case, rep) keys error-free for every "
-        f"entry; cost/latency over {len(costed)} keys every entry fully simulated\n"
+        f"run git {prov['run_git_sha']} | intention to treat over {len(keys)} (case, rep) keys "
+        f"(an error row counts as wrong); sensitivity: {len(error_free)} keys error-free for "
+        f"every entry; cost/latency over {len(costed)} keys every entry fully simulated\n"
     )
     print(
-        "| entry | n | err | skill % | joint % 95% CI | joint cov. % | n_unavail | ECE "
-        "| US$/1k routing 95% CI | p50 ms 95% CI | McNemar joint vs E5 (entry/E5 only) "
-        "| resolved_by |"
+        "| entry | n | err | err % | skill % | joint % 95% CI (ITT) | joint % error-free ∩ "
+        "(sensitivity) | joint cov. % | n_unavail | ECE | US$/1k routing 95% CI "
+        "| p50 ms 95% CI | McNemar joint vs E5 (entry/E5 only) | resolved_by |"
     )
-    print("|---|---|---|---|---|---|---|---|---|---|---|---|")
+    print("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
     for s in stats:
         print(
-            f"| {s['name']} | {s['n']} | {s['errors']} | {s['skill']} | {fmt_ci(s['joint_ci'])} "
+            f"| {s['name']} | {s['n']} | {s['errors']} | {s['err_pct']} | {s['skill']} "
+            f"| {fmt_ci(s['joint_ci'])} | {fmt_ci(s['joint_ef_ci'])} "
             f"| {s['joint_cov']} | {s['n_unavail']} | {s['ece']:.3f} "
             f"| {fmt_ci(s['cost_ci'], scale=1000.0, digits=4)} "
             f"| {fmt_ci(s['p50_ci'], scale=1.0, digits=0)} | {_mc(s['mcnemar'])} "

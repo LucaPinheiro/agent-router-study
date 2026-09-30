@@ -14,9 +14,10 @@ pipeline per row and stage, too slow for a full grid (E9: 50^2 skill x 50 tool c
    over covered rows only;
 2. `grid_sums` picks each row's outcome for every threshold combination in numpy and sums
    per group (CV fold);
-3. `ever_error` drops the rows that are an error row at SOME grid point, so every threshold
-   choice is scored on the same rows (an error row is excluded from accuracy; otherwise a
-   threshold could "win" by escalating hard cases to a step that failed on them);
+3. intention to treat (F2): an error row counts as WRONG and stays in the denominator, so a
+   threshold cannot "win" by escalating hard cases to a step that failed on them;
+   `ever_error` (rows that are an error row at SOME grid point) gives the error-free
+   sensitivity analysis (`calibrate_cascades.py --error-free`);
 4. `simulator_check` re-runs `simulate_rows` at chosen points and asserts both agree, so the
    fast path cannot drift from the simulator.
 
@@ -341,13 +342,17 @@ def grid_sums(
 
 
 def metrics(s: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
-    """Accuracy over non-error rows, cost over covered rows (as `simulate.aggregate`)."""
+    """ITT accuracy over every row (an error row is wrong), cost over covered rows (as
+    `simulate.aggregate`); `n` counts every row, `n_ok` the error-free ones."""
+    total = s["n"] + s["errors"]
     with np.errstate(invalid="ignore", divide="ignore"):
         return {
-            "n": s["n"],
+            "n": total,
+            "n_ok": s["n"],
             "errors": s["errors"],
-            "joint_acc": s["joint"] / s["n"],
-            "skill_acc": s["skill"] / s["n"],
+            "joint_acc": s["joint"] / total,
+            "skill_acc": s["skill"] / total,
+            "joint_acc_error_free": s["joint"] / s["n"],
             "joint_acc_covered": s["joint"] / s["known"],
             "cost": s["cost"] / s["covered"],
             "unavail": s["unavail"],
@@ -372,7 +377,7 @@ def select_budget(
 ) -> tuple[Thresholds, Thresholds] | None:
     """(a) max joint accuracy subject to routing cost/case <= budget (None: unconstrained)."""
     m = metrics(gs.total(exclude))
-    feasible = (m["n"] > 0) & ~np.isnan(m["joint_acc"])
+    feasible = (m["n_ok"] > 0) & ~np.isnan(m["joint_acc"])
     if budget is not None:
         feasible &= ~np.isnan(m["cost"]) & (m["cost"] <= budget + 1e-15)
     best = _pick(m, gs, feasible)
@@ -385,7 +390,7 @@ def pareto_front(gs: GridSums) -> list[dict[str, Any]]:
     """Non-dominated (cost, joint accuracy) points; one representative per point (the
     `_pick` tie rule)."""
     m = metrics(gs.total())
-    valid = (m["n"] > 0) & ~np.isnan(m["cost"]) & ~np.isnan(m["joint_acc"])
+    valid = (m["n_ok"] > 0) & ~np.isnan(m["cost"]) & ~np.isnan(m["joint_acc"])
     acc = np.round(m["joint_acc"][valid], 12)
     cost = np.round(m["cost"][valid], 15)
     order = np.lexsort((-acc, cost))
@@ -513,18 +518,17 @@ def row_values(t: Tables, skill: Thresholds, tool: Thresholds) -> list[dict[str,
 
 
 def summarize(rows: Sequence[dict[str, Any]]) -> dict[str, Any]:
-    """Joint accuracy (non-error rows) and cost/case (covered rows), 95% cluster-bootstrap CIs
-    over case ids (`stats.bootstrap_mean`)."""
+    """ITT joint accuracy (an error row is wrong) and cost/case (covered rows), 95%
+    cluster-bootstrap CIs over case ids (`stats.bootstrap_mean`)."""
     joint: dict[str, list[float]] = defaultdict(list)
     cost: dict[str, list[float]] = defaultdict(list)
     for r in rows:
-        if r["error"]:
-            continue
-        joint[r["case_id"]].append(r["joint"])
-        if r["cost"] is not None:
+        joint[r["case_id"]].append(0.0 if r["error"] else r["joint"])
+        if not r["error"] and r["cost"] is not None:
             cost[r["case_id"]].append(r["cost"])
     return {
         "n": sum(len(v) for v in joint.values()),
+        "errors": sum(1 for r in rows if r["error"]),
         "joint_ci": bootstrap_mean(joint),
         "cost_ci": bootstrap_mean(cost),
     }

@@ -27,6 +27,9 @@ pipeline-only parameters costs one pass.
 Protocol (nested, so the reported number is an estimate of the TUNING PROCEDURE, not of the
 best grid point on the data that chose it):
 - every grid point is scored on every dev case (routers have no data-fitted state);
+- a routing stage that failed (usage.error or parse_fail with no accepting step, after
+  ERROR_RETRIES retries of infrastructure errors) is an error row scored WRONG (intention to
+  treat), never an abstention; `errors` is reported per point and breaks accuracy ties;
 - per fold: pick the grid point with the best mean joint accuracy on the other k-1 folds
   (ties -> first in grid order), score it on the held-out fold;
 - `--calibrate`: per fold, fit an isotonic map raw confidence -> P(correct) per level on the
@@ -53,7 +56,7 @@ from fastmcp import Client
 
 from routing_study.budget import BudgetExceededError
 from routing_study.catalog import Catalog, fetch_catalog
-from routing_study.eval.scorers import routing_scores
+from routing_study.eval.scorers import routing_failure, routing_scores
 from routing_study.routers.base import GLOBAL_OPTION, Message, RoutingInput
 from routing_study.routers.calibration import Calibration, ece, fit_isotonic
 from routing_study.routers.pipeline import build_pipeline, build_routers
@@ -201,21 +204,23 @@ async def evaluate(
     skill_p, tool_p = (build_pipeline(settings, lv, routers) for lv in LEVELS)  # type: ignore[arg-type]
     sem = asyncio.Semaphore(concurrency)
 
-    async def run(pipe: Any, inp: RoutingInput, options: list[Any]) -> Any:
-        """A routing error (throttling, timeout: infrastructure, excluded from accuracy by
-        `study run`) is retried; failures are never cached, so only they are re-sent. A
-        parse failure is the router's own answer and is scored."""
+    async def run(pipe: Any, inp: RoutingInput, options: list[Any]) -> tuple[Any, str | None]:
+        """(result, failure). An infrastructure error (throttling, timeout) is retried;
+        failures are never cached, so only they are re-sent. A stage that still failed (an
+        error, or a parse failure, with no accepting step) is an ERROR: scored wrong (ITT),
+        never an abstention (F2)."""
         for attempt in range(ERROR_RETRIES + 1):
             res = await pipe.run(inp, options)
             if not res.routing_error or attempt == ERROR_RETRIES:
-                return res
+                break
             await asyncio.sleep(5 * (attempt + 1))
-        return res
+        steps = [d.model_dump(mode="json") for d in res.steps]
+        return res, routing_failure(steps, res.resolved_by is not None)
 
     async def one(case: dict[str, Any]) -> tuple[str, dict[str, Any]]:
         async with sem:
-            sk = await run(skill_p, _input(case, "skill"), catalog.skill_options())
-            skill = sk.decision.choice
+            sk, error = await run(skill_p, _input(case, "skill"), catalog.skill_options())
+            skill = None if error else sk.decision.choice
             rec: dict[str, Any] = {
                 "category": case["category"],
                 "message": case["turns"][-1]["content"],
@@ -229,11 +234,14 @@ async def evaluate(
             }
             if skill is not None:
                 inp = _input(case, "tool", None if skill == GLOBAL_OPTION else skill)
-                tl = await run(tool_p, inp, catalog.tool_options(skill))
-                rec["tool"] = tl.decision.choice
-                rec["tool_conf"] = _raw(tl.decision) if tl.decision.choice else None
+                tl, error = await run(tool_p, inp, catalog.tool_options(skill))
+                rec["tool"] = None if error else tl.decision.choice
+                rec["tool_conf"] = _raw(tl.decision) if rec["tool"] else None
                 rec["tool_u"] = call_usage(tl.steps)
-            return case["id"], rec | routing_scores(skill, rec["tool"], case["expected"])
+            scores = routing_scores(skill, rec["tool"], case["expected"])
+            if error:  # ITT: a failed stage is wrong, whatever the gold
+                scores = dict.fromkeys(scores, 0.0)
+            return case["id"], rec | scores | {"error": error}
 
     return dict(await asyncio.gather(*(one(c) for c in rows)))
 
@@ -280,7 +288,8 @@ def point_metrics(
         "p95_ms": pct(case_ms, 95),
         "tool_p50_ms": median([r["tool_u"]["ms"] for r in rows if r["tool_u"]["ms"]] or [0.0]),
         "parse_fail": sum(r[f"{lv}_u"]["parse_fail"] for r in rows for lv in LEVELS),
-        "errors": sum(r[f"{lv}_u"].get("error", False) for r in rows for lv in LEVELS),
+        "errors": sum(1 for r in rows if r.get("error")),  # failed rows, scored wrong
+        "error_rate": sum(1 for r in rows if r.get("error")) / len(rows) if rows else 0.0,
     }
     for key in ("prompt", "static", "dynamic", "cache_read", "cache_write", "completion"):
         out[f"{key}_tokens"] = mean(c[key] for c in calls) if calls else 0.0
@@ -290,9 +299,10 @@ def point_metrics(
     return out
 
 
-def selection_key(m: dict[str, Any]) -> tuple[float, float, float]:
-    """Best joint accuracy; ties -> lower cost, then lower latency (docs/prompt-apex.md)."""
-    return (m["joint_correct_mean"], -m["cost_per_1k"], -m["p50_ms"])
+def selection_key(m: dict[str, Any]) -> tuple[float, float, float, float]:
+    """Best joint accuracy (errors count as wrong); ties -> fewer failed rows, lower cost,
+    then lower latency (docs/prompt-apex.md)."""
+    return (m["joint_correct_mean"], -m.get("errors", 0), -m["cost_per_1k"], -m["p50_ms"])
 
 
 # ---------------------------------------------------------------- report
@@ -380,7 +390,7 @@ def main() -> None:
     print(
         f"{'joint':>13} {'skill':>6} {'tool':>6} {'ECEs':>5} {'ECEt':>5} {'prompt':>6} "
         f"{'static':>6} {'dyn':>5} {'c.rd':>5} {'c.wr':>5} {'out':>5} {'$/1k':>7} "
-        f"{'p50':>6} {'p95':>6} {'tl50':>6} {'pf':>3}  point"
+        f"{'p50':>6} {'p95':>6} {'tl50':>6} {'pf':>3} {'err':>3}  point"
     )
     for i in sorted(range(len(points)), key=lambda i: selection_key(metrics[i]), reverse=True):
         m = metrics[i]
@@ -391,7 +401,8 @@ def main() -> None:
             f"{m['static_tokens']:6.0f} {m['dynamic_tokens']:5.0f} {m['cache_read_tokens']:5.0f} "
             f"{m['cache_write_tokens']:5.0f} {m['completion_tokens']:5.0f} "
             f"{m['cost_per_1k']:7.3f} {m['p50_ms']:6.0f} {m['p95_ms']:6.0f} "
-            f"{m['tool_p50_ms']:6.0f} {m['parse_fail']:3d}  {label(points[i])}"
+            f"{m['tool_p50_ms']:6.0f} {m['parse_fail']:3d} {m.get('errors', 0):3d}  "
+            f"{label(points[i])}"
         )
 
     # ---- nested CV
@@ -407,6 +418,7 @@ def main() -> None:
             range(len(points)),
             key=lambda i: (
                 acc([results[i][c] for c in train_ids], "joint_correct"),
+                -sum(1 for c in train_ids if results[i][c].get("error")),
                 -metrics[i]["cost_per_1k"],
                 -metrics[i]["p50_ms"],
                 -i,
