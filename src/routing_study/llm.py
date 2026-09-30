@@ -86,8 +86,13 @@ class _Metered:
 
 
 def result_usage(result: ChatResult) -> dict[str, Any]:
+    """Usage of a raw `_agenerate` result: langchain-core only merges `llm_output` (where
+    ChatOpenAI keeps `token_usage`) into the message metadata AFTER `_agenerate` returns."""
     msg = result.generations[0].message if result.generations else None
-    return extract_call_usage(msg if isinstance(msg, AIMessage) else None)
+    if not isinstance(msg, AIMessage):
+        return extract_call_usage(None)
+    meta = {**(result.llm_output or {}), **msg.response_metadata}
+    return extract_call_usage(msg.model_copy(update={"response_metadata": meta}))
 
 
 class OpenRouterChat(_Metered, ChatOpenAI):
@@ -143,11 +148,9 @@ class OllamaChat(_Metered, ChatOpenAI):
     ) -> ChatResult:
         with self._meter(messages, **kw) as meter:
             result = await super()._agenerate(messages, stop, run_manager, **kw)
-            for gen in result.generations:
-                if isinstance(gen.message, AIMessage):
-                    meta = gen.message.response_metadata
-                    meta["provider"] = "ollama"
-                    meta.setdefault("token_usage", {})["cost"] = 0.0
+            out = result.llm_output = result.llm_output or {}
+            out["provider"] = "ollama"
+            out["token_usage"] = {**(out.get("token_usage") or {}), "cost": 0.0}
             meter.done(result_usage(result))
         return result
 

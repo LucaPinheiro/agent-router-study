@@ -346,3 +346,19 @@ def test_shadow_set_keeps_local_llms_out_when_models_do_not_fit():
     e6b = load_settings("config/experiments/e6b_llm_qwen3_local.yaml", _env_file=None)
     # its own pipeline step stays; the other local LLM does not join the pass
     assert "llm_local" in shadow_set(e6b) and "llm_local_large" not in shadow_set(e6b)
+
+
+@respx.mock
+async def test_openrouter_cost_reaches_the_ledger(settings):
+    from routing_study.llm import make_chat_model
+
+    BASE_URL = "https://openrouter.test/api/v1"
+    body = ollama_completion("oi") | {"model": "openai/x", "provider": "Azure"}
+    body["usage"] = {"prompt_tokens": 100, "completion_tokens": 10, "cost": 0.0003}
+    respx.post(f"{BASE_URL}/chat/completions").mock(return_value=httpx.Response(200, json=body))
+    s = settings.model_copy(update={"openrouter_base_url": BASE_URL})
+    chat = make_chat_model(s, "typesafe/jev-router", http_async_client=httpx.AsyncClient())
+    msg = await chat.ainvoke("x")
+    assert extract_call_usage(msg)["cost_usd"] == pytest.approx(0.0003)
+    row = ledger_for(s).rows()[-1]
+    assert (row["provider"], row["cost_usd"], row["prompt_tokens"]) == ("openrouter", 0.0003, 100)
