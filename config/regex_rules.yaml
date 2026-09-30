@@ -1,0 +1,134 @@
+# Regex-first router rules (pt-BR). Written from the domain/tool catalog only — no test data.
+#
+# - Keys are option ids: the 3 skills + __global__ (skill stage) and the 18 MCP tools
+#   (tool stage). A router only scores the ids present in the current option list.
+# - Input is lowercased and accent-stripped before matching; patterns are accent-stripped
+#   and compiled case-insensitive, so write them WITHOUT accents (e.g. "devolucao").
+# - Option score = sum of the weights of matching patterns. `full_score` is the score that
+#   saturates confidence strength at 1.0; a tie between two options halves confidence.
+# - Weights: 1.0 = decisive phrase, 0.6 = strong hint, 0.3 = weak/shared vocabulary.
+
+full_score: 1.0
+
+rules:
+  # =========================================================== skill stage
+  pedidos_logistica:
+    - { pattern: '\b(cade|onde (esta|anda|ta)) (a |o )?(minha |meu )?(encomenda|pedido|pacote|compra|entrega)', weight: 1.0 }
+    - { pattern: '\b(rastre\w*|rastreio|codigo de rastreamento|tracking)\b', weight: 1.0 }
+    - { pattern: '\b(nao (chegou|foi entregue|recebi)|ainda nao chegou|atras\w+ (na|a) entrega|entrega atrasad\w*)', weight: 0.6 }
+    - { pattern: '\b(transportadora|correios|frete|envio|enviad\w+|despachad\w+|saiu para entrega)\b', weight: 0.6 }
+    - { pattern: '\b(mudar|trocar|alterar|atualizar|corrigir) (o )?endereco\b', weight: 1.0 }
+    - { pattern: '\b(reagendar|remarcar|nova data|outro dia|mudar a data) (da |de )?(entrega)?', weight: 1.0 }
+    - { pattern: '\bcancel\w+ (o |a |meu |minha )?(pedido|compra)\b', weight: 1.0 }
+    - { pattern: '\b(status|situacao|andamento) do (meu )?pedido\b', weight: 1.0 }
+    - { pattern: '\b(pedido|encomenda|entrega|prazo de entrega)\b', weight: 0.3 }
+
+  pagamentos_reembolsos:
+    - { pattern: '\b(2a|segunda) via\b.*\bboleto\b|\bboleto\b.*\b(2a|segunda) via\b', weight: 1.0 }
+    - { pattern: '\bboleto\b', weight: 0.6 }
+    - { pattern: '\b(reembolso|estorno|estornar|reembolsar)\b', weight: 1.0 }
+    - { pattern: '\b(meu )?dinheiro de volta\b|\bdevolv\w+ (o |meu )?dinheiro\b', weight: 0.6 }
+    - { pattern: '\b(cobranca|cobrad\w+|cobrou|cobraram)\b.*\b(duplicad\w+|duas vezes|indevid\w+|errad\w+|nao reconheco)\b', weight: 1.0 }
+    - { pattern: '\b(contestar|contestacao|chargeback)\b', weight: 1.0 }
+    - { pattern: '\b(pagamento|pix|cartao de credito|fatura|parcela\w*)\b', weight: 0.6 }
+    - { pattern: '\b(pagamento (foi )?(aprovado|recusado|confirmado|pendente)|(ja )?paguei)\b', weight: 1.0 }
+
+  trocas_devolucoes:
+    - { pattern: '\b(devolver|devolucao|devolucoes)\b', weight: 1.0 }
+    - { pattern: '\b(trocar|troca)\b(?!.*\bendereco\b)', weight: 0.6 }
+    - { pattern: '\b(tamanho|numero|cor|modelo) errad\w+|\bveio (errad\w+|trocad\w+|outro|com defeito|quebrad\w+|danificad\w+)', weight: 1.0 }
+    - { pattern: '\b(defeito|defeituos\w+|quebrad\w+|estragad\w+|parou de funcionar|nao liga)\b', weight: 0.6 }
+    - { pattern: '\bgarantia\b', weight: 1.0 }
+    - { pattern: '\betiqueta\b.*\b(devolucao|postagem|envio)\b|\b(codigo|etiqueta) de postagem\b', weight: 1.0 }
+    - { pattern: '\b(nao (serviu|gostei|ficou bom)|ficou (pequen|grand)\w+|arrependi\w*)\b', weight: 0.6 }
+
+  __global__:
+    - { pattern: '\b(falar|conversar|atendimento) com (um |uma )?(atendente|humano|pessoa|gerente|supervisor\w*)\b', weight: 1.0 }
+    - { pattern: '\b(atendente|humano|pessoa de verdade|reclamacao formal|procon)\b', weight: 0.6 }
+    - { pattern: '\b(meus dados|meu cadastro|meu perfil|dados cadastrais|meu e-?mail cadastrado)\b', weight: 1.0 }
+    - { pattern: '\b(politica|prazo|regra)s? de (troca|devolucao|reembolso|entrega|frete)\b', weight: 0.6 }
+    - { pattern: '\b(como funciona|qual (e )?o prazo|quanto tempo leva|duvida sobre)\b', weight: 0.3 }
+
+  # =========================================================== tool stage: globals
+  get_customer_profile:
+    - { pattern: '\b(meus dados|meu cadastro|meu perfil|dados cadastrais|minha conta)\b', weight: 1.0 }
+    - { pattern: '\b(qual|quais) (e |sao )?(o |os )?(meu|meus) (e-?mail|telefone|endereco cadastrado|pedidos)\b', weight: 0.6 }
+
+  search_help_center:
+    - { pattern: '\b(politica|prazo|regra)s? de (troca|devolucao|reembolso|entrega|frete|garantia)\b', weight: 1.0 }
+    - { pattern: '\b(como funciona|como faco para|qual (e )?o prazo|quanto tempo (leva|demora)|e possivel|posso)\b', weight: 0.6 }
+    - { pattern: '\b(duvida|informacao|informacoes|central de ajuda|faq)\b', weight: 0.3 }
+
+  escalate_to_human:
+    - { pattern: '\b(falar|conversar|atendimento) com (um |uma )?(atendente|humano|pessoa|gerente|supervisor\w*)\b', weight: 1.0 }
+    - { pattern: '\b(atendente|humano|pessoa de verdade|procon|reclame aqui|reclamacao formal|absurdo)\b', weight: 0.6 }
+
+  # =========================================================== tool stage: pedidos_logistica
+  get_order_status:
+    - { pattern: '\b(status|situacao|andamento) (do|de) (meu |minha )?(pedido|compra)\b', weight: 1.0 }
+    - { pattern: '\b(pedido|compra) (foi )?(confirmad\w+|aprovad\w+|separad\w+|faturad\w+)\b', weight: 0.6 }
+    - { pattern: '\b(como esta|como anda) (o |meu )?pedido\b', weight: 1.0 }
+
+  track_shipment:
+    - { pattern: '\b(rastre\w*|rastreio|codigo de rastreamento|tracking)\b', weight: 1.0 }
+    - { pattern: '\b(cade|onde (esta|anda|ta)) (a |o )?(minha |meu )?(encomenda|pacote|entrega)\b', weight: 1.0 }
+    - { pattern: '\b(transportadora|correios|saiu para entrega|em transito|previsao de entrega)\b', weight: 0.6 }
+
+  update_delivery_address:
+    - { pattern: '\b(mudar|trocar|alterar|atualizar|corrigir) (o |meu )?endereco\b', weight: 1.0 }
+    - { pattern: '\bendereco (errado|novo|de entrega)\b|\bmudei de endereco\b', weight: 0.6 }
+
+  reschedule_delivery:
+    - { pattern: '\b(reagendar|remarcar)\b', weight: 1.0 }
+    - { pattern: '\b(nova data|outro dia|outra data|mudar a data|nao vou estar em casa)\b', weight: 0.6 }
+
+  cancel_order:
+    - { pattern: '\bcancel\w+ (o |a |meu |minha |esse |essa )?(pedido|compra)\b', weight: 1.0 }
+    - { pattern: '\b(nao quero mais|desist\w+ da compra|cancelar)\b', weight: 0.6 }
+
+  # =========================================================== tool stage: pagamentos_reembolsos
+  get_payment_status:
+    - { pattern: '\bpagamento (foi )?(aprovado|recusado|confirmado|pendente|processado|compensado)\b', weight: 1.0 }
+    - { pattern: '\b(status|situacao) do (meu )?pagamento\b|\b(ja )?paguei\b|\bcompensou\b', weight: 1.0 }
+    - { pattern: '\b(pix|pagamento)\b', weight: 0.3 }
+
+  generate_boleto_second_copy:
+    - { pattern: '\b(2a|segunda|nova) via\b', weight: 1.0 }
+    - { pattern: '\bboleto (vencid\w+|venceu|perdi|atualizado)\b|\b(perdi|venceu) o boleto\b', weight: 1.0 }
+    - { pattern: '\bboleto\b', weight: 0.3 }
+
+  request_refund:
+    - { pattern: '\b(quero|queria|solicitar|pedir|pedir o) (o |um )?(reembolso|estorno)\b', weight: 1.0 }
+    - { pattern: '\b(meu )?dinheiro de volta\b|\bdevolv\w+ (o |meu )?dinheiro\b|\breembolsar\b|\bestornar\b', weight: 1.0 }
+
+  get_refund_status:
+    - { pattern: '\b(status|situacao|andamento) do (meu )?(reembolso|estorno)\b', weight: 1.0 }
+    - { pattern: '\b(reembolso|estorno)\b.*\b(caiu|nao caiu|ainda nao|quando|cade|prazo)\b|\b(caiu|cade|quando cai) (o )?(reembolso|estorno)\b', weight: 1.0 }
+
+  dispute_charge:
+    - { pattern: '\b(contestar|contestacao|chargeback)\b', weight: 1.0 }
+    - { pattern: '\b(cobranca|cobrad\w+|cobrou|cobraram)\b.*\b(duplicad\w+|duas vezes|indevid\w+|nao reconheco|nao autorizei)\b', weight: 1.0 }
+    - { pattern: '\bnao reconheco (essa|esta|a) (compra|cobranca)\b', weight: 0.6 }
+
+  # =========================================================== tool stage: trocas_devolucoes
+  check_return_eligibility:
+    - { pattern: '\b(posso|da pra|consigo|ainda (posso|da)) (devolver|trocar)\b', weight: 1.0 }
+    - { pattern: '\b(prazo|elegivel|elegibilidade|dentro do prazo) (para|pra|de)? ?(devolu\w+|troca)?\b', weight: 0.6 }
+
+  create_return_request:
+    - { pattern: '\b(quero|queria|preciso|vou) devolver\b', weight: 1.0 }
+    - { pattern: '\b(abrir|solicitar|fazer) (uma )?devolucao\b', weight: 1.0 }
+    - { pattern: '\b(devolver|devolucao)\b', weight: 0.3 }
+
+  generate_return_label:
+    - { pattern: '\betiqueta\b', weight: 1.0 }
+    - { pattern: '\b(codigo|autorizacao) de postagem\b|\bcomo (envio|mando|posto) (de volta|o produto)\b', weight: 0.6 }
+
+  create_exchange:
+    - { pattern: '\b(trocar|troca)\b.*\b(tamanho|numero|cor|modelo|outro|por um)\b', weight: 1.0 }
+    - { pattern: '\b(tamanho|numero|cor|modelo) errad\w+|\bveio (errad\w+|trocad\w+|outro)\b', weight: 0.6 }
+    - { pattern: '\b(quero|queria) trocar\b', weight: 0.6 }
+
+  open_warranty_claim:
+    - { pattern: '\bgarantia\b', weight: 1.0 }
+    - { pattern: '\b(parou de funcionar|nao liga mais|deu defeito|defeito de fabrica\w*|estragou)\b', weight: 0.6 }
