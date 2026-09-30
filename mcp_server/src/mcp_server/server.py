@@ -64,8 +64,17 @@ class CatalogMiddleware(Middleware):
                 span.set_attributes({"status": status, "code": code, "latency_ms": latency_ms})
                 if result.is_error:
                     span.set_status(trace.StatusCode.ERROR, code or "tool error")
-                logger.info(json.dumps({"event": "tools/call", "tool": name, "status": status,
-                                        "code": code, "latency_ms": latency_ms}))
+                logger.info(
+                    json.dumps(
+                        {
+                            "event": "tools/call",
+                            "tool": name,
+                            "status": status,
+                            "code": code,
+                            "latency_ms": latency_ms,
+                        }
+                    )
+                )
                 return result
         finally:
             current_customer_id.reset(token)

@@ -36,9 +36,7 @@ def setup_tracing() -> bool:
     if pk and sk and not os.getenv("OTEL_EXPORTER_OTLP_HEADERS"):
         token = base64.b64encode(f"{pk}:{sk}".encode()).decode()
         headers = {"Authorization": f"Basic {token}"}
-    exporter = OTLPSpanExporter(
-        endpoint=f"{endpoint.rstrip('/')}/v1/traces", headers=headers
-    )
+    exporter = OTLPSpanExporter(endpoint=f"{endpoint.rstrip('/')}/v1/traces", headers=headers)
     service = os.getenv("OTEL_SERVICE_NAME", "mcp-server")
     provider = TracerProvider(resource=Resource.create({"service.name": service}))
     provider.add_span_processor(BatchSpanProcessor(exporter))

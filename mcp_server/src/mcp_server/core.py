@@ -119,7 +119,6 @@ def get_customer() -> dict[str, Any]:
             "VALIDATION_ERROR",
             "Cliente não identificado na requisição.",
             recoverable=False,
-            suggested_tool="escalate_to_human",
         )
     customer = CUSTOMERS.get(cid)
     if customer is None:
@@ -127,7 +126,6 @@ def get_customer() -> dict[str, Any]:
             "NOT_FOUND",
             f"Cliente {cid} não encontrado.",
             recoverable=False,
-            suggested_tool="escalate_to_human",
         )
     return customer
 
@@ -188,6 +186,66 @@ def pick_sku(order: dict[str, Any], sku: str | None) -> dict[str, Any]:
         recoverable=True,
         details={"options": [i["sku"] for i in items]},
     )
+
+
+def open_return(order: dict[str, Any]) -> dict[str, Any] | None:
+    return next((r for r in RETURNS.values() if r["order_id"] == order["id"]), None)
+
+
+def ensure_no_money_back(order: dict[str, Any]) -> None:
+    """Refuse a new return/exchange/dispute while a refund or return is already open."""
+    refund = REFUNDS_BY_ORDER.get(order["id"])
+    if refund is not None:
+        raise ToolFailure(
+            "NOT_ELIGIBLE",
+            f"Já existe o reembolso {refund['id']} (status {refund['status']}) para o pedido "
+            f"{order['id']}.",
+            recoverable=False,
+            suggested_tool="get_refund_status",
+        )
+    ret = open_return(order)
+    if ret is not None:
+        raise ToolFailure(
+            "NOT_ELIGIBLE",
+            f"Já existe a devolução {ret['id']} aberta para o pedido {order['id']}.",
+            recoverable=False,
+            suggested_tool="generate_return_label",
+        )
+
+
+def days_since_delivery(order: dict[str, Any]) -> int | None:
+    if not order["delivered_at"]:
+        return None
+    return (TODAY - date.fromisoformat(order["delivered_at"])).days
+
+
+def after_delivery_next_step(order: dict[str, Any]) -> str:
+    """Tool that can succeed next for a delivered order (refund, return label, return, or
+    the eligibility summary when every window is closed)."""
+    if order["id"] in REFUNDS_BY_ORDER:
+        return "get_refund_status"
+    if open_return(order) is not None:
+        return "generate_return_label"
+    days = days_since_delivery(order)
+    if days is not None and days <= POLICIES["windows"]["return_or_exchange_days_after_delivery"]:
+        return "create_return_request"
+    return "check_return_eligibility"
+
+
+def money_back_next_step(order: dict[str, Any]) -> str:
+    """Tool that can succeed next when the customer wants money back for this order."""
+    if order["id"] in REFUNDS_BY_ORDER:
+        return "get_refund_status"
+    if PAYMENTS[order["payment_id"]]["status"] != "approved":
+        return "get_payment_status"
+    lost = bool(order["shipment_id"]) and SHIPMENTS[order["shipment_id"]]["status"] == "lost"
+    if order["status"] == "cancelled" or lost:
+        return "request_refund"
+    if order["status"] in ("awaiting_payment", "processing"):
+        return "cancel_order"
+    if order["delivered_at"]:
+        return after_delivery_next_step(order)
+    return "track_shipment"
 
 
 # ---------------------------------------------------------------- tool registry

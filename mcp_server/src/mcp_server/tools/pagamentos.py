@@ -22,6 +22,8 @@ from mcp_server.core import (
     brl,
     catalog_tool,
     days_from_today,
+    ensure_no_money_back,
+    money_back_next_step,
     ok,
     protocol,
     refund_deadline,
@@ -71,8 +73,13 @@ async def get_payment_status(order_id: OrderId = None) -> ToolResult:
     o = resolve_order(order_id)
     p = PAYMENTS[o["payment_id"]]
     result = PaymentStatusResult(
-        order_id=o["id"], payment_id=p["id"], method=p["method"], payment_status=p["status"],
-        amount=Money(**p["amount"]), installments=p["installments"], paid_at=p["paid_at"],
+        order_id=o["id"],
+        payment_id=p["id"],
+        method=p["method"],
+        payment_status=p["status"],
+        amount=Money(**p["amount"]),
+        installments=p["installments"],
+        paid_at=p["paid_at"],
         boleto_due_date=p["boleto_due_date"],
     )
     extra = f", pago em {p['paid_at']}" if p["paid_at"] else ""
@@ -101,7 +108,7 @@ CONFIRMATION: não requer.
 RESULT: linha digitável, valor e vencimento; repasse sem alterar nenhum dígito.
 """,
     examples=[
-        "Preciso da segunda via do boleto",
+        "Pode reemitir o boleto da minha compra?",
         "Meu boleto venceu, como pago agora?",
         "Perdi o boleto do pedido O0001",
         "Gera um boleto novo para mim",
@@ -115,21 +122,31 @@ async def generate_boleto_second_copy(order_id: OrderId = None) -> ToolResult:
         raise ToolFailure(
             "NOT_ELIGIBLE",
             f"O pedido {o['id']} foi pago com {p['method']}, não com boleto.",
-            recoverable=False, suggested_tool="get_payment_status",
+            recoverable=False,
+            suggested_tool="get_payment_status",
         )
     if p["status"] != "pending":
         raise ToolFailure(
             "NOT_ELIGIBLE",
             f"O boleto do pedido {o['id']} já foi pago (status {p['status']}).",
-            recoverable=False, suggested_tool="get_payment_status",
+            recoverable=False,
+            suggested_tool="get_payment_status",
         )
     due = days_from_today(POLICIES["windows"]["boleto_second_copy_due_days"])
     digest = hashlib.sha256(f"{p['id']}|{due}".encode()).hexdigest()
     barcode = str(int(digest, 16))[:47]
-    result = BoletoResult(order_id=o["id"], payment_id=p["id"], barcode=barcode,
-                          amount=Money(**p["amount"]), due_date=due)
-    return ok(result, f"2ª via do boleto do pedido {o['id']}: {brl(p['amount'])}, vencimento "
-                      f"{due}. Linha digitável: {barcode}.")
+    result = BoletoResult(
+        order_id=o["id"],
+        payment_id=p["id"],
+        barcode=barcode,
+        amount=Money(**p["amount"]),
+        due_date=due,
+    )
+    return ok(
+        result,
+        f"2ª via do boleto do pedido {o['id']}: {brl(p['amount'])}, vencimento "
+        f"{due}. Linha digitável: {barcode}.",
+    )
 
 
 @catalog_tool(
@@ -164,33 +181,42 @@ async def request_refund(
     o = resolve_order(order_id)
     p = PAYMENTS[o["payment_id"]]
     if o["id"] in REFUNDS_BY_ORDER or p["status"] == "refunded":
-        raise ToolFailure("NOT_ELIGIBLE", f"Já existe reembolso para o pedido {o['id']}.",
-                          recoverable=False, suggested_tool="get_refund_status")
+        raise ToolFailure(
+            "NOT_ELIGIBLE",
+            f"Já existe reembolso para o pedido {o['id']}.",
+            recoverable=False,
+            suggested_tool="get_refund_status",
+        )
     if p["status"] != "approved":
         raise ToolFailure(
             "NOT_ELIGIBLE",
             f"O pagamento do pedido {o['id']} está com status {p['status']}; não há valor a "
             "reembolsar.",
-            recoverable=False, suggested_tool="get_payment_status",
+            recoverable=False,
+            suggested_tool="get_payment_status",
         )
     lost = bool(o["shipment_id"]) and SHIPMENTS[o["shipment_id"]]["status"] == "lost"
     if not (o["status"] == "cancelled" or lost):
-        suggested = {
-            "awaiting_payment": "cancel_order", "processing": "cancel_order",
-            "delivered": "create_return_request",
-        }.get(o["status"], "track_shipment")
         raise ToolFailure(
             "NOT_ELIGIBLE",
             f"O pedido {o['id']} (status {o['status']}) não está cancelado nem extraviado.",
-            recoverable=False, suggested_tool=suggested,
+            recoverable=False,
+            suggested_tool=money_back_next_step(o),
         )
     refund_id = protocol("REF", "request_refund", {"order_id": o["id"], "reason": reason})
     deadline = refund_deadline(p["method"])
-    result = RefundRequestResult(order_id=o["id"], refund_id=refund_id,
-                                 amount=Money(**p["amount"]), method=p["method"],
-                                 expected_by=deadline)
-    return ok(result, f"Reembolso {refund_id} de {brl(p['amount'])} solicitado para o pedido "
-                      f"{o['id']}: {REFUND_TEXT[p['method']]} (até {deadline}).")
+    result = RefundRequestResult(
+        order_id=o["id"],
+        refund_id=refund_id,
+        amount=Money(**p["amount"]),
+        method=p["method"],
+        expected_by=deadline,
+    )
+    return ok(
+        result,
+        f"Reembolso {refund_id} de {brl(p['amount'])} solicitado para o pedido "
+        f"{o['id']}: {REFUND_TEXT[p['method']]} (até {deadline}).",
+    )
 
 
 @catalog_tool(
@@ -220,15 +246,26 @@ async def get_refund_status(order_id: OrderId = None) -> ToolResult:
     o = resolve_order(order_id)
     r = REFUNDS_BY_ORDER.get(o["id"])
     if r is None:
-        raise ToolFailure("NOT_FOUND", f"Não há reembolso registrado para o pedido {o['id']}.",
-                          recoverable=False, suggested_tool="request_refund")
+        raise ToolFailure(
+            "NOT_FOUND",
+            f"Não há reembolso registrado para o pedido {o['id']}.",
+            recoverable=False,
+            suggested_tool=money_back_next_step(o),
+        )
     result = RefundStatusResult(
-        order_id=o["id"], refund_id=r["id"], refund_status=r["status"],
-        amount=Money(**r["amount"]), method=r["method"], requested_at=r["requested_at"],
+        order_id=o["id"],
+        refund_id=r["id"],
+        refund_status=r["status"],
+        amount=Money(**r["amount"]),
+        method=r["method"],
+        requested_at=r["requested_at"],
         expected_by=r["expected_by"],
     )
-    return ok(result, f"Reembolso {r['id']} do pedido {o['id']}: status {r['status']}, "
-                      f"{brl(r['amount'])}, {REFUND_TEXT[r['method']]} (até {r['expected_by']}).")
+    return ok(
+        result,
+        f"Reembolso {r['id']} do pedido {o['id']}: status {r['status']}, "
+        f"{brl(r['amount'])}, {REFUND_TEXT[r['method']]} (até {r['expected_by']}).",
+    )
 
 
 @catalog_tool(
@@ -272,13 +309,18 @@ async def dispute_charge(
             "NOT_ELIGIBLE",
             f"Contestação só vale para cartão de crédito; o pedido {o['id']} foi pago com "
             f"{p['method']}.",
-            recoverable=False, suggested_tool="request_refund",
+            recoverable=False,
+            suggested_tool=nxt
+            if (nxt := money_back_next_step(o)) in ("request_refund", "get_refund_status")
+            else "escalate_to_human",
         )
+    ensure_no_money_back(o)
     if p["status"] in ("chargeback", "refunded"):
         raise ToolFailure(
             "NOT_ELIGIBLE",
             f"O pagamento do pedido {o['id']} já está com status {p['status']}.",
-            recoverable=False, suggested_tool="get_payment_status",
+            recoverable=False,
+            suggested_tool="get_payment_status",
         )
     max_days = POLICIES["windows"]["dispute_max_days_after_payment"]
     if (TODAY - date.fromisoformat(p["paid_at"])).days > max_days:
@@ -286,13 +328,23 @@ async def dispute_charge(
             "NOT_ELIGIBLE",
             f"A cobrança do pedido {o['id']} tem mais de {max_days} dias e não pode ser "
             "contestada.",
-            recoverable=False, suggested_tool="escalate_to_human",
+            recoverable=False,
+            suggested_tool="escalate_to_human",
         )
-    dispute_id = protocol("CTS", "dispute_charge",
-                          {"order_id": o["id"], "reason": reason, "details": details})
+    dispute_id = protocol(
+        "CTS", "dispute_charge", {"order_id": o["id"], "reason": reason, "details": details}
+    )
     until = days_from_today(POLICIES["sla"]["dispute_resolution_days"])
-    result = DisputeResult(order_id=o["id"], dispute_id=dispute_id, payment_id=p["id"],
-                           amount=Money(**p["amount"]), reason=reason,
-                           expected_resolution_by=until)
-    return ok(result, f"Contestação {dispute_id} aberta para a cobrança de {brl(p['amount'])} "
-                      f"do pedido {o['id']} (motivo {reason}). Resposta até {until}.")
+    result = DisputeResult(
+        order_id=o["id"],
+        dispute_id=dispute_id,
+        payment_id=p["id"],
+        amount=Money(**p["amount"]),
+        reason=reason,
+        expected_resolution_by=until,
+    )
+    return ok(
+        result,
+        f"Contestação {dispute_id} aberta para a cobrança de {brl(p['amount'])} "
+        f"do pedido {o['id']} (motivo {reason}). Resposta até {until}.",
+    )

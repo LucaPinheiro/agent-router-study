@@ -17,9 +17,11 @@ from mcp_server.core import (
     TODAY,
     WRITE,
     ToolFailure,
+    after_delivery_next_step,
     brl,
     catalog_tool,
     fmt_address,
+    money_back_next_step,
     ok,
     order_ref,
     protocol,
@@ -78,8 +80,10 @@ async def get_order_status(order_id: OrderId = None) -> ToolResult:
     pay = PAYMENTS[o["payment_id"]]
     result = OrderStatusResult(
         order=order_ref(o),
-        items=[OrderItem(**{k: i[k] for k in ("sku", "name", "quantity", "unit_price")})
-               for i in o["items"]],
+        items=[
+            OrderItem(**{k: i[k] for k in ("sku", "name", "quantity", "unit_price")})
+            for i in o["items"]
+        ],
         payment_method=pay["method"],
         estimated_delivery=o["estimated_delivery"],
         delivered_at=o["delivered_at"],
@@ -88,8 +92,10 @@ async def get_order_status(order_id: OrderId = None) -> ToolResult:
         shipment_id=o["shipment_id"],
     )
     when = (
-        f"entregue em {o['delivered_at']}" if o["delivered_at"]
-        else f"cancelado em {o['cancelled_at']}" if o["cancelled_at"]
+        f"entregue em {o['delivered_at']}"
+        if o["delivered_at"]
+        else f"cancelado em {o['cancelled_at']}"
+        if o["cancelled_at"]
         else f"previsão de entrega {o['estimated_delivery']}"
     )
     return ok(
@@ -210,16 +216,24 @@ async def update_delivery_address(
             recoverable=True,
         )
     new = Address(
-        street=street.strip(), number=number.strip(), complement=complement,
-        neighborhood=neighborhood.strip(), city=city.strip(), state=uf, postal_code=cep,
+        street=street.strip(),
+        number=number.strip(),
+        complement=complement,
+        neighborhood=neighborhood.strip(),
+        city=city.strip(),
+        state=uf,
+        postal_code=cep,
     )
     proto = protocol("END", "update_delivery_address", {"order_id": o["id"], **new.model_dump()})
     result = AddressUpdateResult(
-        order_id=o["id"], protocol=proto,
-        previous_address=Address(**o["delivery_address"]), new_address=new,
+        order_id=o["id"],
+        protocol=proto,
+        previous_address=Address(**o["delivery_address"]),
+        new_address=new,
     )
-    return ok(result, f"Endereço do pedido {o['id']} alterado para {fmt_address(new)}. "
-                      f"Protocolo {proto}.")
+    return ok(
+        result, f"Endereço do pedido {o['id']} alterado para {fmt_address(new)}. Protocolo {proto}."
+    )
 
 
 @catalog_tool(
@@ -257,13 +271,13 @@ async def reschedule_delivery(
     o = resolve_order(order_id)
     s = _shipment(o)
     if s["status"] == "delivered":
-        raise ToolFailure("NOT_ELIGIBLE", f"O pedido {o['id']} já foi entregue.",
-                          recoverable=False)
+        raise ToolFailure("NOT_ELIGIBLE", f"O pedido {o['id']} já foi entregue.", recoverable=False)
     if s["status"] == "lost":
         raise ToolFailure(
             "NOT_ELIGIBLE",
             f"A entrega do pedido {o['id']} foi extraviada e não pode ser reagendada.",
-            recoverable=False, suggested_tool="request_refund",
+            recoverable=False,
+            suggested_tool=money_back_next_step(o),
         )
     try:
         wanted = date.fromisoformat(new_date.strip())
@@ -275,12 +289,23 @@ async def reschedule_delivery(
             f"new_date deve estar no formato AAAA-MM-DD, entre 1 e 15 dias após {TODAY}.",
             recoverable=True,
         )
-    proto = protocol("AGD", "reschedule_delivery",
-                     {"order_id": o["id"], "new_date": wanted.isoformat(), "period": period})
-    result = RescheduleResult(order_id=o["id"], protocol=proto, shipment_id=s["id"],
-                              new_date=wanted.isoformat(), period=period)
-    return ok(result, f"Entrega do pedido {o['id']} reagendada para {wanted.isoformat()}, "
-                      f"período {period}. Protocolo {proto}.")
+    proto = protocol(
+        "AGD",
+        "reschedule_delivery",
+        {"order_id": o["id"], "new_date": wanted.isoformat(), "period": period},
+    )
+    result = RescheduleResult(
+        order_id=o["id"],
+        protocol=proto,
+        shipment_id=s["id"],
+        new_date=wanted.isoformat(),
+        period=period,
+    )
+    return ok(
+        result,
+        f"Entrega do pedido {o['id']} reagendada para {wanted.isoformat()}, "
+        f"período {period}. Protocolo {proto}.",
+    )
 
 
 @catalog_tool(
@@ -299,7 +324,7 @@ CONFIRMATION: o servidor não pede confirmação; a ação é irreversível.
 RESULT: protocolo, valor e prazo do estorno; repasse sem alterar.
 """,
     examples=[
-        "Quero cancelar meu pedido",
+        "Não quero mais a compra, podem cancelar?",
         "Desisti da compra, cancela o O0004 por favor",
         "Comprei errado, dá para cancelar antes de enviar?",
         "Cancela a compra que fiz ontem",
@@ -314,20 +339,27 @@ async def cancel_order(
 ) -> ToolResult:
     o = resolve_order(order_id)
     if o["status"] == "cancelled":
-        raise ToolFailure("NOT_ELIGIBLE", f"O pedido {o['id']} já está cancelado.",
-                          recoverable=False, suggested_tool="get_refund_status")
+        raise ToolFailure(
+            "NOT_ELIGIBLE",
+            f"O pedido {o['id']} já está cancelado.",
+            recoverable=False,
+            suggested_tool=money_back_next_step(o),
+        )
     if o["status"] == "delivered":
         raise ToolFailure(
             "NOT_ELIGIBLE",
             f"O pedido {o['id']} já foi entregue e não pode ser cancelado; abra uma devolução.",
-            recoverable=False, suggested_tool="create_return_request",
+            recoverable=False,
+            suggested_tool=after_delivery_next_step(o),
         )
     if o["status"] not in NOT_SHIPPED:
+        lost = SHIPMENTS[o["shipment_id"]]["status"] == "lost" if o["shipment_id"] else False
         raise ToolFailure(
             "NOT_ELIGIBLE",
             f"O pedido {o['id']} já foi enviado e não pode ser cancelado; recuse a entrega "
             "ou abra uma devolução após o recebimento.",
-            recoverable=False, suggested_tool="escalate_to_human",
+            recoverable=False,
+            suggested_tool=money_back_next_step(o) if lost else "escalate_to_human",
         )
     pay = PAYMENTS[o["payment_id"]]
     paid = pay["status"] == "approved"
@@ -336,11 +368,16 @@ async def cancel_order(
     deadline = refund_deadline(pay["method"]) if paid else TODAY.isoformat()
     proto = protocol("CAN", "cancel_order", {"order_id": o["id"], "reason": reason})
     result = CancellationResult(
-        order_id=o["id"], protocol=proto, cancelled_at=TODAY.isoformat(),
-        refund_amount=refund, refund_method=method, refund_deadline=deadline,
+        order_id=o["id"],
+        protocol=proto,
+        cancelled_at=TODAY.isoformat(),
+        refund_amount=refund,
+        refund_method=method,
+        refund_deadline=deadline,
     )
     refund_text = (
         f"Estorno de {brl(refund)}: {REFUND_TEXT[pay['method']]} (até {deadline})."
-        if paid else "Não houve cobrança, então não há estorno."
+        if paid
+        else "Não houve cobrança, então não há estorno."
     )
     return ok(result, f"Pedido {o['id']} cancelado. Protocolo {proto}. {refund_text}")

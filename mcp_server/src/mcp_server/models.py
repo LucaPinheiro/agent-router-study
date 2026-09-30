@@ -193,6 +193,13 @@ class ReturnEligibilityResult(_Completed):
     delivered_at: str
     eligible: bool
     options: list[EligibilityOption]
+    open_return_id: str | None = Field(
+        default=None,
+        description="Devolução já aberta para o pedido (bloqueia nova devolução/troca)",
+    )
+    refund_id: str | None = Field(
+        default=None, description="Reembolso já existente (bloqueia nova devolução/troca)"
+    )
 
 
 class ReturnRequestResult(_Completed):

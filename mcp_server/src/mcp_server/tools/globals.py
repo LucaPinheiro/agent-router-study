@@ -104,7 +104,7 @@ RESULT: até 3 artigos com título e resumo; cite prazos sem alterar.
         "Qual o prazo para devolver um produto?",
         "Vocês parcelam no cartão?",
         "Quanto tempo demora o estorno no Pix?",
-        "Como funciona a garantia?",
+        "Qual a cobertura da garantia dos produtos?",
     ],
     keywords=["politica", "prazo", "regra", "como funciona", "duvida", "central de ajuda"],
 )
@@ -159,9 +159,9 @@ CONFIRMATION: não requer.
 RESULT: protocolo e prazo de retorno; repasse sem alterar.
 """,
     examples=[
-        "Quero falar com um atendente",
+        "Tem como eu ser atendido por alguém da equipe?",
         "Me passa para uma pessoa de verdade",
-        "Vocês têm vaga de emprego?",
+        "Estão contratando? Queria mandar meu currículo",
         "Preciso corrigir a nota fiscal da minha compra",
     ],
     keywords=["atendente", "humano", "pessoa", "reclamacao", "falar com alguem"],
