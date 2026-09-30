@@ -205,9 +205,10 @@ def run_prompt_hash() -> str:
     return hashlib.sha256(raw.encode()).hexdigest()[:12]
 
 
-def models_used(settings: Settings) -> dict[str, str]:
+def models_used(settings: Settings, roles: set[str] | None = None) -> dict[str, str]:
+    """role -> model of the models a run calls (`roles`: strategies / "executor")."""
     out = {"executor": settings.executor.model if settings.executor else ""}
-    for name, cfg in model_configs(settings):
+    for name, cfg in model_configs(settings, roles):
         if name != "executor" and settings.routing.mode != "native":
             out[name] = cfg.model
     return out
@@ -349,7 +350,7 @@ class Runner:
             "config_hash": config_hash(self.settings),
             "catalog_hash": catalog.hash,
             "prompt_hash": run_prompt_hash(),
-            "models": json.dumps(models_used(self.settings)),
+            "models": json.dumps(models_used(self.settings, self.model_roles())),
             "run_name": self.run_name,
             "config": self.config_name,
             "dataset_sha256": dataset_sha256(self.split),

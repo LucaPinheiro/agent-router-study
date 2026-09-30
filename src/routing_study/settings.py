@@ -301,6 +301,9 @@ class Settings(BaseSettings):
     # OLLAMA_MAX_LOADED_MODELS). Shadow runs only add local LLM routers when all local models
     # of the pass fit; otherwise those routers get their own routing-only runs (e5b, e6b).
     ollama_max_loaded_models: int = Field(default=1, ge=1)
+    # Requests the local server runs at once (OLLAMA_NUM_PARALLEL): callers queue client-side
+    # beyond it, so the wait is reported as queue_ms and not as model latency.
+    ollama_num_parallel: int = Field(default=1, ge=1)
     langfuse_public_key: str | None = None
     langfuse_secret_key: SecretStr | None = None
     langfuse_host: str | None = None

@@ -190,6 +190,7 @@ class JevRouter(BaseRouter):
                 model=self._model,
                 settings=self.settings,
                 stats=stats,
+                provider=getattr(self.chat, "provider_name", None),
             )
             attempts += stats.attempts
             queue_ms += stats.queue_ms

@@ -655,8 +655,12 @@ async def call_with_retry[T](
     model: str,
     settings: Settings,
     stats: RetryStats | None = None,
+    provider: str | None = None,
 ) -> T:
-    """Run `fn` under the provider semaphore with tenacity backoff on transient errors."""
+    """Run `fn` under the provider semaphore with tenacity backoff on transient errors.
+
+    `provider="ollama"`: one semaphore for the whole local server, sized to its request
+    slots (`ollama_num_parallel`), so waiting for a slot is `queue_ms`, not model latency."""
     stats = stats if stats is not None else RetryStats()
 
     def _record(state: RetryCallState) -> None:
@@ -681,7 +685,12 @@ async def call_with_retry[T](
         reraise=True,
     )
     t_start = time.perf_counter()
-    async with provider_semaphore(model, settings.max_concurrency_per_provider):
+    sem = (
+        provider_semaphore("ollama", settings.ollama_num_parallel)
+        if provider == "ollama"
+        else provider_semaphore(model, settings.max_concurrency_per_provider)
+    )
+    async with sem:
         stats.queue_ms += (time.perf_counter() - t_start) * 1000
         async for attempt in retrying:
             with attempt:
@@ -784,7 +793,7 @@ class EmbeddingsClient:
         stats = RetryStats()
         with CallMeter(ledger_for(self.settings), self.backend, self.model, 0.0) as meter:
             data = await call_with_retry(
-                _post, model=self.model, settings=self.settings, stats=stats
+                _post, model=self.model, settings=self.settings, stats=stats, provider=self.backend
             )
             usage = data.get("usage") or {}
             cost = 0.0 if self.backend == "ollama" else float(usage.get("cost") or 0.0)

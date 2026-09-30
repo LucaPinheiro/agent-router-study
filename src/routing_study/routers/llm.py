@@ -218,6 +218,7 @@ class LLMRouter(BaseRouter):
             model=self._model,
             settings=self.settings,
             stats=stats,
+            provider=getattr(self.chat, "provider_name", None),
         )
         raw: AIMessage | None = out.get("raw")
         usage = extract_call_usage(raw)

@@ -362,3 +362,30 @@ async def test_openrouter_cost_reaches_the_ledger(settings):
     assert extract_call_usage(msg)["cost_usd"] == pytest.approx(0.0003)
     row = ledger_for(s).rows()[-1]
     assert (row["provider"], row["cost_usd"], row["prompt_tokens"]) == ("openrouter", 0.0003, 100)
+
+
+async def test_ollama_calls_queue_client_side_for_the_server_slots(settings):
+    import asyncio
+
+    from routing_study.llm import RetryStats, call_with_retry
+
+    running = 0
+    peak = 0
+
+    async def call() -> None:
+        nonlocal running, peak
+        running += 1
+        peak = max(peak, running)
+        await asyncio.sleep(0.05)
+        running -= 1
+
+    stats = [RetryStats(), RetryStats()]
+    await asyncio.gather(
+        *(
+            call_with_retry(call, model=f"m{i}", settings=settings, stats=st, provider="ollama")
+            for i, st in enumerate(stats)
+        )
+    )
+    assert peak == 1  # one slot (ollama_num_parallel=1), even across local models
+    assert max(st.queue_ms for st in stats) >= 40  # the wait is queue time, not latency
+    assert all(st.call_ms < 100 for st in stats)
