@@ -1,14 +1,19 @@
-"""LLM router: structured output with an `enum` of option ids + self-reported confidence."""
+"""LLM router: structured output with an `enum` of option ids + a confidence that is either
+self-reported (`confidence` field) or the probability of the choice tokens (`logprob`).
+
+One class serves every LLM strategy (`llm` and each `llm_<suffix>`): the strategy name is an
+instance attribute, the model/provider come from that strategy's config block."""
 
 from __future__ import annotations
 
-from typing import Any, ClassVar, Literal
+import math
+from typing import Any, Literal
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from openai.lib._pydantic import to_strict_json_schema
 from pydantic import BaseModel, Field, ValidationError, create_model
 
-from routing_study.llm import RetryStats, call_with_retry, extract_call_usage
+from routing_study.llm import RetryStats, call_with_retry, extract_call_usage, structured_runnable
 from routing_study.prompts import escape_data
 from routing_study.routers.base import ABSTAIN, RouteDecision, RouteOption, RoutingInput
 from routing_study.routers.common import BaseRouter, ResponseCache, clamp01, history_text
@@ -70,7 +75,7 @@ def build_messages(
         user = f"<history>\n{hist}\n</history>\n{user}"
     if inp.loaded_skill:
         user = f"<loaded_skill>{escape_data(inp.loaded_skill)}</loaded_skill>\n{user}"
-    if model.startswith("anthropic/"):
+    if "anthropic" in model:  # OpenRouter `anthropic/…` or Bedrock `….anthropic.…`
         block = {"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}
         return [SystemMessage([block]), HumanMessage(user)]
     return [SystemMessage(system), HumanMessage(user)]
@@ -117,9 +122,32 @@ def rendered(messages: list[BaseMessage]) -> list[dict[str, Any]]:
     return [{"type": m.type, "content": m.content} for m in messages]
 
 
+def choice_probability(raw: AIMessage | None, choice: str) -> float | None:
+    """P(choice) = exp(sum of the logprobs of the tokens spelling the `choice` value) in
+    the JSON reply; None when the response carries no logprobs or the value is not found.
+    Under a grammar (enum) the first differing token carries the decision."""
+    content = ((raw.response_metadata or {}).get("logprobs") or {}).get("content") if raw else None
+    if not content:
+        return None
+    text, spans = "", []
+    for tok in content:
+        start = len(text)
+        text += tok.get("token", "")
+        spans.append((start, len(text), float(tok.get("logprob") or 0.0)))
+    key = text.find('"choice"')
+    if key < 0:
+        return None
+    start = text.find(f'"{choice}"', key + len('"choice"'))
+    if start < 0:
+        return None
+    lo, hi = start + 1, start + 1 + len(choice)
+    total = sum(lp for a, b, lp in spans if a < hi and b > lo)
+    return math.exp(total)
+
+
 class LLMRouter(BaseRouter):
-    name: ClassVar[str] = "llm"
-    paid: ClassVar[bool] = True
+    name = "llm"  # instance attribute when built for an `llm_<suffix>` strategy
+    paid = True
 
     def __init__(
         self,
@@ -130,6 +158,8 @@ class LLMRouter(BaseRouter):
         history_turns: int = 4,
         allow_abstain: bool = False,
         cache: ResponseCache | None = None,
+        name: str = "llm",
+        confidence: Literal["self_reported", "logprob"] = "self_reported",
     ) -> None:
         super().__init__(cache=cache)
         self.chat = chat
@@ -137,6 +167,8 @@ class LLMRouter(BaseRouter):
         self._model = model
         self.history_turns = history_turns
         self.allow_abstain = allow_abstain
+        self.name = name
+        self.confidence_mode = confidence
 
     @property
     def model(self) -> str | None:
@@ -151,7 +183,7 @@ class LLMRouter(BaseRouter):
             options,
             history_turns=self.history_turns,
             allow_abstain=self.allow_abstain,
-            json_reply=False,
+            json_reply=self.confidence_mode == "logprob",  # json_mode: the prompt has the shape
             model=self._model,
         )
         ranked = [o.id for o in options] if inp.level == "tool" else None
@@ -163,6 +195,7 @@ class LLMRouter(BaseRouter):
             "model": self._model,
             "history_turns": self.history_turns,
             "allow_abstain": self.allow_abstain,
+            "confidence": self.confidence_mode,
             "chat": chat_params(self.chat),
             "prompt": rendered(messages),
             "schema": schema.model_json_schema(),
@@ -174,11 +207,10 @@ class LLMRouter(BaseRouter):
         # A dict schema (the same strict schema the SDK would send for the model class) keeps
         # malformed replies as `parsing_error` with the raw message (cost); a pydantic class
         # would raise inside the client and lose both. Validation happens below.
-        runnable = self.chat.with_structured_output(
+        runnable = structured_runnable(
+            self.chat,
             {**to_strict_json_schema(schema), "title": schema.__name__},
-            method="json_schema",
-            include_raw=True,
-            strict=True,
+            json_mode=self.confidence_mode == "logprob",
         )
         stats = RetryStats()
         out: dict[str, Any] = await call_with_retry(
@@ -207,6 +239,12 @@ class LLMRouter(BaseRouter):
             )
         choice = None if parsed.choice == ABSTAIN else parsed.choice
         conf = clamp01(parsed.confidence)
+        if self.confidence_mode == "logprob":
+            usage["self_reported_confidence"] = conf
+            p = choice_probability(raw, parsed.choice)
+            if p is None:  # no logprobs returned: keep the choice, trust nothing about it
+                usage["confidence_missing"] = True
+            conf = clamp01(p) if p is not None else 0.0
         return RouteDecision(
             choice=choice,
             confidence=conf if choice is not None else 0.0,

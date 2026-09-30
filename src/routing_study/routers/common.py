@@ -247,16 +247,15 @@ async def _annotate(
     try:
         client = get_client()
         if generation:
+            from routing_study.tracing.cost import usage_details
+
             usage = decision.usage
             client.update_current_generation(
                 name=name,
                 model=usage.get("served_model") or model,
                 metadata=metadata,
                 output={"choice": decision.choice, "confidence": decision.confidence},
-                usage_details={
-                    "input": int(usage.get("prompt_tokens") or 0),
-                    "output": int(usage.get("completion_tokens") or 0),
-                },
+                usage_details=usage_details(usage),
                 # cached hits cost nothing now; the original cost stays in metadata
                 cost_details={"total": 0.0 if decision.cached else decision.cost_usd},
             )

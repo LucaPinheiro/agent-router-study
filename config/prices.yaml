@@ -1,0 +1,31 @@
+# USD per 1M tokens, used by the spend ledger / budget guard for providers that report no
+# cost in the response (Bedrock). `prompt_tokens` counts uncached + cache read + cache write;
+# each part is priced with its own rate. Keys starting with `_` are notes.
+#
+# Source (fetched 2026-09-30): Anthropic model pricing,
+#   https://platform.claude.com/docs/en/about-claude/pricing
+#   - Sonnet 5: $2 in / $10 out (launch price made permanent; the $3/$15 step of
+#     2026-09-01 was cancelled), 5m cache write $2.50, 1h write $4, cache read $0.20.
+#   - Haiku 4.5: $1 in / $5 out, 5m cache write $1.25, 1h write $2, cache read $0.10.
+#   - "Bedrock global endpoints: standard price; regional endpoints +10%." Our model ids are
+#     `global.*` cross-region inference profiles called from sa-east-1, so the base rates
+#     apply. aws.amazon.com/bedrock/pricing did not list these models in a fetchable form;
+#     re-check the AWS bill / Cost Explorer against `study budget`.
+bedrock:
+  global.anthropic.claude-sonnet-5:
+    input: 2.0
+    output: 10.0
+    cache_write: 2.5
+    cache_write_1h: 4.0
+    cache_read: 0.2
+  global.anthropic.claude-haiku-4-5-20251001-v1:0:
+    input: 1.0
+    output: 5.0
+    cache_write: 1.25
+    cache_write_1h: 2.0
+    cache_read: 0.1
+# OpenRouter reports the real cost per call (`usage.cost`); jev-router has no list price
+# (a meta-router: the served model decides), so no reservation, only the cap check.
+openrouter: {}
+# Local (Ollama): always 0 USD; tokens and wall time are still recorded in the ledger.
+ollama: {}

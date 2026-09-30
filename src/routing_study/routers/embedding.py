@@ -4,6 +4,8 @@
 - similarity `centroid`:    option score = cosine to the mean of those vectors.
 - confidence `softmax`: softmax(scores / T)[top]; `margin`: clip((top1 - top2) / scale).
 Option vectors are cached on disk per (model, text); only the message is embedded per request.
+Instruction-aware embedders: the message (query) goes through `embedder.query_text` (e.g. the
+Qwen3-Embedding `Instruct: …\nQuery:` prefix); option texts (documents) are embedded as-is.
 """
 
 from __future__ import annotations
@@ -69,6 +71,7 @@ class EmbeddingRouter(BaseRouter):
             "softmax_temperature": self.softmax_temperature,
             "margin_scale": self.margin_scale,
             "provider": prefs.model_dump(mode="json") if prefs is not None else None,
+            "query_instruction": getattr(self.embedder, "query_instruction", None),
         }
 
     def _vkey(self, text: str) -> str:
@@ -120,7 +123,8 @@ class EmbeddingRouter(BaseRouter):
         if not options or not inp.message.strip():
             return abstain(self.name)
         vectors, index = await self.option_vectors(options)
-        q = await self.embedder.embed([inp.message])
+        query_text = getattr(self.embedder, "query_text", None)
+        q = await self.embedder.embed([query_text(inp.message) if query_text else inp.message])
         calls = [q] if index is None else [index, q]
         qv = _unit(q.vectors[0])
         ids = [o.id for o in options]

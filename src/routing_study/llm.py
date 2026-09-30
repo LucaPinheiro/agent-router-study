@@ -1,6 +1,13 @@
-"""OpenRouter clients: chat (LangChain ChatOpenAI), embeddings (/embeddings), slug validation.
+"""Model clients for three providers: chat, embeddings, model validation.
 
-- Cost comes from OpenRouter's `usage.cost` (`usage: {include: true}`); never estimated locally.
+- openrouter: ChatOpenAI; cost from OpenRouter's `usage.cost` (`usage: {include: true}`).
+- bedrock:    ChatBedrockConverse (default AWS credential chain); cost = token usage x the
+              price table (`budget.prices_path`), cache read/write tokens included.
+- ollama:     local, OpenAI-compatible `/v1` (chat + embeddings); cost 0, tokens recorded.
+Every chat response carries the same `response_metadata["token_usage"]` shape (OpenAI style:
+prompt/completion tokens, `cost`, `prompt_tokens_details.cached_tokens/cache_write_tokens`),
+so `extract_call_usage` and the tracing callbacks are provider-agnostic. Every call goes
+through the spend ledger (`routing_study.budget`): reserved before, recorded after.
 - The served model and provider are read from the response, not from config.
 - Retries: tenacity with exponential backoff; concurrency: one asyncio semaphore per provider.
 """
@@ -14,13 +21,18 @@ from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import dataclass, field
 from typing import Any
 
+import botocore.exceptions
 import httpx
 import httpx2
 import numpy as np
 import openai
-from langchain_core.messages import AIMessage
+from langchain_aws import ChatBedrockConverse
+from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import AIMessage, BaseMessage
 from langchain_core.outputs import ChatResult
+from langchain_core.runnables import Runnable
 from langchain_openai import ChatOpenAI
+from pydantic import Field
 from tenacity import (
     AsyncRetrying,
     RetryCallState,
@@ -29,15 +41,69 @@ from tenacity import (
     wait_exponential_jitter,
 )
 
-from routing_study.settings import ProviderPrefs, ReasoningPrefs, Settings
+from routing_study.budget import CallMeter, Price, SpendLedger, ledger_for, prices_for
+from routing_study.settings import (
+    ModelEndpoint,
+    ProviderPrefs,
+    ReasoningPrefs,
+    Settings,
+)
 
 
 class UnknownModelError(RuntimeError):
     pass
 
 
-class OpenRouterChat(ChatOpenAI):
+# ---------------------------------------------------------------- metering
+
+
+def _text_len(messages: list[BaseMessage]) -> int:
+    n = 0
+    for m in messages:
+        if isinstance(m.content, str):
+            n += len(m.content)
+        else:
+            n += sum(len(str(b.get("text", b)) if isinstance(b, dict) else b) for b in m.content)
+    return n
+
+
+class _Metered:
+    """Reserve (upper bound) -> call -> record, around each generation. Subclasses declare
+    `ledger`, `price` and `max_tokens`; the upper bound over-counts the prompt (1 token per
+    2 characters, no cache discount) so a reservation is never below the real cost."""
+
+    ledger: SpendLedger | None
+    price: Price | None
+    provider_name: str
+
+    def _meter(self, messages: list[BaseMessage], **kwargs: Any) -> CallMeter:
+        upper = 0.0
+        if self.price is not None:
+            out = kwargs.get("max_tokens") or getattr(self, "max_tokens", None) or 4096
+            upper = self.price.cost(prompt_tokens=_text_len(messages) // 2, completion_tokens=out)
+        model = getattr(self, "model_name", None) or getattr(self, "model_id", "")
+        return CallMeter(self.ledger, self.provider_name, model, upper)
+
+
+def result_usage(result: ChatResult) -> dict[str, Any]:
+    msg = result.generations[0].message if result.generations else None
+    return extract_call_usage(msg if isinstance(msg, AIMessage) else None)
+
+
+class OpenRouterChat(_Metered, ChatOpenAI):
     """ChatOpenAI that keeps OpenRouter's top-level `provider` in `response_metadata`."""
+
+    ledger: Any = Field(default=None, exclude=True)
+    price: Any = Field(default=None, exclude=True)
+    provider_name: str = Field(default="openrouter", exclude=True)
+
+    async def _agenerate(
+        self, messages: list[BaseMessage], stop: Any = None, run_manager: Any = None, **kw: Any
+    ) -> ChatResult:
+        with self._meter(messages, **kw) as meter:
+            result = await super()._agenerate(messages, stop, run_manager, **kw)
+            meter.done(result_usage(result))
+        return result
 
     def _create_chat_result(
         self, response: dict | openai.BaseModel, generation_info: dict | None = None
@@ -61,6 +127,130 @@ class OpenRouterChat(ChatOpenAI):
             if isinstance(gen.message, AIMessage) and provider:
                 gen.message.response_metadata["provider"] = provider
         return result
+
+
+class OllamaChat(_Metered, ChatOpenAI):
+    """ChatOpenAI against Ollama's OpenAI-compatible `/v1`: cost 0, provider `ollama`.
+    Thinking (Qwen3) is switched by `reasoning_effort` ("none" = off); `logprobs=True`
+    returns per-token logprobs in `response_metadata["logprobs"]`."""
+
+    ledger: Any = Field(default=None, exclude=True)
+    price: Any = Field(default=None, exclude=True)
+    provider_name: str = Field(default="ollama", exclude=True)
+
+    async def _agenerate(
+        self, messages: list[BaseMessage], stop: Any = None, run_manager: Any = None, **kw: Any
+    ) -> ChatResult:
+        with self._meter(messages, **kw) as meter:
+            result = await super()._agenerate(messages, stop, run_manager, **kw)
+            for gen in result.generations:
+                if isinstance(gen.message, AIMessage):
+                    meta = gen.message.response_metadata
+                    meta["provider"] = "ollama"
+                    meta.setdefault("token_usage", {})["cost"] = 0.0
+            meter.done(result_usage(result))
+        return result
+
+
+def bedrock_cache_points(messages: list[BaseMessage]) -> list[BaseMessage]:
+    """Anthropic-style `cache_control` on a content block -> the same block + a Converse
+    `cachePoint` after it (langchain-aws ignores `cache_control` inside blocks)."""
+    out: list[BaseMessage] = []
+    for m in messages:
+        if isinstance(m.content, str) or not any(
+            isinstance(b, dict) and "cache_control" in b for b in m.content
+        ):
+            out.append(m)
+            continue
+        blocks: list[Any] = []
+        for b in m.content:
+            if isinstance(b, dict) and "cache_control" in b:
+                blocks.append({k: v for k, v in b.items() if k != "cache_control"})
+                blocks.append({"cachePoint": {"type": "default"}})
+            else:
+                blocks.append(b)
+        out.append(m.model_copy(update={"content": blocks}))
+    return out
+
+
+def bedrock_token_usage(msg: AIMessage, price: Price | None) -> dict[str, Any]:
+    """OpenAI-shaped `token_usage` (+ cost from the price table) from Converse usage.
+
+    langchain-aws: `input_tokens` = uncached + cache read + cache write; the write count is
+    in `cache_creation`, or split by TTL in `ephemeral_5m/1h_input_tokens` (then
+    `cache_creation` is 0)."""
+    um = msg.usage_metadata or {}
+    det: dict[str, Any] = dict(um.get("input_token_details") or {})
+    w5 = int(det.get("ephemeral_5m_input_tokens") or 0)
+    w1h = int(det.get("ephemeral_1h_input_tokens") or 0)
+    w5 += int(det.get("cache_creation") or 0)
+    read = int(det.get("cache_read") or 0)
+    prompt, completion = int(um.get("input_tokens") or 0), int(um.get("output_tokens") or 0)
+    cost = (
+        price.cost(
+            prompt_tokens=prompt,
+            completion_tokens=completion,
+            cache_read=read,
+            cache_write=w5,
+            cache_write_1h=w1h,
+        )
+        if price is not None
+        else None
+    )
+    return {
+        "prompt_tokens": prompt,
+        "completion_tokens": completion,
+        "total_tokens": prompt + completion,
+        "cost": cost,
+        "prompt_tokens_details": {"cached_tokens": read, "cache_write_tokens": w5 + w1h},
+    }
+
+
+class BedrockChat(_Metered, ChatBedrockConverse):
+    """ChatBedrockConverse + cache points, unified `token_usage`/cost and metering.
+
+    - `temperature=None` is never sent (Sonnet 5 on Bedrock rejects it).
+    - SDK retries are off (`max_retries=0`): `call_with_retry` owns ThrottlingException.
+    - `tool_choice="none"` has no Converse equivalent: it is sent as Anthropic's native
+      `tool_choice: {type: none}` via `additional_model_request_fields` (on a copy).
+    - `parallel_tool_calls` is dropped (Converse has no such flag)."""
+
+    ledger: Any = Field(default=None, exclude=True)
+    price: Any = Field(default=None, exclude=True)
+    provider_name: str = Field(default="bedrock", exclude=True)
+
+    def _generate(
+        self, messages: list[BaseMessage], stop: Any = None, run_manager: Any = None, **kw: Any
+    ) -> ChatResult:
+        messages = bedrock_cache_points(messages)
+        with self._meter(messages, **kw) as meter:
+            result = super()._generate(messages, stop, run_manager, **kw)
+            for gen in result.generations:
+                if isinstance(gen.message, AIMessage):
+                    meta = gen.message.response_metadata
+                    meta["token_usage"] = bedrock_token_usage(gen.message, self.price)
+                    meta["model_name"] = self.model_id
+                    meta["provider"] = "bedrock"
+            usage = result_usage(result)
+            result.llm_output = {
+                "token_usage": result.generations[0].message.response_metadata["token_usage"],
+                "model_name": self.model_id,
+                "provider": "bedrock",
+            }
+            meter.done(usage)
+        return result
+
+    def _combine_llm_outputs(self, llm_outputs: list[dict | None]) -> dict:
+        return next((o for o in llm_outputs if o), {})
+
+    def bind_tools(self, tools: Any, *, tool_choice: Any = None, **kwargs: Any) -> Runnable:
+        kwargs.pop("parallel_tool_calls", None)
+        if tool_choice == "none":  # a copy whose requests carry the native tool_choice
+            fields = {**(self.additional_model_request_fields or {})}
+            fields["tool_choice"] = {"type": "none"}
+            clone = self.model_copy(update={"additional_model_request_fields": fields})
+            return ChatBedrockConverse.bind_tools(clone, tools, **kwargs)
+        return super().bind_tools(tools, tool_choice=tool_choice, **kwargs)
 
 
 def provider_extra_body(
@@ -123,6 +313,7 @@ def make_chat_model(
     max_tokens: int | None = None,
     supported_parameters: Iterable[str] | None = None,
     http_async_client: Any | None = None,
+    base_url: str | None = None,
 ) -> OpenRouterChat:
     """ChatOpenAI against OpenRouter. Retries are owned by `call_with_retry`, not the SDK.
 
@@ -143,11 +334,13 @@ def make_chat_model(
             reasoning = None
     kwargs: dict[str, Any] = {
         "model": model,
-        "base_url": settings.openrouter_base_url,
+        "base_url": base_url or settings.openrouter_base_url,
         "api_key": settings.openrouter_api_key.get_secret_value() or "missing",
         "extra_body": provider_extra_body(provider, reasoning),
         "max_retries": 0,
         "timeout": settings.request_timeout_s,
+        "ledger": ledger_for(settings),
+        "price": prices_for(settings).get(("openrouter", model)),
     }
     if max_tokens is not None:
         kwargs["max_tokens"] = max_tokens
@@ -158,20 +351,154 @@ def make_chat_model(
     return OpenRouterChat(**kwargs)
 
 
+def make_bedrock_chat(
+    settings: Settings,
+    model: str,
+    *,
+    temperature: float | None = None,
+    max_tokens: int | None = None,
+    region: str | None = None,
+    reasoning: ReasoningPrefs | None = None,
+) -> BedrockChat:
+    """Bedrock Converse with the default AWS credential chain; `temperature=None` is omitted."""
+    if reasoning is not None and reasoning.enabled:
+        raise ValueError(f"{model}: reasoning on Bedrock is not supported by this study")
+    price = prices_for(settings).get(("bedrock", model))
+    if price is None:  # an unpriced paid model would slip past the budget guard
+        raise ValueError(f"no bedrock price for {model!r} in {settings.budget.prices_path}")
+    kwargs: dict[str, Any] = {
+        "model": model,
+        "region_name": region or settings.bedrock_region,
+        "max_retries": 0,
+        "timeout": int(settings.request_timeout_s),
+        "ledger": ledger_for(settings),
+        "price": price,
+    }
+    if temperature is not None:
+        kwargs["temperature"] = temperature
+    if max_tokens is not None:
+        kwargs["max_tokens"] = max_tokens
+    return BedrockChat(**kwargs)
+
+
+def make_ollama_chat(
+    settings: Settings,
+    model: str,
+    *,
+    temperature: float | None = None,
+    seed: int | None = None,
+    max_tokens: int | None = None,
+    base_url: str | None = None,
+    reasoning: ReasoningPrefs | None = None,
+    logprobs: bool = False,
+    http_async_client: Any | None = None,
+) -> OllamaChat:
+    """Local model via Ollama `/v1`. Thinking follows `reasoning` (off by default:
+    `reasoning_effort: none`); `logprobs` asks for per-token logprobs of the reply."""
+    think = reasoning is not None and reasoning.enabled
+    kwargs: dict[str, Any] = {
+        "model": model,
+        "base_url": base_url or settings.ollama_base_url,
+        "api_key": "ollama",
+        "max_retries": 0,
+        "timeout": settings.request_timeout_s,
+        "reasoning_effort": (reasoning.effort or "medium") if think and reasoning else "none",
+        "ledger": ledger_for(settings),
+        "price": None,
+        "http_async_client": (
+            _CHAT_HTTP_CLIENT if http_async_client is None else http_async_client
+        ),
+    }
+    if logprobs:
+        kwargs["logprobs"] = True
+    if max_tokens is not None:
+        kwargs["max_tokens"] = max_tokens
+    kwargs.update(
+        {k: v for k, v in {"temperature": temperature, "seed": seed}.items() if v is not None}
+    )
+    return OllamaChat(**kwargs)
+
+
+def chat_model_for(
+    settings: Settings, cfg: ModelEndpoint, *, supported_parameters: Iterable[str] | None = None
+) -> BaseChatModel:
+    """The chat client of a config block (an LLM or jev strategy, or the executor)."""
+    temperature = getattr(cfg, "temperature", None)
+    seed = getattr(cfg, "seed", None)
+    reasoning = getattr(cfg, "reasoning", None)
+    max_tokens = getattr(cfg, "max_tokens", None)
+    if cfg.provider == "bedrock":
+        return make_bedrock_chat(
+            settings,
+            cfg.model,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            region=cfg.region,
+            reasoning=reasoning,
+        )
+    if cfg.provider == "ollama":
+        return make_ollama_chat(
+            settings,
+            cfg.model,
+            temperature=temperature,
+            seed=seed,
+            max_tokens=max_tokens,
+            base_url=cfg.base_url,
+            reasoning=reasoning,
+            logprobs=getattr(cfg, "confidence", None) == "logprob",
+        )
+    return make_chat_model(
+        settings,
+        cfg.model,
+        temperature=temperature,
+        seed=seed,
+        provider=cfg.openrouter,
+        reasoning=reasoning,
+        max_tokens=max_tokens,
+        supported_parameters=supported_parameters,
+        base_url=cfg.base_url,
+    )
+
+
+def structured_runnable(chat: Any, schema: dict[str, Any], *, json_mode: bool = False) -> Runnable:
+    """Structured output constrained to `schema`, `include_raw=True` on every provider.
+
+    - Bedrock: forced tool use (`function_calling`); Sonnet 5 on Bedrock rejects the
+      native json_schema output format ("output_config.format: Extra inputs").
+    - OpenRouter / Ollama: `response_format` strict json_schema (Ollama compiles it into a
+      grammar, so the enum is enforced token by token).
+    - `json_mode`: plain JSON object (`response_format: json_object`), the schema is only
+      validated afterwards. Used for logprob confidence: under a schema grammar Ollama
+      forces sub-word tokens the model would not pick, and their logprobs are meaningless."""
+    if isinstance(chat, ChatBedrockConverse):
+        return chat.with_structured_output(schema, method="function_calling", include_raw=True)
+    if json_mode:
+        return chat.with_structured_output(schema, method="json_mode", include_raw=True)
+    return chat.with_structured_output(schema, method="json_schema", include_raw=True, strict=True)
+
+
 def extract_call_usage(msg: AIMessage | None) -> dict[str, Any]:
-    """Cost (USD), tokens, served model and provider from one OpenRouter chat response."""
+    """Unified usage of one chat response, any provider: cost (USD), prompt/completion
+    tokens, cache read/write tokens, served model and provider."""
     if msg is None:
         return {"cost_usd": 0.0}
     meta = msg.response_metadata or {}
     token_usage = meta.get("token_usage") or {}
+    details = token_usage.get("prompt_tokens_details") or {}
     cost = token_usage.get("cost")
+    um = msg.usage_metadata or {}  # LangChain's own counts, when the raw usage is not kept
+    um_details: dict[str, Any] = dict(um.get("input_token_details") or {})
     return {
         "cost_usd": float(cost) if cost is not None else 0.0,
         "cost_reported": cost is not None,
-        "prompt_tokens": token_usage.get("prompt_tokens", 0),
-        "completion_tokens": token_usage.get("completion_tokens", 0),
+        "prompt_tokens": token_usage.get("prompt_tokens", um.get("input_tokens", 0)),
+        "completion_tokens": token_usage.get("completion_tokens", um.get("output_tokens", 0)),
         "reasoning_tokens": (token_usage.get("completion_tokens_details") or {}).get(
             "reasoning_tokens", 0
+        ),
+        "cache_read": int(details.get("cached_tokens") or um_details.get("cache_read") or 0),
+        "cache_write": int(
+            details.get("cache_write_tokens") or um_details.get("cache_creation") or 0
         ),
         "served_model": meta.get("model_name"),
         "provider": meta.get("provider"),
@@ -275,7 +602,22 @@ def _rate_limit_reset_s(exc: BaseException) -> float | None:
         return None
 
 
+# Bedrock: throttling / capacity / transient server errors (ClientError code)
+_BEDROCK_RETRY = {
+    "ThrottlingException",
+    "ServiceUnavailableException",
+    "InternalServerException",
+    "ModelNotReadyException",
+    "ModelTimeoutException",
+    "TooManyRequestsException",
+}
+
+
 def _is_retryable(exc: BaseException) -> bool:
+    if isinstance(exc, botocore.exceptions.ClientError):
+        return exc.response.get("Error", {}).get("Code") in _BEDROCK_RETRY
+    if isinstance(exc, botocore.exceptions.ConnectionError | botocore.exceptions.ReadTimeoutError):
+        return True
     if isinstance(exc, httpx.HTTPStatusError):
         return exc.response.status_code in _RETRY_STATUS
     if isinstance(exc, httpx.TransportError):
@@ -371,7 +713,9 @@ class EmbeddingResult:
 
 
 class EmbeddingsClient:
-    """OpenRouter `/embeddings` (OpenAI-compatible) with cost and provider capture."""
+    """OpenAI-compatible `/embeddings` (OpenRouter or Ollama `/v1`) with cost, provider
+    capture and ledger metering. `query_instruction` prefixes QUERIES only (`embed_query`);
+    documents go through `embed` unchanged (instruction-aware models, e.g. Qwen3-Embedding)."""
 
     def __init__(
         self,
@@ -380,22 +724,51 @@ class EmbeddingsClient:
         *,
         provider: ProviderPrefs | None = None,
         http: httpx.AsyncClient | None = None,
+        backend: str = "openrouter",
+        base_url: str | None = None,
+        query_instruction: str | None = None,
     ) -> None:
         self.settings = settings
         self.model = model
         self.provider = provider
+        self.backend = backend
+        self.query_instruction = query_instruction
+        default = settings.ollama_base_url if backend == "ollama" else settings.openrouter_base_url
+        self.base_url = (base_url or default).rstrip("/")
         self._http = http
+
+    @classmethod
+    def for_config(cls, settings: Settings, cfg: Any) -> EmbeddingsClient:
+        return cls(
+            settings,
+            cfg.model,
+            provider=cfg.openrouter,
+            backend=cfg.provider,
+            base_url=cfg.base_url,
+            query_instruction=cfg.query_instruction,
+        )
 
     def _client(self) -> httpx.AsyncClient:
         if self._http is None:
             self._http = httpx.AsyncClient(timeout=self.settings.request_timeout_s)
         return self._http
 
+    def query_text(self, text: str) -> str:
+        return f"{self.query_instruction}{text}" if self.query_instruction else text
+
+    async def embed_query(self, text: str) -> EmbeddingResult:
+        return await self.embed([self.query_text(text)])
+
     async def embed(self, texts: list[str]) -> EmbeddingResult:
+        if self.backend not in ("openrouter", "ollama"):
+            raise ValueError(f"embeddings provider {self.backend!r} is not supported")
         body: dict[str, Any] = {"model": self.model, "input": texts}
-        body.update(provider_extra_body(self.provider))
-        headers = {"Authorization": f"Bearer {self.settings.openrouter_api_key.get_secret_value()}"}
-        url = f"{self.settings.openrouter_base_url.rstrip('/')}/embeddings"
+        headers: dict[str, str] = {}
+        if self.backend == "openrouter":
+            body.update(provider_extra_body(self.provider))
+            key = self.settings.openrouter_api_key.get_secret_value()
+            headers["Authorization"] = f"Bearer {key}"
+        url = f"{self.base_url}/embeddings"
 
         async def _post() -> dict[str, Any]:
             resp = await self._client().post(url, json=body, headers=headers)
@@ -406,14 +779,28 @@ class EmbeddingsClient:
             return data
 
         stats = RetryStats()
-        data = await call_with_retry(_post, model=self.model, settings=self.settings, stats=stats)
+        with CallMeter(ledger_for(self.settings), self.backend, self.model, 0.0) as meter:
+            data = await call_with_retry(
+                _post, model=self.model, settings=self.settings, stats=stats
+            )
+            usage = data.get("usage") or {}
+            cost = 0.0 if self.backend == "ollama" else float(usage.get("cost") or 0.0)
+            meter.done(
+                {
+                    "cost_usd": cost,
+                    "prompt_tokens": int(usage.get("prompt_tokens") or 0),
+                    "served_model": data.get("model"),
+                },
+                kind="embedding",
+                inputs=len(texts),
+            )
         rows = sorted(data["data"], key=lambda r: r["index"])
-        usage = data.get("usage") or {}
         return EmbeddingResult(
             vectors=np.asarray([r["embedding"] for r in rows], dtype=np.float32),
-            cost_usd=float(usage.get("cost") or 0.0),
+            cost_usd=cost,
             served_model=data.get("model"),
-            provider=data.get("provider"),
+            provider=data.get("provider")
+            or (self.backend if self.backend != "openrouter" else None),
             prompt_tokens=int(usage.get("prompt_tokens") or 0),
             latency_ms=stats.call_ms,
             attempts=stats.attempts,
@@ -429,26 +816,63 @@ class EmbeddingsClient:
 # ---------------------------------------------------------------- slug validation
 
 
-def configured_models(settings: Settings) -> tuple[set[str], set[str]]:
-    """(chat slugs, embedding slugs) referenced by the experiment config."""
+def configured_models(
+    settings: Settings, names: set[str] | None = None
+) -> tuple[set[str], set[str]]:
+    """(chat slugs, embedding slugs) of the OpenRouter models the experiment config uses."""
     chat: set[str] = set()
     emb: set[str] = set()
-    s = settings.strategies
-    for cfg in (s.llm, s.jev):
-        if cfg is not None:
-            chat.add(cfg.model)
-    if s.embedding is not None:
-        emb.add(s.embedding.model)
-    if settings.executor is not None:
-        chat.add(settings.executor.model)
+    for kind, cfg in model_configs(settings, names):
+        if cfg.provider == "openrouter":
+            (emb if kind == "embedding" else chat).add(cfg.model)
     return chat, emb
 
 
+def model_configs(
+    settings: Settings, names: set[str] | None = None
+) -> list[tuple[str, ModelEndpoint]]:
+    """(strategy name | "executor", model block) of every configured model, or only of the
+    strategies/roles in `names` (`hybrid` uses the embedding model)."""
+    s = settings.strategies
+    out: list[tuple[str, ModelEndpoint]] = [("embedding", s.embedding)] if s.embedding else []
+    out += list(s.llm_strategies().items())
+    if s.jev is not None:
+        out.append(("jev", s.jev))
+    if settings.executor is not None:
+        out.append(("executor", settings.executor))
+    if names is not None:
+        wanted = names | ({"embedding"} if "hybrid" in names else set())
+        out = [(n, c) for n, c in out if n in wanted]
+    return out
+
+
+async def _check_ollama(
+    settings: Settings, names: set[str] | None, client: httpx.AsyncClient
+) -> None:
+    """Every Ollama model used must be pulled (`/api/tags` of the server)."""
+    by_base: dict[str, set[str]] = {}
+    for _, cfg in model_configs(settings, names):
+        if cfg.provider == "ollama":
+            base = (cfg.base_url or settings.ollama_base_url).rstrip("/").removesuffix("/v1")
+            by_base.setdefault(base, set()).add(cfg.model)
+    for base, wanted in by_base.items():
+        r = await client.get(f"{base}/api/tags")
+        r.raise_for_status()
+        have = {m["name"] for m in r.json().get("models", [])}
+        missing = sorted(wanted - have)
+        if missing:
+            raise UnknownModelError(f"Ollama at {base} has not pulled: {missing}")
+
+
 async def validate_models(
-    settings: Settings, http: httpx.AsyncClient | None = None
+    settings: Settings, http: httpx.AsyncClient | None = None, names: set[str] | None = None
 ) -> dict[str, list[str]]:
-    """Fail fast if a configured slug is missing. Returns slug -> supported_parameters."""
-    chat, emb = configured_models(settings)
+    """Fail fast if a model is missing (OpenRouter catalog / Ollama tags): every configured
+    one, or those of the strategies/roles in `names` (e.g. the run's routers + "executor").
+    Returns OpenRouter slug -> supported_parameters. Bedrock ids are checked by the first
+    call (no free catalog lookup for inference profiles)."""
+    chat, emb = configured_models(settings, names)
+    local = any(c.provider == "ollama" for _, c in model_configs(settings, names))
     base = settings.openrouter_base_url.rstrip("/")
     headers = {"Authorization": f"Bearer {settings.openrouter_api_key.get_secret_value()}"}
     own = http is None
@@ -465,6 +889,8 @@ async def validate_models(
 
         chat_models = await _get("/models") if chat else []
         emb_models = await _get("/embeddings/models") if emb else []
+        if local:
+            await _check_ollama(settings, names, client)
     finally:
         if own:
             await client.aclose()

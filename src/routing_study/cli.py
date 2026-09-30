@@ -1,4 +1,4 @@
-"""`study` CLI: run | rescore | report | simulate | estimate | graph | trace."""
+"""`study` CLI: run | rescore | report | simulate | estimate | budget | graph | trace."""
 
 from __future__ import annotations
 
@@ -69,7 +69,13 @@ def run(
         concurrency=concurrency,
         overwrite=overwrite,
     )
-    out = asyncio.run(runner.run(cases))
+    from routing_study.budget import BudgetExceededError
+
+    try:
+        out = asyncio.run(runner.run(cases))
+    except BudgetExceededError as exc:
+        typer.echo(f"ABORTED (budget guard): {exc}", err=True)
+        raise typer.Exit(code=2) from None
     typer.echo(f"run {name}: {len(cases)} cases x {reps} reps -> {out}")
     rescored, _ = rescore_file(out, RESCORED)
     typer.echo(render([rescored]))
@@ -150,6 +156,27 @@ def estimate(
 
     settings = load_settings(config)
     typer.echo(asyncio.run(do_estimate(settings, len(load_cases(split, limit)), reps, mode)))
+
+
+@app.command()
+def budget(
+    config: Annotated[
+        Path | None, typer.Option("--config", "-c", help="experiment YAML (caps / ledger path)")
+    ] = None,
+) -> None:
+    """Spend recorded in the ledger, by provider and model, against the account caps."""
+    from routing_study.budget import ACCOUNTS, SpendLedger, summarize
+    from routing_study.settings import load_settings
+
+    b = load_settings(config).budget
+    ledger = SpendLedger(b.ledger_path, {"aws": b.aws_usd_cap, "openrouter": b.openrouter_usd_cap})
+    rows = ledger.rows()
+    typer.echo(f"ledger {b.ledger_path}: {len(rows)} calls")
+    typer.echo(summarize(rows))
+    for acct, cap in ledger.caps.items():
+        providers = ", ".join(p for p, a in ACCOUNTS.items() if a == acct)
+        spent = ledger.spent.get(acct, 0.0)
+        typer.echo(f"{acct:<11} ({providers}) spent ${spent:.4f} of cap ${cap:.2f}")
 
 
 @app.command()

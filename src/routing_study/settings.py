@@ -10,9 +10,9 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, SecretStr, model_validator
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, SecretStr, model_validator
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -22,7 +22,24 @@ from pydantic_settings import (
 
 from routing_study.routers.calibration import Calibration
 
-StrategyName = Literal["regex", "bm25", "embedding", "llm", "jev", "hybrid"]
+FIXED_STRATEGIES: tuple[str, ...] = ("regex", "bm25", "embedding", "llm", "jev", "hybrid")
+# Extra LLM routers: any `strategies.llm_<suffix>` block (e.g. llm_local, llm_local_large) is
+# one more LLMRouter with its own model/provider; the name is the strategy name everywhere.
+_EXTRA_LLM = re.compile(r"^llm(_[a-z0-9]+)+$")
+
+
+def is_llm_strategy(name: str) -> bool:
+    return name == "llm" or bool(_EXTRA_LLM.match(name))
+
+
+def _strategy_name(name: str) -> str:
+    if name in FIXED_STRATEGIES or _EXTRA_LLM.match(name):
+        return name
+    raise ValueError(f"unknown strategy {name!r}: {FIXED_STRATEGIES} or llm_<suffix>")
+
+
+StrategyName = Annotated[str, AfterValidator(_strategy_name)]
+Provider = Literal["openrouter", "bedrock", "ollama"]
 
 
 class _Config(BaseModel):
@@ -59,6 +76,35 @@ class ReasoningPrefs(_Config):
         if data.get("enabled") is False:
             raise ValueError("reasoning: effort/max_tokens given with enabled=false")
         return {**data, "enabled": True}
+
+
+class ModelEndpoint(_Config):
+    """Where a model runs. `provider` picks the client (OpenRouter, AWS Bedrock Converse,
+    local Ollama); `region` (Bedrock) and `base_url` (Ollama/OpenRouter) override the
+    top-level defaults. `openrouter` = OpenRouter provider routing prefs.
+
+    Legacy configs wrote the OpenRouter prefs as `provider: {order: [...]}`: still accepted."""
+
+    model: str
+    provider: Provider = "openrouter"
+    region: str | None = None
+    base_url: str | None = None
+    openrouter: ProviderPrefs | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _legacy_provider_prefs(cls, data: Any) -> Any:
+        if isinstance(data, dict) and isinstance(data.get("provider"), dict):
+            if data.get("openrouter") is not None:
+                raise ValueError("give OpenRouter prefs once: `openrouter:` (not `provider:`)")
+            data = {**data, "openrouter": data["provider"], "provider": "openrouter"}
+        return data
+
+    @model_validator(mode="after")
+    def _prefs_only_on_openrouter(self) -> ModelEndpoint:
+        if self.openrouter is not None and self.provider != "openrouter":
+            raise ValueError(f"`openrouter` prefs given for provider {self.provider!r}")
+        return self
 
 
 def _check_reasoning(
@@ -130,42 +176,44 @@ class BM25Strategy(_Config):
     calibration: dict[Level, Calibration] = Field(default_factory=dict)
 
 
-class EmbeddingStrategy(_Config):
-    model: str
+class EmbeddingStrategy(ModelEndpoint):
     similarity: Literal["max_example", "centroid"] = "max_example"
     confidence: Literal["margin", "softmax"] = "softmax"
     softmax_temperature: float = Field(default=0.05, gt=0.0)
     margin_scale: float = Field(default=0.1, gt=0.0)
-    provider: ProviderPrefs | None = None
+    # Instruction-aware embedders (e.g. Qwen3-Embedding) want the QUERY prefixed with the
+    # task instruction and documents (option texts) embedded as-is. `{instruction}` is not
+    # templated: the whole prefix is given, e.g. "Instruct: ...\nQuery:".
+    query_instruction: str | None = None
     cache: bool = True
 
 
-class LLMStrategy(_Config):
-    model: str
+class LLMStrategy(ModelEndpoint):
     temperature: float | None = 0.0
     seed: int | None = None
-    confidence: Literal["self_reported"] = "self_reported"
+    # self_reported: the model's `confidence` field; logprob: P(choice tokens) from the
+    # token logprobs of the structured reply (providers that return logprobs: ollama)
+    confidence: Literal["self_reported", "logprob"] = "self_reported"
     allow_abstain: bool = False
     history_turns: int = 4
     max_tokens: int = Field(default=512, ge=16)
     reasoning: ReasoningPrefs = Field(default_factory=ReasoningPrefs)
-    provider: ProviderPrefs | None = None
     cache: bool = True
 
     @model_validator(mode="after")
     def _reasoning_ok(self) -> LLMStrategy:
         _check_reasoning(self.model, self.temperature, self.max_tokens, self.reasoning)
+        if self.confidence == "logprob" and self.provider != "ollama":
+            raise ValueError("confidence: logprob needs a provider that returns logprobs (ollama)")
         return self
 
 
-class JevStrategy(_Config):
-    model: str
+class JevStrategy(ModelEndpoint):
     parse_retries: int = Field(default=1, ge=0)
     # Output cap: without it OpenRouter reserves the model's max (65536) against credits.
     max_tokens: int = Field(default=512, ge=16)
     allow_abstain: bool = False
     history_turns: int = 4
-    provider: ProviderPrefs | None = None
     # jev-router is non-deterministic: caching is off by default (3 repetitions required).
     cache: bool = False
 
@@ -175,6 +223,12 @@ class HybridStrategy(_Config):
 
 
 class StrategiesConfig(_Config):
+    """Strategy name -> config. Fixed strategies are fields; extra LLM routers are
+    `llm_<suffix>` keys, each validated as an `LLMStrategy` (any other extra key is an
+    error, like everywhere else)."""
+
+    model_config = ConfigDict(extra="allow")
+
     regex: RegexStrategy | None = None
     bm25: BM25Strategy | None = None
     embedding: EmbeddingStrategy | None = None
@@ -182,20 +236,53 @@ class StrategiesConfig(_Config):
     jev: JevStrategy | None = None
     hybrid: HybridStrategy | None = None
 
+    @model_validator(mode="after")
+    def _extra_llm_strategies(self) -> StrategiesConfig:
+        extra = self.__pydantic_extra__ or {}
+        for name, raw in extra.items():
+            if not _EXTRA_LLM.match(name):
+                raise ValueError(f"unknown strategy block {name!r} (extra LLMs: llm_<suffix>)")
+            if raw is not None and not isinstance(raw, LLMStrategy):
+                extra[name] = LLMStrategy.model_validate(raw)
+        return self
 
-class ExecutorConfig(_Config):
-    model: str
+    def llm_strategies(self) -> dict[str, LLMStrategy]:
+        """Every configured LLM router: `llm` + the `llm_<suffix>` blocks."""
+        out = {"llm": self.llm} if self.llm is not None else {}
+        out.update({k: v for k, v in (self.__pydantic_extra__ or {}).items() if v is not None})
+        return out
+
+    def configured(self) -> list[str]:
+        """Names of every configured strategy (fixed order, then extra LLMs)."""
+        fixed = [n for n in FIXED_STRATEGIES if getattr(self, n) is not None]
+        return fixed + [n for n in self.llm_strategies() if n != "llm"]
+
+    def get(self, name: str) -> Any:
+        return getattr(self, name, None)
+
+
+class ExecutorConfig(ModelEndpoint):
     temperature: float | None = 0.0
     seed: int | None = None
     max_tool_iterations: int = 3
     max_tokens: int = Field(default=1024, ge=16)
     reasoning: ReasoningPrefs = Field(default_factory=ReasoningPrefs)
-    provider: ProviderPrefs | None = None
 
     @model_validator(mode="after")
     def _reasoning_ok(self) -> ExecutorConfig:
         _check_reasoning(self.model, self.temperature, self.max_tokens, self.reasoning)
         return self
+
+
+class BudgetConfig(_Config):
+    """Hard spend caps per billing account, enforced from a persistent append-only ledger
+    (`study budget` prints it). `prices_path`: per-token prices of providers that do not
+    report a cost (Bedrock); local models cost 0 but are still recorded."""
+
+    aws_usd_cap: float = Field(default=90.0, ge=0.0)
+    openrouter_usd_cap: float = Field(default=9.0, ge=0.0)
+    ledger_path: str = "results/spend_ledger.jsonl"
+    prices_path: str = "config/prices.yaml"
 
 
 class Settings(BaseSettings):
@@ -208,6 +295,12 @@ class Settings(BaseSettings):
 
     openrouter_api_key: SecretStr = SecretStr("")
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    bedrock_region: str = "sa-east-1"  # AWS credentials: the default boto3 chain, never here
+    ollama_base_url: str = "http://localhost:11434/v1"
+    # Local models Ollama keeps loaded at once (run the server with the same
+    # OLLAMA_MAX_LOADED_MODELS). Shadow runs only add local LLM routers when all local models
+    # of the pass fit; otherwise those routers get their own routing-only runs (e5b, e6b).
+    ollama_max_loaded_models: int = Field(default=1, ge=1)
     langfuse_public_key: str | None = None
     langfuse_secret_key: SecretStr | None = None
     langfuse_host: str | None = None
@@ -229,6 +322,7 @@ class Settings(BaseSettings):
     routing: RoutingConfig = Field(default_factory=RoutingConfig)
     strategies: StrategiesConfig = Field(default_factory=StrategiesConfig)
     executor: ExecutorConfig | None = None
+    budget: BudgetConfig = Field(default_factory=BudgetConfig)
 
     @property
     def langfuse_enabled(self) -> bool:

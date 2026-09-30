@@ -26,18 +26,19 @@ from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import AIMessage, ToolMessage
 
 from routing_study import prompts
+from routing_study.budget import BudgetExceededError, ledger_for
 from routing_study.catalog import Catalog, CatalogProvider, McpTools
 from routing_study.eval.scorers import score_turn, scorer_hash, tool_index
 from routing_study.graph import nodes as graph_nodes
 from routing_study.graph.builder import build_graph, redis_checkpointer
 from routing_study.graph.nodes import max_tool_rounds
 from routing_study.graph.state import RunContext
-from routing_study.llm import make_chat_model, validate_models
+from routing_study.llm import chat_model_for, model_configs, validate_models
 from routing_study.prompts import AVAILABLE_SKILLS, HOST_RULES
 from routing_study.routers import llm as llm_router
 from routing_study.routers.base import Message, RouteOption, RoutingInput
 from routing_study.routers.common import REPETITION
-from routing_study.routers.pipeline import build_pipeline, build_routers, summary
+from routing_study.routers.pipeline import build_pipeline, build_routers, shadow_set, summary
 from routing_study.settings import Settings
 from routing_study.tracing import langfuse as tracing
 from routing_study.tracing.cost import CostCallbackHandler, CostTally
@@ -205,11 +206,9 @@ def run_prompt_hash() -> str:
 
 
 def models_used(settings: Settings) -> dict[str, str]:
-    s = settings.strategies
     out = {"executor": settings.executor.model if settings.executor else ""}
-    for name in ("llm", "jev", "embedding"):
-        cfg = getattr(s, name)
-        if cfg is not None and settings.routing.mode != "native":
+    for name, cfg in model_configs(settings):
+        if name != "executor" and settings.routing.mode != "native":
             out[name] = cfg.model
     return out
 
@@ -325,19 +324,15 @@ class Runner:
             raise ValueError("REDIS_URL is required (catalog cache + checkpointer)")
         import redis.asyncio as aioredis
 
-        supported = await validate_models(self.settings)
+        supported = await validate_models(self.settings, names=self.model_roles())
+        await self.check_budget(len(cases) * self.reps)
         redis = aioredis.from_url(self.settings.redis_url)
         self.catalog = CatalogProvider(self.settings, redis)
         catalog, _ = await self.catalog.get()
         self.schemas, self.read_only = tool_index(catalog.tools)
         self.skill_pipeline = self.tool_pipeline = None
         if not self.native:
-            r = self.settings.routing
-            wanted = (
-                None
-                if r.mode == "shadow"
-                else {s.strategy for s in [*r.skill.pipeline, *r.tool.pipeline]}
-            )
+            wanted = self.model_roles() - {"executor"}
             routers = build_routers(self.settings, wanted, supported_parameters=supported)
             self.skill_pipeline = build_pipeline(self.settings, "skill", routers)
             self.tool_pipeline = build_pipeline(self.settings, "tool", routers)
@@ -346,15 +341,8 @@ class Runner:
             ex = self.settings.executor
             if ex is None:
                 raise ValueError("e2e mode needs `executor` in the config")
-            self.chat = make_chat_model(
-                self.settings,
-                ex.model,
-                temperature=ex.temperature,
-                seed=ex.seed,
-                provider=ex.provider,
-                reasoning=ex.reasoning,
-                max_tokens=ex.max_tokens,
-                supported_parameters=supported.get(ex.model),
+            self.chat = chat_model_for(
+                self.settings, ex, supported_parameters=supported.get(ex.model)
             )
         self.meta = {
             "git_sha": git_sha(),
@@ -386,13 +374,40 @@ class Runner:
                         fh.write(json.dumps(rec, ensure_ascii=False, default=str) + "\n")
                         fh.flush()
 
-                    await asyncio.gather(
-                        *(one(c, rep) for rep in range(1, self.reps + 1) for c in cases)
-                    )
+                    try:  # a spend cap cancels every in-flight case
+                        async with asyncio.TaskGroup() as tg:
+                            for rep in range(1, self.reps + 1):
+                                for c in cases:
+                                    tg.create_task(one(c, rep))
+                    except BaseExceptionGroup as group:
+                        budget = group.subgroup(BudgetExceededError)
+                        if budget is not None:
+                            raise budget.exceptions[0] from None
+                        raise
         finally:
             await redis.aclose()
             tracing.flush()
         return out
+
+    def model_roles(self) -> set[str]:
+        """Strategies (+ "executor" in e2e) whose models this run calls."""
+        r = self.settings.routing
+        roles = {"executor"} if self.mode == "e2e" else set()
+        if not self.native:
+            roles |= {s.strategy for s in [*r.skill.pipeline, *r.tool.pipeline]}
+            if r.mode == "shadow":
+                roles |= set(shadow_set(self.settings))
+        return roles
+
+    async def check_budget(self, turns: int) -> None:
+        """Refuse to start when ledger spend + this run's a-priori upper bound would pass an
+        account cap (per provider: AWS for Bedrock, OpenRouter)."""
+        from routing_study.eval.estimate import apriori_costs, list_prices
+
+        by, _ = apriori_costs(self.settings, self.mode, await list_prices(self.settings))
+        ledger = ledger_for(self.settings)
+        for provider, per_turn in by.items():
+            ledger.check(provider, per_turn * turns, what=f"projected run ({turns} turns)")
 
     def base_record(self, case: Case, rep: int) -> dict[str, Any]:
         """Row identity + provenance (review M2): code version, config/catalog/prompt hashes,
@@ -509,6 +524,8 @@ class Runner:
                     ),
                     None,
                 )
+            except BudgetExceededError:
+                raise  # the spend cap aborts the whole run
             except Exception as exc:  # one broken case never kills the batch
                 log.exception("case %s rep %s failed", case.id, rep)
                 rec, scores, error = {}, {}, f"{type(exc).__name__}: {exc}"[:500]
@@ -547,6 +564,7 @@ class Runner:
                 "prompt": tally.prompt_tokens,
                 "completion": tally.completion_tokens,
                 "cached": tally.cached_tokens,
+                "cache_write": tally.cache_write_tokens,
                 "agent_calls": tally.calls,
             },
             "latency_ms": {

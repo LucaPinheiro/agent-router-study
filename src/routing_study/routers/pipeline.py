@@ -23,6 +23,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from routing_study.budget import BudgetExceededError
 from routing_study.routers.base import RouteDecision, RouteOption, Router, RoutingInput
 from routing_study.routers.common import DECIDES, ResponseCache
 from routing_study.settings import PipelineStep, Settings, StageConfig
@@ -123,6 +124,8 @@ class RoutingPipeline:
     ) -> RouteDecision:
         try:
             d = await self.routers[strategy].route(inp, options)
+        except BudgetExceededError:
+            raise  # a spend cap aborts the run, it is not a router failure
         except Exception as exc:  # recorded, never fatal
             d = RouteDecision(
                 choice=None,
@@ -237,20 +240,17 @@ def build_routers(
     supported_parameters: dict[str, list[str]] | None = None,
 ) -> dict[str, Router]:
     """Instantiate the configured strategies (all, or only `strategies`)."""
-    from routing_study.llm import EmbeddingsClient, make_chat_model
+    from routing_study.llm import EmbeddingsClient, chat_model_for
     from routing_study.routers.bm25 import BM25Router
     from routing_study.routers.embedding import EmbeddingRouter
     from routing_study.routers.hybrid import HybridRouter
     from routing_study.routers.jev import JevRouter
     from routing_study.routers.llm import LLMRouter
     from routing_study.routers.regex import RegexRouter
+    from routing_study.settings import is_llm_strategy
 
     cfg = settings.strategies
-    wanted = (
-        strategies
-        if strategies is not None
-        else {n for n in ("regex", "bm25", "embedding", "llm", "jev", "hybrid") if getattr(cfg, n)}
-    )
+    wanted = strategies if strategies is not None else set(cfg.configured())
     cache_dir = Path(settings.cache_dir)
     supported = supported_parameters or {}
 
@@ -258,7 +258,7 @@ def build_routers(
         return ResponseCache(str(cache_dir / "responses")) if enabled else None
 
     def _need(name: str) -> Any:
-        c = getattr(cfg, name)
+        c = cfg.get(name)
         if c is None:
             raise ValueError(f"strategy '{name}' used but not configured under `strategies`")
         return c
@@ -292,7 +292,7 @@ def build_routers(
     if "embedding" in wanted or "hybrid" in wanted:
         c = _need("embedding")
         emb = EmbeddingRouter(
-            EmbeddingsClient(settings, c.model, provider=c.provider),
+            EmbeddingsClient.for_config(settings, c),
             vector_cache_dir=str(cache_dir / "embeddings"),
             similarity=c.similarity,
             confidence=c.confidence,
@@ -304,35 +304,22 @@ def build_routers(
             out["embedding"] = emb
     if "hybrid" in wanted:
         out["hybrid"] = HybridRouter(bm25, emb, rrf_k=_need("hybrid").rrf_k)
-    if "llm" in wanted:
-        c = _need("llm")
-        chat = make_chat_model(
-            settings,
-            c.model,
-            temperature=c.temperature,
-            seed=c.seed,
-            provider=c.provider,
-            reasoning=c.reasoning,
-            max_tokens=c.max_tokens,
-            supported_parameters=supported.get(c.model),
-        )
-        out["llm"] = LLMRouter(
-            chat,
+    for name in sorted(n for n in wanted if is_llm_strategy(n)):  # one LLMRouter per LLM
+        c = _need(name)
+        out[name] = LLMRouter(
+            chat_model_for(settings, c, supported_parameters=supported.get(c.model)),
             settings,
             model=c.model,
             history_turns=c.history_turns,
             allow_abstain=c.allow_abstain,
             cache=_cache(c.cache),
+            name=name,
+            confidence=c.confidence,
         )
     if "jev" in wanted:
         c = _need("jev")
-        chat = make_chat_model(
-            settings,
-            c.model,
-            provider=c.provider,
-            max_tokens=c.max_tokens,
-            supported_parameters=supported.get(c.model, []),
-        )
+        # jev-router lists no supported parameters: default [] drops temperature/seed
+        chat = chat_model_for(settings, c, supported_parameters=supported.get(c.model, []))
         out["jev"] = JevRouter(
             chat,
             settings,
@@ -345,6 +332,35 @@ def build_routers(
     return out
 
 
+def local_models(settings: Settings, names: list[str]) -> set[str]:
+    """Distinct Ollama models the given strategies load (hybrid loads the embedder)."""
+    cfg = settings.strategies
+    out: set[str] = set()
+    for n in names:
+        c = cfg.get("embedding" if n == "hybrid" else n)
+        if c is not None and getattr(c, "provider", None) == "ollama":
+            out.add(c.model)
+    return out
+
+
+def shadow_set(settings: Settings) -> list[str]:
+    """Strategies a shadow pass runs besides the pipeline steps: `routing.shadow_strategies`
+    when given, else every configured strategy — minus the local (Ollama) LLM routers when the
+    local models of the pass exceed `ollama_max_loaded_models`: with one model resident at a
+    time, parallel shadow calls would swap models per request and the load time would pollute
+    their latency. Those routers are measured by their own routing-only runs instead."""
+    r, cfg = settings.routing, settings.strategies
+    if r.shadow_strategies:
+        return list(r.shadow_strategies)
+    names = cfg.configured()
+    if len(local_models(settings, names)) <= settings.ollama_max_loaded_models:
+        return names
+    local_llms = {n for n, c in cfg.llm_strategies().items() if c.provider == "ollama"} - {
+        st.strategy for stage in (r.skill, r.tool) for st in stage.pipeline
+    }
+    return [n for n in names if n not in local_llms]
+
+
 def build_pipeline(
     settings: Settings, level: Literal["skill", "tool"], routers: dict[str, Router]
 ) -> RoutingPipeline:
@@ -352,6 +368,4 @@ def build_pipeline(
     if mode == "native":
         raise ValueError("routing.mode=native has no routing pipeline")
     stage = settings.routing.skill if level == "skill" else settings.routing.tool
-    return RoutingPipeline(
-        stage, routers, mode=mode, shadow_strategies=list(settings.routing.shadow_strategies)
-    )
+    return RoutingPipeline(stage, routers, mode=mode, shadow_strategies=shadow_set(settings))
