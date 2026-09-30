@@ -19,8 +19,9 @@ from routing_study.graph.state import RunContext, TurnState
 CHECKPOINT_TTL_MIN = 24 * 60
 
 
-def build_graph(checkpointer: BaseCheckpointSaver | None = None, *,
-                routing_only: bool = False) -> CompiledStateGraph:
+def build_graph(
+    checkpointer: BaseCheckpointSaver | None = None, *, routing_only: bool = False
+) -> CompiledStateGraph:
     g = StateGraph(TurnState, context_schema=RunContext)
     g.add_node("ingest", nodes.ingest)
     g.add_node("route_skill", nodes.route_skill)
@@ -29,13 +30,13 @@ def build_graph(checkpointer: BaseCheckpointSaver | None = None, *,
     g.add_node("tools", nodes.tools)
     g.add_edge(START, "ingest")
     g.add_edge("ingest", "route_skill")
-    g.add_conditional_edges("route_skill", nodes.after_route,
-                            {"next": "route_tool", "end": END})
+    g.add_conditional_edges("route_skill", nodes.after_route, {"next": "route_tool", "end": END})
     g.add_conditional_edges("route_tool", nodes.after_route, {"next": "agent", "end": END})
     g.add_conditional_edges("agent", nodes.after_agent, {"tools": "tools", "end": END})
     g.add_edge("tools", "agent")  # after the tool budget, agent wraps up with no tool call
-    return g.compile(checkpointer=checkpointer,
-                     interrupt_before=["agent"] if routing_only else None)
+    return g.compile(
+        checkpointer=checkpointer, interrupt_before=["agent"] if routing_only else None
+    )
 
 
 @asynccontextmanager

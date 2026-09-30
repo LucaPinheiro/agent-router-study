@@ -15,10 +15,16 @@ def _tool(name: str, skill: str) -> dict[str, Any]:
     return {
         "name": name,
         "description": f"{name} description\nWHEN TO USE: {name}",
-        "inputSchema": {"type": "object", "additionalProperties": False,
-                        "properties": {"order_id": {"type": "string"}}},
-        "_meta": {"br.routingstudy/skill": skill, "br.routingstudy/examples": [f"ex {name}"],
-                  "br.routingstudy/keywords": [name.split("_")[0]]},
+        "inputSchema": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {"order_id": {"type": "string"}},
+        },
+        "_meta": {
+            "br.routingstudy/skill": skill,
+            "br.routingstudy/examples": [f"ex {name}"],
+            "br.routingstudy/keywords": [name.split("_")[0]],
+        },
     }
 
 
@@ -32,13 +38,26 @@ def make_catalog() -> Catalog:
         _tool("track_shipment", "pedidos_logistica"),
     ]
     skills = {
-        "pedidos_logistica": Skill("pedidos_logistica", "Pedidos e entregas", ["cadê meu pedido"],
-                                   "---\nname: pedidos_logistica\n---\n# PEDIDOS PLAYBOOK"),
-        "pagamentos_reembolsos": Skill("pagamentos_reembolsos", "Pagamentos", ["boleto"],
-                                       "---\nname: pagamentos_reembolsos\n---\n# PAGAMENTOS"),
+        "pedidos_logistica": Skill(
+            "pedidos_logistica",
+            "Pedidos e entregas",
+            ["cadê meu pedido"],
+            "---\nname: pedidos_logistica\n---\n# PEDIDOS PLAYBOOK",
+        ),
+        "pagamentos_reembolsos": Skill(
+            "pagamentos_reembolsos",
+            "Pagamentos",
+            ["boleto"],
+            "---\nname: pagamentos_reembolsos\n---\n# PAGAMENTOS",
+        ),
     }
-    return Catalog(url="mem://mcp", protocol_version="2026-07-28",
-                   instructions="SERVER INSTRUCTIONS", tools=tools, skills=skills)
+    return Catalog(
+        url="mem://mcp",
+        protocol_version="2026-07-28",
+        instructions="SERVER INSTRUCTIONS",
+        tools=tools,
+        skills=skills,
+    )
 
 
 class StaticCatalog:
@@ -56,12 +75,21 @@ class FakeTools:
     async def call(self, name: str, args: dict[str, Any]) -> ToolOutcome:
         self.calls.append((name, args))
         if name == "get_customer_profile":
-            return ToolOutcome("perfil", {"status": "completed", "customer_id": "C001",
-                                          "name": "Ana Souza",
-                                          "orders": [{"order_id": "O0001",
-                                                      "status": "shipped"}]}, False)
-        return ToolOutcome(f"{name} ok", {"status": "completed", "order_id": "O0001",
-                                          "total": {"amount": 499.9}}, False)
+            return ToolOutcome(
+                "perfil",
+                {
+                    "status": "completed",
+                    "customer_id": "C001",
+                    "name": "Ana Souza",
+                    "orders": [{"order_id": "O0001", "status": "shipped"}],
+                },
+                False,
+            )
+        return ToolOutcome(
+            f"{name} ok",
+            {"status": "completed", "order_id": "O0001", "total": {"amount": 499.9}},
+            False,
+        )
 
 
 class FakeChat:
@@ -96,8 +124,12 @@ class FixedRouter:
 
     name = "regex"
 
-    def __init__(self, skill: str | None, tool: str | None,
-                 tool_candidates: list[tuple[str, float]] | None = None) -> None:
+    def __init__(
+        self,
+        skill: str | None,
+        tool: str | None,
+        tool_candidates: list[tuple[str, float]] | None = None,
+    ) -> None:
         self.skill, self.tool = skill, tool
         self.tool_candidates = tool_candidates or []
         self.inputs: list[RoutingInput] = []
@@ -106,6 +138,9 @@ class FixedRouter:
         self.inputs.append(inp)
         choice = self.skill if inp.level == "skill" else self.tool
         cands = self.tool_candidates if inp.level == "tool" else []
-        return RouteDecision(choice=choice, confidence=0.9 if choice else 0.0,
-                             candidates=cands or ([(choice, 0.9)] if choice else []),
-                             strategy="regex")
+        return RouteDecision(
+            choice=choice,
+            confidence=0.9 if choice else 0.0,
+            candidates=cands or ([(choice, 0.9)] if choice else []),
+            strategy="regex",
+        )

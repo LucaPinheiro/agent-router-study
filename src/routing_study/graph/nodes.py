@@ -13,45 +13,71 @@ from langgraph.runtime import Runtime
 from routing_study.catalog import Catalog, ToolOutcome
 from routing_study.graph.state import RunContext, TurnState
 from routing_study.llm import call_with_retry
-from routing_study.prompts import PROMPT_HASH, system_blocks
+from routing_study.prompts import PROMPT_HASH, system_blocks, tool_result
 from routing_study.routers.base import GLOBAL_OPTION, Message, RoutingInput
 from routing_study.routers.pipeline import summary
 from routing_study.settings import Settings
 from routing_study.tracing.langfuse import span
 
 LOAD_SKILL = "load_skill"
-ESCALATION_TEXT = ("Não consegui identificar como resolver seu pedido por aqui. "
-                   "Vou encaminhar para um atendente humano.")
+ESCALATION_TEXT = (
+    "Não consegui identificar como resolver seu pedido por aqui. "
+    "Vou encaminhar para um atendente humano."
+)
 
 
 def load_skill_tool(catalog: Catalog) -> dict[str, Any]:
-    return {"type": "function", "function": {
-        "name": LOAD_SKILL,
-        "description": "Loads a skill: its playbook and tools become available on the next step.",
-        "parameters": {"type": "object", "additionalProperties": False, "required": ["skill"],
-                       "properties": {"skill": {"type": "string", "enum": list(catalog.skills),
-                                                "description": "Skill id"}}}}}
+    return {
+        "type": "function",
+        "function": {
+            "name": LOAD_SKILL,
+            "description": (
+                "Loads a skill: its playbook and tools become available on the next step."
+            ),
+            "parameters": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["skill"],
+                "properties": {
+                    "skill": {
+                        "type": "string",
+                        "enum": list(catalog.skills),
+                        "description": "Skill id",
+                    }
+                },
+            },
+        },
+    }
 
 
 def _routing_input(state: TurnState, level: str, loaded_skill: str | None = None) -> RoutingInput:
     turns = state["case"]["turns"]
-    return RoutingInput(message=turns[-1]["content"], level=level, loaded_skill=loaded_skill,
-                        history=[Message(role=t["role"], content=t["content"])
-                                 for t in turns[:-1]])
+    return RoutingInput(
+        message=turns[-1]["content"],
+        level=level,
+        loaded_skill=loaded_skill,
+        history=[Message(role=t["role"], content=t["content"]) for t in turns[:-1]],
+    )
 
 
 def _abstain(stage: str) -> dict[str, Any]:
-    return {"outcome": "abstained",
-            "messages": [AIMessage(ESCALATION_TEXT, name="host",
-                                   additional_kwargs={"abstained_at": stage})]}
+    return {
+        "outcome": "abstained",
+        "messages": [
+            AIMessage(ESCALATION_TEXT, name="host", additional_kwargs={"abstained_at": stage})
+        ],
+    }
 
 
 async def call_mcp(ctx: RunContext, name: str, args: dict[str, Any]) -> ToolOutcome:
     """One `tools/call`; the span is current, so the injected traceparent parents the server."""
     with span(f"mcp.client.call {name}", as_type="tool", input=args) as sp:
         out = await ctx.tools.call(name, args)
-        sp.update(output=out.structured or out.text, metadata={"status": out.status},
-                  level="ERROR" if out.is_error else "DEFAULT")
+        sp.update(
+            output=out.structured or out.text,
+            metadata={"status": out.status},
+            level="ERROR" if out.is_error else "DEFAULT",
+        )
         return out
 
 
@@ -66,13 +92,26 @@ async def ingest(state: TurnState, runtime: Runtime[RunContext]) -> dict[str, An
         turns = state["case"]["turns"]
         messages: list[AnyMessage] = [
             HumanMessage(t["content"]) if t["role"] == "user" else AIMessage(t["content"])
-            for t in turns]
+            for t in turns
+        ]
         profile = await call_mcp(ctx, "get_customer_profile", {})
-        sp.update(metadata={"catalog_cache": source, "catalog_hash": catalog.hash,
-                            "customer_id": state["case"]["customer_id"],
-                            "history_turns": len(turns) - 1})
-    return {"messages": messages, "customer": profile.structured, "skill_decision": None,
-            "tool_decision": None, "loaded_skill": None, "exposed_tools": [], "outcome": None}
+        sp.update(
+            metadata={
+                "catalog_cache": source,
+                "catalog_hash": catalog.hash,
+                "customer_id": state["case"]["customer_id"],
+                "history_turns": len(turns) - 1,
+            }
+        )
+    return {
+        "messages": messages,
+        "customer": profile.structured,
+        "skill_decision": None,
+        "tool_decision": None,
+        "loaded_skill": None,
+        "exposed_tools": [],
+        "outcome": None,
+    }
 
 
 async def route_skill(state: TurnState, runtime: Runtime[RunContext]) -> dict[str, Any]:
@@ -81,8 +120,9 @@ async def route_skill(state: TurnState, runtime: Runtime[RunContext]) -> dict[st
         return {}
     catalog, _ = await ctx.catalog.get()
     inp, options = _routing_input(state, "skill"), catalog.skill_options()
-    with span("route_skill", input={"message": inp.message,
-                                    "options": [o.id for o in options]}) as sp:
+    with span(
+        "route_skill", input={"message": inp.message, "options": [o.id for o in options]}
+    ) as sp:
         res = await ctx.skill_pipeline.run(inp, options)
         dump = res.model_dump(mode="json")
         sp.update(output={"choice": res.decision.choice}, metadata=summary(dump))
@@ -102,20 +142,41 @@ async def route_tool(state: TurnState, runtime: Runtime[RunContext]) -> dict[str
     skill = state.get("loaded_skill") or GLOBAL_OPTION
     inp, options = _routing_input(state, "tool", loaded_skill=skill), catalog.tool_options(skill)
     k = ctx.tool_pipeline.stage.expose_top_k
-    with span("route_tool", input={"message": inp.message,
-                                   "options": [o.id for o in options]}) as sp:
+    with span(
+        "route_tool", input={"message": inp.message, "options": [o.id for o in options]}
+    ) as sp:
         res = await ctx.tool_pipeline.run(inp, options)
         dump = res.model_dump(mode="json")
         exposed: list[str] = []
+        padded = 0
         if not res.abstained:
-            valid = {o.id for o in options}
-            # LLM-style routers rank only their choice: fill top-k from the consulted steps
-            ranked = [res.decision.choice, *(c for c, _ in res.decision.candidates),
-                      *(c for step in res.steps for c, _ in step.candidates)]
-            top = [c for c in dict.fromkeys(ranked) if c in valid][:k]
+            # Globals are always exposed, so top-k counts skill tools only: exactly
+            # min(k, n) for every strategy. Order: decision ranking, then the other consulted
+            # steps' rankings, then (fallback for partial rankings) server order.
+            skill_tools = [o.id for o in options if o.id not in catalog.global_tools]
+            ranked = [
+                c
+                for c in dict.fromkeys(
+                    [
+                        res.decision.choice,
+                        *(c for c, _ in res.decision.candidates),
+                        *(c for step in res.steps for c, _ in step.candidates),
+                    ]
+                )
+                if c in skill_tools
+            ]
+            top = [*ranked, *(t for t in skill_tools if t not in ranked)][:k]
+            padded = max(0, len(top) - len(ranked))
             exposed = catalog.ordered({*top, *catalog.global_tools})
-        sp.update(output={"choice": res.decision.choice},
-                  metadata={**(summary(dump) or {}), "top_k": k, "exposed_tools": exposed})
+        sp.update(
+            output={"choice": res.decision.choice},
+            metadata={
+                **(summary(dump) or {}),
+                "top_k": k,
+                "exposed_tools": exposed,
+                "padded": padded,
+            },
+        )
     update: dict[str, Any] = {"tool_decision": dump}
     if res.abstained:
         return update | _abstain("tool")
@@ -124,7 +185,7 @@ async def route_tool(state: TurnState, runtime: Runtime[RunContext]) -> dict[str
 
 def _turn_messages(state: TurnState) -> list[AnyMessage]:
     """Messages produced in this turn (after the gold history)."""
-    return state["messages"][len(state["case"]["turns"]):]
+    return state["messages"][len(state["case"]["turns"]) :]
 
 
 def _native_exposure(catalog: Catalog, loaded_skill: str | None) -> list[str]:
@@ -140,7 +201,7 @@ async def agent(state: TurnState, runtime: Runtime[RunContext]) -> dict[str, Any
         raise RuntimeError("agent node reached without an executor chat model")
     catalog, _ = await ctx.catalog.get()
     skill = state.get("loaded_skill")
-    exposed = (_native_exposure(catalog, skill) if ctx.native else list(state["exposed_tools"]))
+    exposed = _native_exposure(catalog, skill) if ctx.native else list(state["exposed_tools"])
     schemas = [catalog.openai_tool(n) for n in exposed]
     if ctx.native:
         schemas.append(load_skill_tool(catalog))
@@ -153,16 +214,28 @@ async def agent(state: TurnState, runtime: Runtime[RunContext]) -> dict[str, Any
         if first_call:  # forced only on the first step; the answer step must be free
             tool_choice = state["tool_decision"]["decision"]["choice"]
     bound = ctx.chat.bind_tools(schemas, tool_choice=tool_choice, parallel_tool_calls=False)
-    system = SystemMessage(content=system_blocks(catalog, native=ctx.native, skill=skill,
-                                                 customer=state.get("customer")))
+    system = SystemMessage(
+        content=system_blocks(
+            catalog, native=ctx.native, skill=skill, customer=state.get("customer")
+        )
+    )
     messages = [system, *state["messages"]]
     model = ctx.settings.executor.model if ctx.settings.executor else "executor"
-    with span("agent", metadata={"exposed_tools": exposed, "prompt_hash": PROMPT_HASH,
-                                 "prompts": ctx.prompt_versions,
-                                 "loaded_skill": skill, "tool_choice": tool_choice}) as sp:
+    with span(
+        "agent",
+        metadata={
+            "exposed_tools": exposed,
+            "prompt_hash": PROMPT_HASH,
+            "prompts": ctx.prompt_versions,
+            "loaded_skill": skill,
+            "tool_choice": tool_choice,
+        },
+    ) as sp:
         ai: AIMessage = await call_with_retry(
             lambda: bound.ainvoke(messages, config={"callbacks": ctx.callbacks}),
-            model=model, settings=ctx.settings)
+            model=model,
+            settings=ctx.settings,
+        )
         sp.update(output={"tool_calls": ai.tool_calls, "content": ai.text})
     update: dict[str, Any] = {"messages": [ai], "exposed_tools": exposed}
     if not ai.tool_calls and not wrap_up:
@@ -190,18 +263,39 @@ async def tools(state: TurnState, runtime: Runtime[RunContext]) -> dict[str, Any
                         text = f"Skill {skill} loaded. Its tools are now available."
                     else:
                         text = f"Unknown skill {skill!r}. Options: {list(catalog.skills)}."
-                out.append(ToolMessage(text, tool_call_id=tid, name=name,
-                                       status="success" if skill in catalog.skills else "error"))
-            elif name not in exposed:
-                out.append(ToolMessage(f"Tool {name!r} is not available.", tool_call_id=tid,
-                                       name=name, status="error",
-                                       artifact={"is_error": True, "structured": None}))
+                out.append(
+                    ToolMessage(
+                        text,
+                        tool_call_id=tid,
+                        name=name,
+                        status="success" if skill in catalog.skills else "error",
+                    )
+                )
+            elif name not in exposed:  # host refusal (not exposed / skill not loaded): the
+                # call is recorded with status "refused" so scorers can ignore it
+                out.append(
+                    ToolMessage(
+                        f"Tool {name!r} is not available.",
+                        tool_call_id=tid,
+                        name=name,
+                        status="error",
+                        artifact={
+                            "is_error": True,
+                            "structured": {"status": "refused", "code": "TOOL_NOT_AVAILABLE"},
+                        },
+                    )
+                )
             else:
                 res = await call_mcp(ctx, name, args)
-                out.append(ToolMessage(res.text, tool_call_id=tid, name=name,
-                                       status="error" if res.is_error else "success",
-                                       artifact={"is_error": res.is_error,
-                                                 "structured": res.structured}))
+                out.append(
+                    ToolMessage(
+                        tool_result(res.text, res.structured),
+                        tool_call_id=tid,
+                        name=name,
+                        status="error" if res.is_error else "success",
+                        artifact={"is_error": res.is_error, "structured": res.structured},
+                    )
+                )
     update["messages"] = out
     rounds = sum(1 for m in _turn_messages(state) if isinstance(m, AIMessage) and m.tool_calls)
     if rounds >= max_tool_rounds(ctx.settings):

@@ -95,8 +95,9 @@ def span(name: str, *, as_type: str = "span", **kwargs: Any) -> Iterator[Any]:
 
 
 @contextmanager
-def turn(*, session_id: str, tags: list[str], metadata: Mapping[str, str],
-         input: Any) -> Iterator[tuple[Any, str | None]]:
+def turn(
+    *, session_id: str, tags: list[str], metadata: Mapping[str, str], input: Any
+) -> Iterator[tuple[Any, str | None]]:
     """Root `turn` span with trace attributes propagated to every child. Yields (span, trace_id)."""
     if not enabled():
         yield _NoopSpan(), None
@@ -105,9 +106,12 @@ def turn(*, session_id: str, tags: list[str], metadata: Mapping[str, str],
 
     lf = client()
     with (
-        propagate_attributes(session_id=session_id, tags=tags,
-                             metadata={k: str(v) for k, v in metadata.items()},
-                             trace_name="turn"),
+        propagate_attributes(
+            session_id=session_id,
+            tags=tags,
+            metadata={k: str(v) for k, v in metadata.items()},
+            trace_name="turn",
+        ),
         lf.start_as_current_observation(name="turn", as_type="span", input=input) as root,
     ):
         yield root, lf.get_current_trace_id()
@@ -129,11 +133,14 @@ def flush() -> None:
 
 
 class LangfuseAPI:
-    def __init__(self, host: str | None = None, public_key: str | None = None,
-                 secret_key: str | None = None) -> None:
+    def __init__(
+        self, host: str | None = None, public_key: str | None = None, secret_key: str | None = None
+    ) -> None:
         self.host = (host or os.environ["LANGFUSE_HOST"]).rstrip("/")
-        self.auth = (public_key or os.environ["LANGFUSE_PUBLIC_KEY"],
-                     secret_key or os.environ["LANGFUSE_SECRET_KEY"])
+        self.auth = (
+            public_key or os.environ["LANGFUSE_PUBLIC_KEY"],
+            secret_key or os.environ["LANGFUSE_SECRET_KEY"],
+        )
 
     def _get(self, path: str, params: dict[str, Any]) -> list[dict[str, Any]]:
         r = httpx.get(f"{self.host}{path}", auth=self.auth, params=params, timeout=15)
@@ -141,14 +148,22 @@ class LangfuseAPI:
         return r.json()["data"]
 
     def observations(self, trace_id: str) -> list[dict[str, Any]]:
-        return self._get("/api/public/v2/observations", {
-            "traceId": trace_id, "fields": "core,basic,model,usage,io,metadata", "limit": 100})
+        return self._get(
+            "/api/public/v2/observations",
+            {"traceId": trace_id, "fields": "core,basic,model,usage,io,metadata", "limit": 100},
+        )
 
     def scores(self, trace_id: str) -> list[dict[str, Any]]:
         return self._get("/api/public/v3/scores", {"traceId": trace_id, "fields": "core,subject"})
 
-    def wait(self, trace_id: str, *, min_obs: int = 1, scores: set[str] | None = None,
-             timeout_s: float = 60.0) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    def wait(
+        self,
+        trace_id: str,
+        *,
+        min_obs: int = 1,
+        scores: set[str] | None = None,
+        timeout_s: float = 60.0,
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         """Poll until >= min_obs observations and all named scores are visible (async ingest)."""
         deadline = time.monotonic() + timeout_s
         obs: list[dict[str, Any]] = []
@@ -173,8 +188,10 @@ def format_tree(observations: list[dict[str, Any]]) -> str:
         for o in sorted(children.get(pid, []), key=lambda x: x["startTime"]):
             extra = ""
             if o.get("type") == "GENERATION":
-                extra = (f" model={o.get('providedModelName') or o.get('model')}"
-                         f" cost={o.get('totalCost')}")
+                extra = (
+                    f" model={o.get('providedModelName') or o.get('model')}"
+                    f" cost={o.get('totalCost')}"
+                )
             lines.append(f"{'  ' * depth}- {o['name']} [{o['type']}]{extra}")
             walk(o["id"], depth + 1)
 

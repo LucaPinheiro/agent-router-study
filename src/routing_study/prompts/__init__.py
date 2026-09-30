@@ -32,29 +32,53 @@ def _block(text: str, *, cache: bool) -> dict[str, Any]:
     return block
 
 
-def _data(text: str) -> str:
-    """Neutralize tag delimiters inside reference data so it cannot close its block."""
+def escape_data(text: str) -> str:
+    """Neutralize tag delimiters inside reference data so it cannot close its block (text
+    without `<` / `>` is returned unchanged)."""
     return text.replace("<", "\\u003c").replace(">", "\\u003e")
 
 
-def system_blocks(catalog: Catalog, *, native: bool, skill: str | None,
-                  customer: dict[str, Any] | None) -> list[dict[str, Any]]:
-    static = [f"<host_rules>\n{HOST_RULES}\n</host_rules>",
-              f"<server_instructions>\n{_data(catalog.instructions.strip())}\n</server_instructions>"]
+def tool_result(text: str, structured: dict[str, Any] | None) -> str:
+    """ToolMessage content for the executor: the MCP text plus a compact JSON of its
+    structuredContent (code, recoverable, details.options, items...), delimited and escaped."""
+    text = escape_data(text)  # MCP text is data too: it must not open/close host blocks
+    if not structured:
+        return text
+    data = escape_data(json.dumps(structured, ensure_ascii=False, separators=(",", ":")))
+    return f"{text}\n<structured_content>\n{data}\n</structured_content>"
+
+
+def system_blocks(
+    catalog: Catalog, *, native: bool, skill: str | None, customer: dict[str, Any] | None
+) -> list[dict[str, Any]]:
+    static = [
+        f"<host_rules>\n{HOST_RULES}\n</host_rules>",
+        f"<server_instructions>\n{escape_data(catalog.instructions.strip())}\n</server_instructions>",
+    ]
     if native:
-        listing = "\n".join(f"- {s.id}: {_data(s.description)}" for s in catalog.skills.values())
-        static.append("<available_skills>\n"
-                      + AVAILABLE_SKILLS.replace("{skills}", listing)
-                      + "\n</available_skills>")
+        listing = "\n".join(
+            f"- {s.id}: {escape_data(s.description)}" for s in catalog.skills.values()
+        )
+        static.append(
+            "<available_skills>\n"
+            + AVAILABLE_SKILLS.replace("{skills}", listing)
+            + "\n</available_skills>"
+        )
     blocks = [_block("\n\n".join(static), cache=True)]
     if skill and skill in catalog.skills:
-        playbook = _data(catalog.skills[skill].markdown.strip())
-        blocks.append(_block(f'<skill name="{skill}">\n{playbook}'
-                             "\n</skill>", cache=True))
+        playbook = escape_data(catalog.skills[skill].markdown.strip())
+        blocks.append(_block(f'<skill name="{skill}">\n{playbook}\n</skill>', cache=True))
     c = customer or {}
-    ctx = json.dumps({"customer_id": c.get("customer_id"),
-                      "first_name": (c.get("name") or "").split(" ")[0] or None,
-                      "order_ids": [o.get("order_id") for o in c.get("orders") or []]},
-                     ensure_ascii=False, sort_keys=True)
-    blocks.append(_block(f"<customer_context>\n{_data(ctx)}\n</customer_context>", cache=False))
+    ctx = json.dumps(
+        {
+            "customer_id": c.get("customer_id"),
+            "first_name": (c.get("name") or "").split(" ")[0] or None,
+            "order_ids": [o.get("order_id") for o in c.get("orders") or []],
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+    )
+    blocks.append(
+        _block(f"<customer_context>\n{escape_data(ctx)}\n</customer_context>", cache=False)
+    )
     return blocks
