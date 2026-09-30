@@ -3,7 +3,7 @@
 __pycache__/
 .cache/
 .omc/
-results/
+/results/
 .DS_Store
 .pytest_cache/
 .ruff_cache/
