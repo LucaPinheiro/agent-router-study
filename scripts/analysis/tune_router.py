@@ -349,9 +349,8 @@ def main() -> None:
         return
 
     # ---- full-dev table per grid point (optimistic: chosen on the same data)
-    order = sorted(
-        range(len(points)), key=lambda i: -acc(list(results[i].values()), "joint_correct")
-    )
+    # best first: joint accuracy, then lower cost, then lower latency (stable: grid order)
+    order = sorted(range(len(points)), key=lambda i: selection_key(metrics[i]), reverse=True)
     print(f"# {args.config}  dev n={len(rows)}  folds={args.folds} seed={args.seed}")
     if fixed:
         print("# fixed:", " ".join(f"{'.'.join(p)}={v}" for p, v in fixed))
