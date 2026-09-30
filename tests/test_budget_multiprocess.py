@@ -82,3 +82,11 @@ def test_reservations_of_a_dead_process_are_released(tmp_path: Path) -> None:
 
 def _reserve_and_die(path: str) -> None:
     SpendLedger(path, CAP).reserve("bedrock", 0.09)  # never settled: the process exits
+
+
+def test_settled_reservations_leave_no_entries(tmp_path: Path) -> None:
+    led = SpendLedger(tmp_path / "ledger.jsonl", CAP)
+    for upper in (0.0, 0.02):  # embeddings reserve 0.0: nothing to hold, nothing left behind
+        with CallMeter(led, "openrouter", "m", upper) as meter:
+            meter.done({"cost_usd": 0.001})
+    assert led._read_reservations() == {}

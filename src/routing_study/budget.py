@@ -219,6 +219,8 @@ class SpendLedger:
         with self._locked():
             data = self._read_reservations()
             self._check(acct, upper_bound_usd, "this call (upper bound)", self._pending(acct, data))
+            if upper_bound_usd <= 0:  # nothing to hold (e.g. embeddings: cost unknown upfront)
+                return Reservation(0.0)
             rid = f"{os.getpid()}-{uuid.uuid4().hex}"
             data[rid] = {"acct": acct, "usd": upper_bound_usd, "pid": os.getpid()}
             self._write_reservations(data)
@@ -228,9 +230,9 @@ class SpendLedger:
         """Release a reservation and, when the call returned, append its real usage."""
         acct = ACCOUNTS.get(provider)
         with self._locked():
-            if acct is not None and reserved:
+            rid = getattr(reserved, "rid", None)
+            if acct is not None and (rid is not None or reserved > 0):
                 data = self._read_reservations()
-                rid = getattr(reserved, "rid", None)
                 if rid is None:  # a bare float: this process's first entry of that amount
                     rid = next(
                         (
