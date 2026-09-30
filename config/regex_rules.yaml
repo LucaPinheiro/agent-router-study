@@ -17,8 +17,8 @@ rules:
     - { pattern: '\b(rastre\w*|rastreio|codigo de rastreamento|tracking)\b', weight: 1.0 }
     - { pattern: '\b(nao (chegou|foi entregue|recebi)|ainda nao chegou|atras\w+ (na|a) entrega|entrega atrasad\w*)', weight: 0.6 }
     - { pattern: '\b(transportadora|correios|frete|envio|enviad\w+|despachad\w+|saiu para entrega)\b', weight: 0.6 }
-    - { pattern: '\b(mudar|trocar|alterar|atualizar|corrigir) (o )?endereco\b', weight: 1.0 }
-    - { pattern: '\b(reagendar|remarcar|nova data|outro dia|mudar a data) (da |de )?(entrega)?', weight: 1.0 }
+    - { pattern: '\b(mudar|trocar|alterar|atualizar|corrigir) (o |a )?(meu |minha )?endereco\b', weight: 1.0 }
+    - { pattern: '\b(reagendar|remarcar|nova data|outro dia|mudar a data)\b', weight: 1.0 }
     - { pattern: '\bcancel\w+ (o |a |meu |minha )?(pedido|compra)\b', weight: 1.0 }
     - { pattern: '\b(status|situacao|andamento) do (meu )?pedido\b', weight: 1.0 }
     - { pattern: '\b(pedido|encomenda|entrega|prazo de entrega)\b', weight: 0.3 }
@@ -75,7 +75,7 @@ rules:
     - { pattern: '\b(transportadora|correios|saiu para entrega|em transito|previsao de entrega)\b', weight: 0.6 }
 
   update_delivery_address:
-    - { pattern: '\b(mudar|trocar|alterar|atualizar|corrigir) (o |meu )?endereco\b', weight: 1.0 }
+    - { pattern: '\b(mudar|trocar|alterar|atualizar|corrigir) (o |a )?(meu |minha )?endereco\b', weight: 1.0 }
     - { pattern: '\bendereco (errado|novo|de entrega)\b|\bmudei de endereco\b', weight: 0.6 }
 
   reschedule_delivery:
@@ -113,7 +113,7 @@ rules:
   # =========================================================== tool stage: trocas_devolucoes
   check_return_eligibility:
     - { pattern: '\b(posso|da pra|consigo|ainda (posso|da)) (devolver|trocar)\b', weight: 1.0 }
-    - { pattern: '\b(prazo|elegivel|elegibilidade|dentro do prazo) (para|pra|de)? ?(devolu\w+|troca)?\b', weight: 0.6 }
+    - { pattern: '\b(prazo|elegivel|elegibilidade|dentro do prazo)\b( (para|pra|de))?( (devolu\w+|troca))?', weight: 0.6 }
 
   create_return_request:
     - { pattern: '\b(quero|queria|preciso|vou) devolver\b', weight: 1.0 }

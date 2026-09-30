@@ -46,6 +46,33 @@ def test_env_overrides_with_list_index_and_nesting(monkeypatch):
     assert s.experiment_id == "e9_regex_jev_llm"
 
 
+def test_empty_nested_env_override_is_ignored(monkeypatch):
+    """B10: `ROUTING__MODE=` (empty, e.g. a blank .env line) must not crash json.loads."""
+    monkeypatch.setenv("ROUTING__MODE", "")
+    monkeypatch.setenv("STRATEGIES__LLM__MODEL", "")
+    s = load_settings("config/experiments/e9_regex_jev_llm.yaml")
+    assert s.routing.mode == "cascade"
+    assert s.strategies.llm.model == "anthropic/claude-sonnet-5"
+
+
+@pytest.mark.parametrize(
+    "patch",
+    [
+        {"routing": {"skil": {}}},  # typo of `skill`
+        {"strategies": {"llm": {"model": "a/b", "temprature": 0.2}}},
+        {"routing": {"skill": {"pipeline": [{"strategy": "regex", "min_confidenc": 0.9}]}}},
+    ],
+)
+def test_config_typos_are_rejected(tmp_path, patch):
+    """B11: a misspelled config key must fail loudly, not be silently dropped."""
+    from pydantic import ValidationError
+
+    path = tmp_path / "e_typo.yaml"
+    path.write_text(json.dumps(patch), encoding="utf-8")
+    with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
+        load_settings(path, _env_file=None)
+
+
 def test_defaults_without_experiment(monkeypatch):
     monkeypatch.delenv("MCP_URL", raising=False)
     s = load_settings(None, _env_file=None)
@@ -100,8 +127,9 @@ SCRIPT = textwrap.dedent(
 
 
 def test_route_span_named_and_annotated_when_langfuse_enabled():
-    out = subprocess.run([sys.executable, "-c", SCRIPT], capture_output=True, text=True,
-                         timeout=60, check=True)
+    out = subprocess.run(
+        [sys.executable, "-c", SCRIPT], capture_output=True, text=True, timeout=60, check=True
+    )
     data = json.loads(out.stdout.strip().splitlines()[-1])
     assert data["choice"] == "a"
     names = [s["name"] for s in data["spans"]]
@@ -112,3 +140,16 @@ def test_route_span_named_and_annotated_when_langfuse_enabled():
     gen = next(s for s in data["spans"] if s["name"] == "route.skill.llm")
     gblob = json.dumps(gen["attrs"])
     assert "generation" in gblob and "vendor/served" in gblob and "0.0123" in gblob
+
+
+def test_unit_tests_are_hermetic():
+    """B14: no developer `.env` / ambient ROUTING__*, OTEL_*, MAX_RATE_LIMIT_WAIT_S leaks in."""
+    import os
+
+    from routing_study.settings import Settings
+
+    s = Settings()
+    assert len(s.openrouter_api_key) == 0  # never print the secret on failure
+    assert s.max_rate_limit_wait_s == 65.0 and s.redis_url is None
+    assert load_settings("config/experiments/e9_regex_jev_llm.yaml").routing.mode == "cascade"
+    assert not [k for k in os.environ if k.startswith(("OTEL_", "ROUTING__", "LANGFUSE_"))]

@@ -46,8 +46,15 @@ class HybridRouter(BaseRouter):
             "bm25_choice": lex.choice,
             "embedding_choice": dense.choice,
         }
+        # Sub-decisions ran in parallel: latency = the slower one (original if cached); the
+        # paid part (embedding) decides `cached`, so a cache hit is not counted as billed.
+        inherited = {
+            "cost_usd": dense.cost_usd,
+            "cached": dense.cached,
+            "latency_ms": max(lex.latency_ms, dense.latency_ms),
+        }
         if not fused:
-            return abstain(self.name, **usage).model_copy(update={"cost_usd": dense.cost_usd})
+            return abstain(self.name, **usage).model_copy(update=inherited)
         ranked = sorted(fused.items(), key=lambda kv: -kv[1])
         top = ranked[0][0]
         agree = [d.confidence if d.choice == top else 0.0 for d in (lex, dense)]
@@ -56,6 +63,6 @@ class HybridRouter(BaseRouter):
             confidence=clamp01(sum(agree) / len(agree)),
             candidates=[(k, round(v, 6)) for k, v in ranked],
             strategy=self.name,
-            cost_usd=dense.cost_usd,
             usage=usage,
+            **inherited,
         )

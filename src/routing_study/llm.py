@@ -9,11 +9,13 @@ from __future__ import annotations
 
 import asyncio
 import time
+import weakref
 from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import dataclass, field
 from typing import Any
 
 import httpx
+import httpx2
 import numpy as np
 import openai
 from langchain_core.messages import AIMessage
@@ -27,11 +29,7 @@ from tenacity import (
     wait_exponential_jitter,
 )
 
-from routing_study.settings import ProviderPrefs, Settings
-
-# Params we set that some OpenRouter models reject/ignore; dropped when the model's
-# `supported_parameters` (from GET /models) does not list them.
-_OPTIONAL_PARAMS = ("temperature", "seed")
+from routing_study.settings import ProviderPrefs, ReasoningPrefs, Settings
 
 
 class UnknownModelError(RuntimeError):
@@ -44,9 +42,19 @@ class OpenRouterChat(ChatOpenAI):
     def _create_chat_result(
         self, response: dict | openai.BaseModel, generation_info: dict | None = None
     ) -> ChatResult:
+        error = (
+            response.get("error")
+            if isinstance(response, dict)
+            else getattr(response, "error", None)
+        )
+        if error:  # HTTP 200 with an error body (B8): retried by code, like an HTTP status
+            raise OpenRouterBodyError({"error": error})
         result = super()._create_chat_result(response, generation_info)
-        provider = (response.get("provider") if isinstance(response, dict)
-                    else getattr(response, "provider", None))
+        provider = (
+            response.get("provider")
+            if isinstance(response, dict)
+            else getattr(response, "provider", None)
+        )
         if result.llm_output is not None and provider:
             result.llm_output["provider"] = provider
         for gen in result.generations:
@@ -55,14 +63,53 @@ class OpenRouterChat(ChatOpenAI):
         return result
 
 
-def provider_extra_body(prefs: ProviderPrefs | None) -> dict[str, Any]:
+def provider_extra_body(
+    prefs: ProviderPrefs | None, reasoning: ReasoningPrefs | None = None
+) -> dict[str, Any]:
     body: dict[str, Any] = {"usage": {"include": True}}
+    if reasoning is not None:
+        body["reasoning"] = reasoning.model_dump(exclude_none=True)
     if prefs is not None and (prefs.order or not prefs.allow_fallbacks):
         provider: dict[str, Any] = {"allow_fallbacks": prefs.allow_fallbacks}
         if prefs.order:
             provider["order"] = list(prefs.order)
         body["provider"] = provider
     return body
+
+
+class _LoopLocalTransport(httpx2.AsyncBaseTransport):
+    """One connection pool per event loop. A pooled keep-alive connection belongs to the loop
+    that opened it; langchain_openai shares ONE cached default client per process, so a call
+    after an earlier `asyncio.run(...)` reused a dead loop's connection ("Event loop is
+    closed"). Pools of closed loops are dropped (their sockets died with the loop)."""
+
+    def __init__(self) -> None:
+        self._pools: weakref.WeakKeyDictionary[
+            asyncio.AbstractEventLoop, httpx2.AsyncHTTPTransport
+        ] = weakref.WeakKeyDictionary()
+
+    def _pool(self) -> httpx2.AsyncHTTPTransport:
+        loop = asyncio.get_running_loop()
+        for dead in [lp for lp in self._pools if lp.is_closed()]:
+            del self._pools[dead]
+        pool = self._pools.get(loop)
+        if pool is None:  # openai's DefaultAsyncHttpxClient connection limits
+            pool = self._pools[loop] = httpx2.AsyncHTTPTransport(
+                limits=httpx2.Limits(max_connections=1000, max_keepalive_connections=100)
+            )
+        return pool
+
+    async def handle_async_request(self, request: httpx2.Request) -> httpx2.Response:
+        return await self._pool().handle_async_request(request)
+
+    async def aclose(self) -> None:
+        pool = self._pools.pop(asyncio.get_running_loop(), None)
+        if pool is not None:
+            await pool.aclose()
+
+
+# shared by every chat model (like langchain_openai's cached default), but loop-safe
+_CHAT_HTTP_CLIENT = openai.DefaultAsyncHttpxClient(transport=_LoopLocalTransport())
 
 
 def make_chat_model(
@@ -72,6 +119,7 @@ def make_chat_model(
     temperature: float | None = None,
     seed: int | None = None,
     provider: ProviderPrefs | None = None,
+    reasoning: ReasoningPrefs | None = None,
     max_tokens: int | None = None,
     supported_parameters: Iterable[str] | None = None,
     http_async_client: Any | None = None,
@@ -80,24 +128,32 @@ def make_chat_model(
 
     `supported_parameters` (from `validate_models`) drops params the model does not accept;
     `None` means "unknown" and sends what was asked. `http_async_client` lets tests inject a
-    plain `httpx.AsyncClient` (openai>=3 defaults to `httpx2`, which respx cannot mock).
+    plain `httpx.AsyncClient` (openai>=3 defaults to `httpx2`, which respx cannot mock); the
+    default is a client with one connection pool per event loop (`_LoopLocalTransport`).
     """
     params: dict[str, Any] = {"temperature": temperature, "seed": seed}
     if supported_parameters is not None:
         supported = set(supported_parameters)
         params = {k: (v if k in supported else None) for k, v in params.items()}
+        # finding 6: `reasoning` only goes to models that list it; asking a model that
+        # cannot reason to reason is a config error, not something to drop silently
+        if reasoning is not None and "reasoning" not in supported:
+            if reasoning.enabled:
+                raise ValueError(f"{model} does not support reasoning (supported_parameters)")
+            reasoning = None
     kwargs: dict[str, Any] = {
         "model": model,
         "base_url": settings.openrouter_base_url,
         "api_key": settings.openrouter_api_key.get_secret_value() or "missing",
-        "extra_body": provider_extra_body(provider),
+        "extra_body": provider_extra_body(provider, reasoning),
         "max_retries": 0,
         "timeout": settings.request_timeout_s,
     }
     if max_tokens is not None:
         kwargs["max_tokens"] = max_tokens
-    if http_async_client is not None:
-        kwargs["http_async_client"] = http_async_client
+    kwargs["http_async_client"] = (
+        _CHAT_HTTP_CLIENT if http_async_client is None else http_async_client
+    )
     kwargs.update({k: v for k, v in params.items() if v is not None})
     return OpenRouterChat(**kwargs)
 
@@ -175,13 +231,44 @@ def rpm_limiter(model: str, settings: Settings) -> RpmLimiter | None:
     return lim
 
 
+class OpenRouterBodyError(RuntimeError):
+    """HTTP 200 whose body is `{"error": {"code", "message", "metadata"}}` (OpenRouter reports
+    upstream failures this way); retried like the equivalent HTTP status."""
+
+    def __init__(self, body: dict[str, Any]) -> None:
+        super().__init__(f"OpenRouter error body: {str(body)[:300]}")
+        self.body = body
+        err = body.get("error")
+        code = err.get("code") if isinstance(err, dict) else None
+        self.code = code
+        self.status_code = code if isinstance(code, int) else None
+
+
+def _error_parts(exc: BaseException) -> tuple[int | None, dict[str, Any], Any]:
+    """(status, body, response headers) of an OpenRouter error, whichever client raised it."""
+    if isinstance(exc, openai.APIStatusError):
+        body = exc.body if isinstance(exc.body, dict) else {}
+        return exc.status_code, body, exc.response.headers
+    if isinstance(exc, httpx.HTTPStatusError):
+        try:
+            body = exc.response.json()
+        except ValueError:
+            body = {}
+        body = body if isinstance(body, dict) else {}
+        return exc.response.status_code, body, exc.response.headers
+    if isinstance(exc, OpenRouterBodyError):
+        return exc.status_code, exc.body, {}
+    return None, {}, {}
+
+
 def _rate_limit_reset_s(exc: BaseException) -> float | None:
     """Seconds until OpenRouter's X-RateLimit-Reset (epoch ms), if the 429 carries it."""
-    if not (isinstance(exc, openai.APIStatusError) and exc.status_code == 429):
+    status, body, resp_headers = _error_parts(exc)
+    if status != 429:
         return None
-    body = exc.body if isinstance(exc.body, dict) else {}
-    headers = (body.get("metadata") or {}).get("headers") or {}
-    reset = headers.get("X-RateLimit-Reset") or exc.response.headers.get("x-ratelimit-reset")
+    err = body.get("error") if isinstance(body.get("error"), dict) else body
+    headers = (err.get("metadata") or {}).get("headers") or {}
+    reset = headers.get("X-RateLimit-Reset") or resp_headers.get("x-ratelimit-reset")
     try:
         return max(0.0, float(reset) / 1000.0 - time.time())
     except (TypeError, ValueError):
@@ -195,13 +282,26 @@ def _is_retryable(exc: BaseException) -> bool:
         return True
     if isinstance(exc, openai.APIStatusError):
         return exc.status_code in _RETRY_STATUS
+    if isinstance(exc, OpenRouterBodyError):
+        # no code at all: unknown upstream failure, retry; a symbolic code (invalid_model)
+        # is a client error that will never succeed (B8)
+        if exc.code is None:
+            return True
+        return exc.status_code in _RETRY_STATUS
     return isinstance(exc, openai.APIConnectionError | openai.APITimeoutError)
 
 
 @dataclass
 class RetryStats:
+    """Per `call_with_retry`: `call_ms` is the successful HTTP attempt only (the latency we
+    report); `queue_ms` = provider semaphore + RPM limiter waits; `retry_ms` = failed attempts
+    + backoff sleeps. RPM buckets are shared across roles on purpose: queueing is excluded."""
+
     attempts: int = 0
     errors: list[str] = field(default_factory=list)
+    call_ms: float = 0.0
+    queue_ms: float = 0.0
+    retry_ms: float = 0.0
 
 
 async def call_with_retry[T](
@@ -235,13 +335,22 @@ async def call_with_retry[T](
         after=_record,
         reraise=True,
     )
+    t_start = time.perf_counter()
     async with provider_semaphore(model, settings.max_concurrency_per_provider):
+        stats.queue_ms += (time.perf_counter() - t_start) * 1000
         async for attempt in retrying:
             with attempt:
                 if limiter is not None:
+                    t_q = time.perf_counter()
                     await limiter.acquire()
+                    stats.queue_ms += (time.perf_counter() - t_q) * 1000
                 stats.attempts += 1
-                return await fn()
+                t_call = time.perf_counter()
+                result = await fn()
+                t_end = time.perf_counter()
+                stats.call_ms = (t_end - t_call) * 1000
+                stats.retry_ms = max(0.0, (t_end - t_start) * 1000 - stats.queue_ms - stats.call_ms)
+                return result
     raise AssertionError("unreachable")  # pragma: no cover
 
 
@@ -255,8 +364,10 @@ class EmbeddingResult:
     served_model: str | None
     provider: str | None
     prompt_tokens: int
-    latency_ms: float
+    latency_ms: float  # successful HTTP attempt only (see RetryStats)
     attempts: int = 1
+    queue_ms: float = 0.0
+    retry_ms: float = 0.0
 
 
 class EmbeddingsClient:
@@ -291,13 +402,11 @@ class EmbeddingsClient:
             resp.raise_for_status()
             data = resp.json()
             if "data" not in data:
-                raise RuntimeError(f"embeddings response without data: {str(data)[:300]}")
+                raise OpenRouterBodyError(data if isinstance(data, dict) else {"error": data})
             return data
 
         stats = RetryStats()
-        t0 = time.perf_counter()
         data = await call_with_retry(_post, model=self.model, settings=self.settings, stats=stats)
-        latency_ms = (time.perf_counter() - t0) * 1000
         rows = sorted(data["data"], key=lambda r: r["index"])
         usage = data.get("usage") or {}
         return EmbeddingResult(
@@ -306,8 +415,10 @@ class EmbeddingsClient:
             served_model=data.get("model"),
             provider=data.get("provider"),
             prompt_tokens=int(usage.get("prompt_tokens") or 0),
-            latency_ms=latency_ms,
+            latency_ms=stats.call_ms,
             attempts=stats.attempts,
+            queue_ms=stats.queue_ms,
+            retry_ms=stats.retry_ms,
         )
 
     async def aclose(self) -> None:
@@ -343,6 +454,7 @@ async def validate_models(
     own = http is None
     client = http or httpx.AsyncClient(timeout=settings.request_timeout_s)
     try:
+
         async def _get(path: str) -> list[dict[str, Any]]:
             async def _call() -> list[dict[str, Any]]:
                 r = await client.get(f"{base}{path}", headers=headers)

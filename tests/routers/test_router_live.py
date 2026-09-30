@@ -12,15 +12,21 @@ from routing_study.settings import load_settings
 pytestmark = pytest.mark.integration
 
 OPTIONS = [
-    RouteOption(id="pedidos_logistica",
-                description="Status, rastreio, endereco, reagendamento e cancelamento de pedidos",
-                examples=["cade minha encomenda?", "quero rastrear meu pedido"]),
-    RouteOption(id="pagamentos_reembolsos",
-                description="Pagamentos, 2a via de boleto, reembolsos e contestacao de cobrancas",
-                examples=["preciso da 2a via do boleto", "quero meu reembolso"]),
-    RouteOption(id="trocas_devolucoes",
-                description="Elegibilidade de devolucao, devolucao, etiqueta, troca e garantia",
-                examples=["o tenis veio no tamanho errado", "quero devolver o produto"]),
+    RouteOption(
+        id="pedidos_logistica",
+        description="Status, rastreio, endereco, reagendamento e cancelamento de pedidos",
+        examples=["cade minha encomenda?", "quero rastrear meu pedido"],
+    ),
+    RouteOption(
+        id="pagamentos_reembolsos",
+        description="Pagamentos, 2a via de boleto, reembolsos e contestacao de cobrancas",
+        examples=["preciso da 2a via do boleto", "quero meu reembolso"],
+    ),
+    RouteOption(
+        id="trocas_devolucoes",
+        description="Elegibilidade de devolucao, devolucao, etiqueta, troca e garantia",
+        examples=["o tenis veio no tamanho errado", "quero devolver o produto"],
+    ),
 ]
 
 
@@ -33,10 +39,12 @@ async def test_live_llm_and_jev_route(tmp_path):
     inp = RoutingInput(message="Preciso da segunda via do boleto, venceu ontem", level="skill")
     for name in ("llm", "jev"):
         d = await routers[name].route(inp, OPTIONS)
-        print(f"\n[{name}] model={routers[name].model} choice={d.choice} conf={d.confidence:.2f} "
-              f"cost_usd={d.cost_usd:.8f} latency_ms={d.latency_ms:.0f} "
-              f"served={d.usage.get('served_model')} provider={d.usage.get('provider')} "
-              f"calls={d.usage.get('calls')} parse_fail={d.usage.get('parse_fail', False)}")
+        print(
+            f"\n[{name}] model={routers[name].model} choice={d.choice} conf={d.confidence:.2f} "
+            f"cost_usd={d.cost_usd:.8f} latency_ms={d.latency_ms:.0f} "
+            f"served={d.usage.get('served_model')} provider={d.usage.get('provider')} "
+            f"calls={d.usage.get('calls')} parse_fail={d.usage.get('parse_fail', False)}"
+        )
         assert d.usage.get("served_model")
         assert d.cost_usd > 0, "OpenRouter usage.cost missing"
         assert d.choice == "pagamentos_reembolsos" or d.usage.get("parse_fail")

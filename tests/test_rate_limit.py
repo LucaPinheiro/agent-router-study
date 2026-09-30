@@ -44,3 +44,38 @@ async def test_rpm_limiter_blocks_over_cap(monkeypatch: pytest.MonkeyPatch) -> N
     await lim.acquire()
     with pytest.raises(asyncio.TimeoutError):
         await asyncio.wait_for(lim.acquire(), timeout=0.2)
+
+
+async def test_retry_stats_split_queue_backoff_and_call_time() -> None:
+    """B2: only the successful HTTP attempt is call time; queue and backoff are separate."""
+    settings = Settings(
+        _env_file=None,
+        http_retries=2,
+        rpm_limits={},
+        max_concurrency_per_provider=1,
+        max_rate_limit_wait_s=65.0,
+    )
+    calls = 0
+
+    async def fn() -> str:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise _429(time.time() * 1000)  # reset now -> ~0.5 s wait
+        await asyncio.sleep(0.05)
+        return "ok"
+
+    async def hog() -> None:
+        async def slow() -> None:
+            await asyncio.sleep(0.2)
+
+        await call_with_retry(slow, model="q/x", settings=settings)
+
+    stats = RetryStats()
+    blocker = asyncio.create_task(hog())
+    await asyncio.sleep(0)  # hog holds the provider semaphore first
+    assert await call_with_retry(fn, model="q/y", settings=settings, stats=stats) == "ok"
+    await blocker
+    assert stats.queue_ms >= 150
+    assert stats.retry_ms >= 400
+    assert 40 <= stats.call_ms < 150

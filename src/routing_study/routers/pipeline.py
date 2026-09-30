@@ -9,6 +9,10 @@
 Router spans are tagged while they are open: `decisive=true` on the strategy the pipeline acts
 on, `shadow=true` on every other one (plan §6.2); see `DECIDES`.
 A router exception becomes an abstaining decision with usage["error"] so a batch never dies.
+When no consulted step accepts and one of them failed, the failure is surfaced as
+`routing_error`, which the runner records as the row's error (excluded from accuracy) rather
+than scoring the outage as an abstention. A failure a later step recovered from is kept in
+`step_errors` only: the cascade did its job, the row is scored.
 """
 
 from __future__ import annotations
@@ -34,15 +38,25 @@ class PipelineResult(BaseModel):
     mode: Mode
     steps: list[RouteDecision] = Field(default_factory=list)  # pipeline steps consulted
     shadow: dict[str, RouteDecision] = Field(default_factory=dict)  # all shadow decisions
-    cost_usd: float = 0.0  # consulted steps = what a production cascade pays (cached hits 0)
+    # Study cost: ORIGINAL cost of each decision even when served from cache, so results do
+    # not depend on cache warmth. `*billed_usd` is what this run actually paid (cached hits 0).
+    cost_usd: float = 0.0  # consulted steps = what a production cascade pays
     shadow_cost_usd: float = 0.0  # every strategy that ran (= cost_usd outside shadow mode)
+    billed_usd: float = 0.0
+    shadow_billed_usd: float = 0.0
     latency_ms: float = 0.0  # sum of consulted pipeline steps (original latency if cached)
+    routing_error: str | None = None  # no step accepted and a consulted step failed
+    step_errors: list[str] = Field(default_factory=list)  # every consulted step's failure
 
 
 def _accepts(step: PipelineStep, d: RouteDecision) -> bool:
     if d.choice is None:
         return False
     return step.min_confidence is None or d.confidence >= step.min_confidence
+
+
+def _errors(decisions: list[RouteDecision]) -> list[str]:
+    return [f"{d.strategy}: {d.usage['error']}" for d in decisions if d.usage.get("error")]
 
 
 def _spent(d: RouteDecision) -> float:
@@ -95,7 +109,8 @@ class RoutingPipeline:
         # Shadow runs the pipeline strategies + `shadow_strategies` (default: every router).
         extra = list(shadow_strategies) if shadow_strategies else list(routers)
         self.shadow_strategies = [
-            s for s in dict.fromkeys([*(p.strategy for p in stage.pipeline), *extra])
+            s
+            for s in dict.fromkeys([*(p.strategy for p in stage.pipeline), *extra])
             if s in routers
         ]
 
@@ -103,13 +118,18 @@ class RoutingPipeline:
     def steps(self) -> list[PipelineStep]:
         return self.stage.pipeline[:1] if self.mode == "single" else self.stage.pipeline
 
-    async def _safe_route(self, strategy: str, inp: RoutingInput, options: list[RouteOption],
-                          decider: _Decider) -> RouteDecision:
+    async def _safe_route(
+        self, strategy: str, inp: RoutingInput, options: list[RouteOption], decider: _Decider
+    ) -> RouteDecision:
         try:
             d = await self.routers[strategy].route(inp, options)
         except Exception as exc:  # recorded, never fatal
-            d = RouteDecision(choice=None, confidence=0.0, strategy=strategy,
-                              usage={"error": f"{type(exc).__name__}: {exc}"[:500]})
+            d = RouteDecision(
+                choice=None,
+                confidence=0.0,
+                strategy=strategy,
+                usage={"error": f"{type(exc).__name__}: {exc}"[:500]},
+            )
         decider.see(d)  # unblock later steps waiting in `decides` (errors, untraced runs)
         return d
 
@@ -121,8 +141,9 @@ class RoutingPipeline:
         finally:
             DECIDES.reset(token)
 
-    async def _run(self, inp: RoutingInput, options: list[RouteOption],
-                   decider: _Decider) -> PipelineResult:
+    async def _run(
+        self, inp: RoutingInput, options: list[RouteOption], decider: _Decider
+    ) -> PipelineResult:
         shadow: dict[str, RouteDecision] = {}
         if self.mode == "shadow":
             results = await asyncio.gather(
@@ -132,12 +153,14 @@ class RoutingPipeline:
 
         consulted: list[RouteDecision] = []
         for i, step in enumerate(self.steps):
-            d = shadow.get(step.strategy) or await self._safe_route(step.strategy, inp, options,
-                                                                      decider)
+            d = shadow.get(step.strategy) or await self._safe_route(
+                step.strategy, inp, options, decider
+            )
             consulted.append(d)
             if _accepts(step, d):
                 return self._result(d, step.strategy, i, consulted, shadow)
         last = consulted[-1]
+        error = next(iter(_errors(consulted)), None)
         final = RouteDecision(
             choice=None,
             confidence=0.0,
@@ -145,12 +168,19 @@ class RoutingPipeline:
             strategy=last.strategy,
             latency_ms=sum(c.latency_ms for c in consulted),
             cost_usd=sum(c.cost_usd for c in consulted),
+            usage={"error": error} if error else {},
         )
         return self._result(final, None, None, consulted, shadow)
 
-    def _result(self, decision: RouteDecision, resolved_by: str | None, step: int | None,
-                consulted: list[RouteDecision],
-                shadow: dict[str, RouteDecision]) -> PipelineResult:
+    def _result(
+        self,
+        decision: RouteDecision,
+        resolved_by: str | None,
+        step: int | None,
+        consulted: list[RouteDecision],
+        shadow: dict[str, RouteDecision],
+    ) -> PipelineResult:
+        ran = list(shadow.values()) if shadow else consulted
         return PipelineResult(
             decision=decision,
             resolved_by=resolved_by,
@@ -159,9 +189,13 @@ class RoutingPipeline:
             mode=self.mode,
             steps=consulted,
             shadow=shadow,
-            cost_usd=sum(_spent(d) for d in consulted),
-            shadow_cost_usd=sum(_spent(d) for d in (shadow.values() if shadow else consulted)),
+            cost_usd=sum(d.cost_usd for d in consulted),
+            shadow_cost_usd=sum(d.cost_usd for d in ran),
+            billed_usd=sum(_spent(d) for d in consulted),
+            shadow_billed_usd=sum(_spent(d) for d in ran),
             latency_ms=sum(d.latency_ms for d in consulted),
+            routing_error=None if resolved_by else next(iter(_errors(consulted)), None),
+            step_errors=_errors(consulted),
         )
 
 
@@ -170,19 +204,38 @@ def summary(dump: dict[str, Any] | None) -> dict[str, Any] | None:
     if not dump:
         return None
     d = dump["decision"]
-    keys = ("resolved_by", "cascade_step", "abstained", "mode", "cost_usd", "shadow_cost_usd",
-            "latency_ms", "steps", "shadow")
-    return {"choice": d["choice"], "confidence": d["confidence"],
-            "candidates": d["candidates"][:5], **{k: dump[k] for k in keys}}
+    keys = (
+        "resolved_by",
+        "cascade_step",
+        "abstained",
+        "mode",
+        "cost_usd",
+        "shadow_cost_usd",
+        "billed_usd",
+        "shadow_billed_usd",
+        "latency_ms",
+        "steps",
+        "shadow",
+        "routing_error",
+        "step_errors",
+    )
+    return {
+        "choice": d["choice"],
+        "confidence": d["confidence"],
+        "candidates": d["candidates"][:5],
+        **{k: dump.get(k) for k in keys},
+    }
 
 
 # ---------------------------------------------------------------- factory
 
 
-def build_routers(settings: Settings, strategies: set[str] | None = None,
-                  *, cache_namespace: str = "",
-                  supported_parameters: dict[str, list[str]] | None = None,
-                  ) -> dict[str, Router]:
+def build_routers(
+    settings: Settings,
+    strategies: set[str] | None = None,
+    *,
+    supported_parameters: dict[str, list[str]] | None = None,
+) -> dict[str, Router]:
     """Instantiate the configured strategies (all, or only `strategies`)."""
     from routing_study.llm import EmbeddingsClient, make_chat_model
     from routing_study.routers.bm25 import BM25Router
@@ -193,14 +246,16 @@ def build_routers(settings: Settings, strategies: set[str] | None = None,
     from routing_study.routers.regex import RegexRouter
 
     cfg = settings.strategies
-    wanted = strategies if strategies is not None else {
-        n for n in ("regex", "bm25", "embedding", "llm", "jev", "hybrid") if getattr(cfg, n)
-    }
+    wanted = (
+        strategies
+        if strategies is not None
+        else {n for n in ("regex", "bm25", "embedding", "llm", "jev", "hybrid") if getattr(cfg, n)}
+    )
     cache_dir = Path(settings.cache_dir)
     supported = supported_parameters or {}
 
     def _cache(enabled: bool) -> ResponseCache | None:
-        return ResponseCache(str(cache_dir / "responses"), cache_namespace) if enabled else None
+        return ResponseCache(str(cache_dir / "responses")) if enabled else None
 
     def _need(name: str) -> Any:
         c = getattr(cfg, name)
@@ -221,8 +276,10 @@ def build_routers(settings: Settings, strategies: set[str] | None = None,
         emb = EmbeddingRouter(
             EmbeddingsClient(settings, c.model, provider=c.provider),
             vector_cache_dir=str(cache_dir / "embeddings"),
-            similarity=c.similarity, confidence=c.confidence,
-            softmax_temperature=c.softmax_temperature, margin_scale=c.margin_scale,
+            similarity=c.similarity,
+            confidence=c.confidence,
+            softmax_temperature=c.softmax_temperature,
+            margin_scale=c.margin_scale,
             cache=_cache(c.cache),
         )
         if "embedding" in wanted:
@@ -231,26 +288,52 @@ def build_routers(settings: Settings, strategies: set[str] | None = None,
         out["hybrid"] = HybridRouter(bm25, emb, rrf_k=_need("hybrid").rrf_k)
     if "llm" in wanted:
         c = _need("llm")
-        chat = make_chat_model(settings, c.model, temperature=c.temperature, seed=c.seed,
-                               provider=c.provider, max_tokens=256,
-                               supported_parameters=supported.get(c.model))
-        out["llm"] = LLMRouter(chat, settings, model=c.model, history_turns=c.history_turns,
-                               allow_abstain=c.allow_abstain, cache=_cache(c.cache))
+        chat = make_chat_model(
+            settings,
+            c.model,
+            temperature=c.temperature,
+            seed=c.seed,
+            provider=c.provider,
+            reasoning=c.reasoning,
+            max_tokens=c.max_tokens,
+            supported_parameters=supported.get(c.model),
+        )
+        out["llm"] = LLMRouter(
+            chat,
+            settings,
+            model=c.model,
+            history_turns=c.history_turns,
+            allow_abstain=c.allow_abstain,
+            cache=_cache(c.cache),
+        )
     if "jev" in wanted:
         c = _need("jev")
-        chat = make_chat_model(settings, c.model, provider=c.provider,
-                               supported_parameters=supported.get(c.model, []))
-        out["jev"] = JevRouter(chat, settings, model=c.model, parse_retries=c.parse_retries,
-                               history_turns=c.history_turns, allow_abstain=c.allow_abstain,
-                               cache=_cache(c.cache))
+        chat = make_chat_model(
+            settings,
+            c.model,
+            provider=c.provider,
+            max_tokens=c.max_tokens,
+            supported_parameters=supported.get(c.model, []),
+        )
+        out["jev"] = JevRouter(
+            chat,
+            settings,
+            model=c.model,
+            parse_retries=c.parse_retries,
+            history_turns=c.history_turns,
+            allow_abstain=c.allow_abstain,
+            cache=_cache(c.cache),
+        )
     return out
 
 
-def build_pipeline(settings: Settings, level: Literal["skill", "tool"],
-                   routers: dict[str, Router]) -> RoutingPipeline:
+def build_pipeline(
+    settings: Settings, level: Literal["skill", "tool"], routers: dict[str, Router]
+) -> RoutingPipeline:
     mode = settings.routing.mode
     if mode == "native":
         raise ValueError("routing.mode=native has no routing pipeline")
     stage = settings.routing.skill if level == "skill" else settings.routing.tool
-    return RoutingPipeline(stage, routers, mode=mode,
-                           shadow_strategies=list(settings.routing.shadow_strategies))
+    return RoutingPipeline(
+        stage, routers, mode=mode, shadow_strategies=list(settings.routing.shadow_strategies)
+    )

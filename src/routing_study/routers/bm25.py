@@ -35,8 +35,9 @@ class BM25Router(BaseRouter):
         if not query or not options:
             return []
         raw = self._bm25(options).get_scores(query)
-        return sorted(((o.id, float(s)) for o, s in zip(options, raw, strict=True)),
-                      key=lambda kv: -kv[1])
+        return sorted(
+            ((o.id, float(s)) for o, s in zip(options, raw, strict=True)), key=lambda kv: -kv[1]
+        )
 
     async def _decide(self, inp: RoutingInput, options: list[RouteOption]) -> RouteDecision:
         ranked = self.scores(inp.message, options)

@@ -9,7 +9,7 @@ Option vectors are cached on disk per (model, text); only the message is embedde
 from __future__ import annotations
 
 import hashlib
-from typing import ClassVar, Literal, Protocol
+from typing import Any, ClassVar, Literal, Protocol
 
 import diskcache
 import numpy as np
@@ -51,13 +51,25 @@ class EmbeddingRouter(BaseRouter):
         self.confidence_mode = confidence
         self.softmax_temperature = softmax_temperature
         self.margin_scale = margin_scale
-        self._vectors = (diskcache.Cache(vector_cache_dir, disk=diskcache.JSONDisk)
-                         if vector_cache_dir else None)  # JSON, never pickle
+        self._vectors = (
+            diskcache.Cache(vector_cache_dir, disk=diskcache.JSONDisk) if vector_cache_dir else None
+        )  # JSON, never pickle
         self._mem: dict[str, np.ndarray] = {}
 
     @property
     def model(self) -> str | None:
         return self.embedder.model
+
+    def cache_params(self, inp: RoutingInput, options: list[RouteOption]) -> dict[str, Any]:
+        prefs = getattr(self.embedder, "provider", None)
+        return {
+            "model": self.embedder.model,
+            "similarity": self.similarity,
+            "confidence": self.confidence_mode,
+            "softmax_temperature": self.softmax_temperature,
+            "margin_scale": self.margin_scale,
+            "provider": prefs.model_dump(mode="json") if prefs is not None else None,
+        }
 
     def _vkey(self, text: str) -> str:
         return hashlib.sha256(f"{self.embedder.model}\x00{text}".encode()).hexdigest()
@@ -74,15 +86,16 @@ class EmbeddingRouter(BaseRouter):
 
     async def option_vectors(
         self, options: list[RouteOption]
-    ) -> tuple[dict[str, np.ndarray], float]:
-        """Unit vectors per option (rows = texts). Returns (vectors, index build cost)."""
+    ) -> tuple[dict[str, np.ndarray], EmbeddingResult | None]:
+        """Unit vectors per option (rows = texts). Returns (vectors, index build call or None
+        when every vector was cached)."""
         texts_by_opt = {o.id: [*o.examples, o.description] for o in options}
-        missing = sorted({t for ts in texts_by_opt.values() for t in ts
-                          if self._lookup(self._vkey(t)) is None})
-        cost = 0.0
+        missing = sorted(
+            {t for ts in texts_by_opt.values() for t in ts if self._lookup(self._vkey(t)) is None}
+        )
+        res = None
         if missing:
             res = await self.embedder.embed(missing)
-            cost = res.cost_usd
             for text, vec in zip(missing, _unit(res.vectors), strict=True):
                 key = self._vkey(text)
                 self._mem[key] = vec
@@ -92,7 +105,7 @@ class EmbeddingRouter(BaseRouter):
             oid: np.stack([self._lookup(self._vkey(t)) for t in ts])  # type: ignore[misc]
             for oid, ts in texts_by_opt.items()
         }
-        return out, cost
+        return out, res
 
     def _confidence(self, scores: np.ndarray) -> float:
         order = np.sort(scores)[::-1]
@@ -106,8 +119,9 @@ class EmbeddingRouter(BaseRouter):
     async def _decide(self, inp: RoutingInput, options: list[RouteOption]) -> RouteDecision:
         if not options or not inp.message.strip():
             return abstain(self.name)
-        vectors, index_cost = await self.option_vectors(options)
+        vectors, index = await self.option_vectors(options)
         q = await self.embedder.embed([inp.message])
+        calls = [q] if index is None else [index, q]
         qv = _unit(q.vectors[0])
         ids = [o.id for o in options]
         if self.similarity == "centroid":
@@ -126,7 +140,9 @@ class EmbeddingRouter(BaseRouter):
                 "prompt_tokens": q.prompt_tokens,
                 "served_model": q.served_model,
                 "provider": q.provider,
-                "index_cost_usd": index_cost,
+                "index_cost_usd": index.cost_usd if index is not None else 0.0,
                 "attempts": q.attempts,
+                "queue_ms": sum(c.queue_ms for c in calls),
+                "retry_ms": sum(c.retry_ms for c in calls),
             },
         )

@@ -12,7 +12,7 @@ import re
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, SecretStr
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, model_validator
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -23,25 +23,69 @@ from pydantic_settings import (
 StrategyName = Literal["regex", "bm25", "embedding", "llm", "jev", "hybrid"]
 
 
-class ProviderPrefs(BaseModel):
+class _Config(BaseModel):
+    """Experiment config block: a misspelled key is an error, never silently dropped."""
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class ProviderPrefs(_Config):
     """OpenRouter provider routing (`extra_body.provider`)."""
 
     order: list[str] | None = None
     allow_fallbacks: bool = True
 
 
-class PipelineStep(BaseModel):
+class ReasoningPrefs(_Config):
+    """OpenRouter `extra_body.reasoning`. Explicit on purpose: with structured output some models
+    (e.g. anthropic/claude-sonnet-5) think by default, which silently changes cost, latency and
+    the output budget of a router."""
+
+    enabled: bool = False
+    effort: Literal["low", "medium", "high"] | None = None
+    max_tokens: int | None = Field(default=None, ge=1)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _effort_or_budget_enables(cls, data: Any) -> Any:
+        """`effort` or `max_tokens` means reasoning ON (finding 5): never send
+        {"enabled": false, "effort": ...}; and only one of the two."""
+        if not isinstance(data, dict) or not (data.get("effort") or data.get("max_tokens")):
+            return data
+        if data.get("effort") and data.get("max_tokens"):
+            raise ValueError("reasoning: set only one of effort / max_tokens")
+        if data.get("enabled") is False:
+            raise ValueError("reasoning: effort/max_tokens given with enabled=false")
+        return {**data, "enabled": True}
+
+
+def _check_reasoning(
+    model: str, temperature: float | None, max_tokens: int, reasoning: ReasoningPrefs
+) -> None:
+    """Finding 5: the thinking budget must leave room for the answer; finding 8: Anthropic
+    models only accept temperature 1 (or unset) with thinking on."""
+    if reasoning.max_tokens is not None and reasoning.max_tokens >= max_tokens:
+        raise ValueError(
+            f"reasoning budget {reasoning.max_tokens} must be < max_tokens {max_tokens}"
+        )
+    if reasoning.enabled and model.startswith("anthropic/") and temperature not in (None, 1):
+        raise ValueError(
+            f"{model}: temperature must be 1 or null with reasoning enabled (got {temperature})"
+        )
+
+
+class PipelineStep(_Config):
     strategy: StrategyName
     min_confidence: float | None = Field(default=None, ge=0.0, le=1.0)
 
 
-class StageConfig(BaseModel):
+class StageConfig(_Config):
     pipeline: list[PipelineStep] = Field(default_factory=list)
     on_abstain: Literal["escalate", "native_agent"] = "escalate"
     expose_top_k: int = Field(default=2, ge=1)
 
 
-class RoutingConfig(BaseModel):
+class RoutingConfig(_Config):
     mode: Literal["native", "single", "cascade", "shadow"] = "cascade"
     skill: StageConfig = Field(default_factory=StageConfig)
     tool: StageConfig = Field(default_factory=StageConfig)
@@ -49,16 +93,16 @@ class RoutingConfig(BaseModel):
     shadow_strategies: list[StrategyName] = Field(default_factory=list)
 
 
-class RegexStrategy(BaseModel):
+class RegexStrategy(_Config):
     rules_path: str = "config/regex_rules.yaml"
 
 
-class BM25Strategy(BaseModel):
+class BM25Strategy(_Config):
     k1: float = 1.5
     b: float = 0.75
 
 
-class EmbeddingStrategy(BaseModel):
+class EmbeddingStrategy(_Config):
     model: str
     similarity: Literal["max_example", "centroid"] = "max_example"
     confidence: Literal["margin", "softmax"] = "softmax"
@@ -68,20 +112,29 @@ class EmbeddingStrategy(BaseModel):
     cache: bool = True
 
 
-class LLMStrategy(BaseModel):
+class LLMStrategy(_Config):
     model: str
     temperature: float | None = 0.0
     seed: int | None = None
     confidence: Literal["self_reported"] = "self_reported"
     allow_abstain: bool = False
     history_turns: int = 4
+    max_tokens: int = Field(default=512, ge=16)
+    reasoning: ReasoningPrefs = Field(default_factory=ReasoningPrefs)
     provider: ProviderPrefs | None = None
     cache: bool = True
 
+    @model_validator(mode="after")
+    def _reasoning_ok(self) -> LLMStrategy:
+        _check_reasoning(self.model, self.temperature, self.max_tokens, self.reasoning)
+        return self
 
-class JevStrategy(BaseModel):
+
+class JevStrategy(_Config):
     model: str
     parse_retries: int = Field(default=1, ge=0)
+    # Output cap: without it OpenRouter reserves the model's max (65536) against credits.
+    max_tokens: int = Field(default=512, ge=16)
     allow_abstain: bool = False
     history_turns: int = 4
     provider: ProviderPrefs | None = None
@@ -89,11 +142,11 @@ class JevStrategy(BaseModel):
     cache: bool = False
 
 
-class HybridStrategy(BaseModel):
+class HybridStrategy(_Config):
     rrf_k: int = Field(default=60, ge=1)
 
 
-class StrategiesConfig(BaseModel):
+class StrategiesConfig(_Config):
     regex: RegexStrategy | None = None
     bm25: BM25Strategy | None = None
     embedding: EmbeddingStrategy | None = None
@@ -102,18 +155,26 @@ class StrategiesConfig(BaseModel):
     hybrid: HybridStrategy | None = None
 
 
-class ExecutorConfig(BaseModel):
+class ExecutorConfig(_Config):
     model: str
     temperature: float | None = 0.0
     seed: int | None = None
     max_tool_iterations: int = 3
+    max_tokens: int = Field(default=1024, ge=16)
+    reasoning: ReasoningPrefs = Field(default_factory=ReasoningPrefs)
     provider: ProviderPrefs | None = None
+
+    @model_validator(mode="after")
+    def _reasoning_ok(self) -> ExecutorConfig:
+        _check_reasoning(self.model, self.temperature, self.max_tokens, self.reasoning)
+        return self
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_nested_delimiter="__",
+        env_ignore_empty=True,  # a blank `KEY=` line means unset, not ""
         extra="ignore",
     )
 
@@ -181,8 +242,10 @@ def _nested_env_overrides(env_file: str | None) -> list[tuple[list[str], Any]]:
         m = _NESTED_ENV.match(key)
         if not m:
             continue
+        if raw is None or raw == "":  # blank = unset (and "" would crash json.loads)
+            continue
         value: Any = raw
-        if isinstance(raw, str) and raw[:1] in "[{":
+        if isinstance(raw, str) and raw[0] in "[{":
             value = json.loads(raw)
         out.append(([m.group(1).lower(), *m.group(2).lower().split("__")], value))
     return out
@@ -229,6 +292,11 @@ def load_settings(experiment: str | Path | None = None, **overrides: Any) -> Set
     class _ExperimentSettings(Settings):
         model_config = SettingsConfigDict(**{**Settings.model_config, "yaml_file": str(path)})
 
+    # B11: the top level ignores unknown ENV keys (the process env is full of them) but a
+    # misspelled YAML key (`strategys:`) must fail, like every nested block does
+    unknown = sorted(set(_yaml_data(path)) - set(Settings.model_fields))
+    if unknown:
+        raise ValueError(f"{path}: unknown top-level key(s) {unknown}")
     env_file = Settings.model_config.get("env_file")
     env_patches = _nested_env_overrides(env_file if isinstance(env_file, str) else None)
     if env_patches:

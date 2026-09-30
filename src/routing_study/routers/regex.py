@@ -58,7 +58,8 @@ class RegexRouter(BaseRouter):
     def score(self, text: str, options: list[RouteOption]) -> dict[str, float]:
         norm = normalize(text)
         return {
-            o.id: sum(w for rx, w in self._compiled.get(o.id, []) if rx.search(norm))
+            # rounded: float sums (0.6 + 0.3 = 0.8999…) must not miss full_score / thresholds
+            o.id: round(sum(w for rx, w in self._compiled.get(o.id, []) if rx.search(norm)), 6)
             for o in options
         }
 
@@ -73,7 +74,7 @@ class RegexRouter(BaseRouter):
         separation = (s1 - s2) / s1
         return RouteDecision(
             choice=top_id,
-            confidence=clamp01(strength * (0.5 + 0.5 * separation)),
+            confidence=clamp01(round(strength * (0.5 + 0.5 * separation), 6)),
             candidates=[(k, round(v, 4)) for k, v in ranked],
             strategy=self.name,
             usage={"matched": len(ranked)},
