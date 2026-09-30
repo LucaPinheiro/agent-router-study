@@ -33,7 +33,13 @@ from routing_study.graph import nodes as graph_nodes
 from routing_study.graph.builder import build_graph, redis_checkpointer
 from routing_study.graph.nodes import max_tool_rounds
 from routing_study.graph.state import RunContext
-from routing_study.llm import chat_model_for, model_configs, preload_ollama, validate_models
+from routing_study.llm import (
+    chat_model_for,
+    model_configs,
+    preload_ollama,
+    unload_ollama,
+    validate_models,
+)
 from routing_study.prompts import AVAILABLE_SKILLS, HOST_RULES
 from routing_study.routers import llm as llm_router
 from routing_study.routers.base import Message, RouteOption, RoutingInput
@@ -389,6 +395,10 @@ class Runner:
         finally:
             await redis.aclose()
             tracing.flush()
+            if any(
+                c.provider == "ollama" for _, c in model_configs(self.settings, self.model_roles())
+            ):
+                await unload_ollama(self.settings)  # one local model resident at a time
         return out
 
     def model_roles(self) -> set[str]:

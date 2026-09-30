@@ -90,6 +90,10 @@ class ModelEndpoint(_Config):
     region: str | None = None
     base_url: str | None = None
     openrouter: ProviderPrefs | None = None
+    # Ollama context window. Its /v1 API ignores per-request options, so the model is served
+    # as a derived tag `<model>-ctx<num_ctx>` (same weights, PARAMETER num_ctx), created on
+    # preload. Bounds the KV cache: the default 32768 doubled resident memory.
+    num_ctx: int | None = Field(default=None, ge=512)
 
     @model_validator(mode="before")
     @classmethod
@@ -104,7 +108,14 @@ class ModelEndpoint(_Config):
     def _prefs_only_on_openrouter(self) -> ModelEndpoint:
         if self.openrouter is not None and self.provider != "openrouter":
             raise ValueError(f"`openrouter` prefs given for provider {self.provider!r}")
+        if self.num_ctx is not None and self.provider != "ollama":
+            raise ValueError(f"`num_ctx` is an Ollama setting (provider {self.provider!r})")
         return self
+
+    @property
+    def served_name(self) -> str:
+        """The name requests use: the derived `-ctx<n>` tag when `num_ctx` is set."""
+        return f"{self.model}-ctx{self.num_ctx}" if self.num_ctx else self.model
 
 
 def _check_reasoning(

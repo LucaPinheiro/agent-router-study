@@ -442,7 +442,7 @@ def chat_model_for(
     if cfg.provider == "ollama":
         return make_ollama_chat(
             settings,
-            cfg.model,
+            cfg.served_name,
             temperature=temperature,
             seed=seed,
             max_tokens=max_tokens,
@@ -753,7 +753,7 @@ class EmbeddingsClient:
     def for_config(cls, settings: Settings, cfg: Any) -> EmbeddingsClient:
         return cls(
             settings,
-            cfg.model,
+            cfg.served_name,
             provider=cfg.openrouter,
             backend=cfg.provider,
             base_url=cfg.base_url,
@@ -876,26 +876,54 @@ async def _check_ollama(
             raise UnknownModelError(f"Ollama at {base} has not pulled: {missing}")
 
 
+def _ollama_base(settings: Settings, cfg: ModelEndpoint) -> str:
+    return (cfg.base_url or settings.ollama_base_url).rstrip("/").removesuffix("/v1")
+
+
+async def unload_ollama(settings: Settings, keep: set[str] = frozenset()) -> list[str]:
+    """Unload every model resident in the local server except `keep` (served names)."""
+    base = settings.ollama_base_url.rstrip("/").removesuffix("/v1")
+    unloaded: list[str] = []
+    async with httpx.AsyncClient(timeout=120) as client:
+        for m in (await client.get(f"{base}/api/ps")).json().get("models", []):
+            if m["name"] in keep:
+                continue
+            body = {"model": m["name"], "keep_alive": 0}  # unloads embedders too
+            (await client.post(f"{base}/api/generate", json=body)).raise_for_status()
+            unloaded.append(m["name"])
+    return unloaded
+
+
 async def preload_ollama(
     settings: Settings, names: set[str] | None = None, keep_alive: str = "30m"
 ) -> dict[str, float]:
-    """Load the run's local models before timing starts (`/api/generate` with no prompt), so
-    a model load never lands in a measured routing latency. Returns model -> load seconds."""
+    """Make the run's local models the only resident ones, then load them before timing
+    (so a model load never lands in a measured latency). A `num_ctx` model is created first
+    as its derived tag (`/api/create` from the base tag: no weight copy). Returns served
+    name -> load seconds."""
+    cfgs = {c.served_name: c for _, c in model_configs(settings, names) if c.provider == "ollama"}
+    if not cfgs:
+        return {}
+    await unload_ollama(settings, keep=set(cfgs))
     out: dict[str, float] = {}
     async with httpx.AsyncClient(timeout=600) as client:
-        for _, cfg in model_configs(settings, names):
-            if cfg.provider != "ollama" or cfg.model in out:
-                continue
-            base = (cfg.base_url or settings.ollama_base_url).rstrip("/").removesuffix("/v1")
+        for name, cfg in cfgs.items():
+            base = _ollama_base(settings, cfg)
+            if cfg.num_ctx:
+                body = {"model": name, "from": cfg.model, "parameters": {"num_ctx": cfg.num_ctx}}
+                (
+                    await client.post(f"{base}/api/create", json={**body, "stream": False})
+                ).raise_for_status()
             t0 = time.perf_counter()
             if cfg is settings.strategies.embedding:
-                body = {"model": cfg.model, "input": "", "keep_alive": keep_alive}
+                body = {"model": name, "input": "", "keep_alive": keep_alive}
                 r = await client.post(f"{base}/api/embed", json=body)
             else:
-                body = {"model": cfg.model, "keep_alive": keep_alive}
-                r = await client.post(f"{base}/api/generate", json=body)
+                r = await client.post(
+                    f"{base}/api/generate", json={"model": name, "keep_alive": keep_alive}
+                )
             r.raise_for_status()
-            out[cfg.model] = time.perf_counter() - t0
+            out[name] = time.perf_counter() - t0
     return out
 
 

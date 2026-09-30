@@ -389,3 +389,14 @@ async def test_ollama_calls_queue_client_side_for_the_server_slots(settings):
     assert peak == 1  # one slot (ollama_num_parallel=1), even across local models
     assert max(st.queue_ms for st in stats) >= 40  # the wait is queue time, not latency
     assert all(st.call_ms < 100 for st in stats)
+
+
+def test_num_ctx_is_served_as_a_derived_ollama_tag(settings):
+    cfg = LLMStrategy(provider="ollama", model="qwen3:8b-q8_0", num_ctx=8192)
+    assert cfg.served_name == "qwen3:8b-q8_0-ctx8192"
+    assert chat_model_for(settings, cfg).model_name == "qwen3:8b-q8_0-ctx8192"
+    with pytest.raises(ValueError, match="num_ctx"):
+        LLMStrategy(provider="bedrock", model=SONNET, num_ctx=8192)
+    for p in ("e6b_llm_qwen3_local", "e5b_llm_qwen32_local"):
+        st = load_settings(f"config/experiments/{p}.yaml", _env_file=None).strategies
+        assert st.llm_local.num_ctx == st.llm_local_large.num_ctx == st.embedding.num_ctx == 8192

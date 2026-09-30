@@ -25,7 +25,7 @@ from fastmcp import Client
 from routing_study.catalog import fetch_catalog
 from routing_study.eval.runner import load_cases
 from routing_study.eval.scorers import routing_scores
-from routing_study.llm import preload_ollama
+from routing_study.llm import preload_ollama, unload_ollama
 from routing_study.routers.base import GLOBAL_OPTION, Message, RoutingInput
 from routing_study.routers.pipeline import build_routers
 from routing_study.settings import load_settings
@@ -85,12 +85,12 @@ async def main() -> None:
     cases = load_cases("dev", args.n)
     base = (cfg.base_url or s.ollama_base_url).rstrip("/").removesuffix("/v1")
 
-    load_s = (await preload_ollama(s, {name}))[cfg.model]  # excluded from latency
+    load_s = (await preload_ollama(s, {name}))[cfg.served_name]  # excluded from latency
     await router.route(routing_input(cases[0].turns, "skill"), catalog.skill_options())
 
     peak: dict[str, int] = {}
     stop = asyncio.Event()
-    sampler = asyncio.create_task(sample_memory(base, cfg.model, peak, stop))
+    sampler = asyncio.create_task(sample_memory(base, cfg.served_name, peak, stop))
     lat: dict[str, list[float]] = {"skill": [], "tool": []}
     toks: list[int] = []
     scores: list[dict[str, Any]] = []
@@ -112,11 +112,14 @@ async def main() -> None:
         scores.append(routing_scores(sk.choice, tool, case.expected))
     stop.set()
     await sampler
+    await unload_ollama(s)  # leave nothing resident
 
     def acc(metric: str) -> float:
         return 100 * statistics.mean(r[metric] for r in scores)
 
-    print(f"model {cfg.model} ({name}, confidence={cfg.confidence}) on {len(cases)} dev cases")
+    print(
+        f"model {cfg.served_name} ({name}, confidence={cfg.confidence}) on {len(cases)} dev cases"
+    )
     print(f"  model load               {load_s:6.1f} s")
     for level, xs in lat.items():
         if xs:
