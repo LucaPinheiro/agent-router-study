@@ -10,6 +10,7 @@ import respx
 from router_helpers import BASE_URL, chat_completion, skill_input
 
 from routing_study.llm import make_chat_model
+from routing_study.prompts.routers import parse_variant
 from routing_study.routers.common import ResponseCache
 from routing_study.routers.jev import JevRouter, parse_reply
 from routing_study.routers.llm import LLMRouter
@@ -260,9 +261,19 @@ async def test_cache_key_covers_router_config_and_prompt(
     # prompt template change -> miss
     import routing_study.routers.llm as llm_mod
 
-    monkeypatch.setitem(llm_mod._LEVEL_NOUN, "skill", "skill (area)")
+    real = llm_mod.templates
+    monkeypatch.setattr(
+        llm_mod, "templates", lambda lang: {**real(lang), "noun": {"skill": "area", "tool": "t"}}
+    )
     await _llm(settings, cache=ResponseCache(cache_dir)).route(inp, skill_options)
     assert route.call_count == 5
+    monkeypatch.setattr(llm_mod, "templates", real)
+
+    # prompt variant change -> miss
+    r = _llm(settings, cache=ResponseCache(cache_dir))
+    r.spec = parse_variant("P0+P3")
+    await r.route(inp, skill_options)
+    assert route.call_count == 6
 
 
 @respx.mock

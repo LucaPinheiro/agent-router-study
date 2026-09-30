@@ -199,7 +199,32 @@ class EmbeddingStrategy(ModelEndpoint):
     cache: bool = True
 
 
-class LLMStrategy(ModelEndpoint):
+PromptTrack = Literal["canonical", "tuned"]
+
+
+def _prompt_variant(name: str) -> str:
+    from routing_study.prompts.routers import parse_variant
+
+    parse_variant(name)  # unknown token -> ValueError
+    return name
+
+
+PromptVariant = Annotated[str, AfterValidator(_prompt_variant)]
+
+
+class _RouterPrompt(_Config):
+    """Router prompt (LLM and Jev): `prompt_variant` = `+`-joined tokens of
+    src/routing_study/prompts/routers/variants.yaml. `prompt_track` labels where the variant
+    comes from (docs/prompt-apex.md): canonical = one prompt for every LLM router, tuned =
+    this model's own best variant on dev. `calibration`: raw confidence -> P(correct) per
+    level, fitted on dev folds (scripts/analysis/tune_router.py --calibrate)."""
+
+    prompt_track: PromptTrack = "canonical"
+    prompt_variant: PromptVariant = "P0"
+    calibration: dict[Level, Calibration] = Field(default_factory=dict)
+
+
+class LLMStrategy(ModelEndpoint, _RouterPrompt):
     temperature: float | None = 0.0
     seed: int | None = None
     # self_reported: the model's `confidence` field; logprob: P(choice tokens) from the
@@ -219,7 +244,7 @@ class LLMStrategy(ModelEndpoint):
         return self
 
 
-class JevStrategy(ModelEndpoint):
+class JevStrategy(ModelEndpoint, _RouterPrompt):
     parse_retries: int = Field(default=1, ge=0)
     # Output cap: without it OpenRouter reserves the model's max (65536) against credits.
     max_tokens: int = Field(default=512, ge=16)

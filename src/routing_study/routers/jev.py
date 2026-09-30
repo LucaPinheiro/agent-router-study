@@ -15,9 +15,17 @@ from typing import Any, ClassVar
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 
 from routing_study.llm import RetryStats, call_with_retry, extract_call_usage
+from routing_study.prompts.routers import parse_variant
 from routing_study.routers.base import ABSTAIN, RouteDecision, RouteOption, RoutingInput
+from routing_study.routers.calibration import Calibration
 from routing_study.routers.common import BaseRouter, ResponseCache, normalize
-from routing_study.routers.llm import build_messages, chat_params, ranked_candidates, rendered
+from routing_study.routers.llm import (
+    build_messages,
+    chat_params,
+    prompt_chars,
+    ranked_candidates,
+    rendered,
+)
 from routing_study.settings import Settings
 
 _FENCE = re.compile(r"```(?:json)?\s*(.*?)```", re.DOTALL | re.IGNORECASE)
@@ -86,6 +94,45 @@ def _choice_object(text: str, valid: list[str]) -> tuple[str, dict[str, Any]] | 
     return None
 
 
+def _ranking_object(text: str) -> dict[str, Any] | None:
+    """First JSON object in `text` (fenced or not) with a list `ranking`."""
+    decoder = json.JSONDecoder()
+    for chunk in [m.group(1) for m in _FENCE.finditer(text)] + [text]:
+        for i in (i for i, c in enumerate(chunk) if c == "{"):
+            try:
+                obj, _ = decoder.raw_decode(chunk, i)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(obj, dict) and isinstance(obj.get("ranking"), list):
+                return obj
+    return None
+
+
+def parse_ranked_reply(
+    text: str, valid: list[str]
+) -> tuple[str | None, float | None, Any, list[tuple[str, float]]]:
+    """Top-k reply of the P6 / P6c variants: `{"ranking": [id, ...], "confidence": p}` or
+    `{"ranking": [{"id", "score"}, ...]}` -> (choice, confidence, raw confidence, others).
+    Falls back to the `{"choice", ...}` shape (a model may ignore the format)."""
+    obj = _ranking_object(text or "")
+    if obj is None:
+        choice, conf, raw = parse_reply(text, valid)
+        return choice, conf, raw, parse_ranking(text, valid) if choice else []
+    items: list[tuple[str, Any]] = []
+    for it in obj["ranking"]:
+        if isinstance(it, dict):
+            cid, score = _match_id(str(it.get("id", "")), valid), it.get("score")
+        else:
+            cid, score = _match_id(str(it), valid), None
+        if cid is not None and cid not in {c for c, _ in items}:
+            items.append((cid, score))
+    if not items:
+        return None, None, None, []
+    raw = obj.get("confidence", items[0][1])
+    conf = _to_conf(raw) if raw is not None else None
+    return items[0][0], conf, raw, [(c, _to_conf(v) or 0.0) for c, v in items[1:]]
+
+
 def parse_ranking(text: str, valid: list[str]) -> list[tuple[str, float]]:
     """`ranking` of the reply object as [(id, confidence)]; [] when absent or malformed."""
     found = _choice_object(text or "", valid)
@@ -136,8 +183,12 @@ class JevRouter(BaseRouter):
         history_turns: int = 4,
         allow_abstain: bool = False,
         cache: ResponseCache | None = None,
+        prompt_variant: str = "P0",
+        calibration: dict[str, Calibration] | None = None,
     ) -> None:
-        super().__init__(cache=cache)
+        super().__init__(cache=cache, calibration=calibration)
+        self.prompt_variant = prompt_variant
+        self.spec = parse_variant(prompt_variant)
         self.chat = chat
         self.settings = settings
         self._model = model
@@ -157,6 +208,7 @@ class JevRouter(BaseRouter):
             allow_abstain=self.allow_abstain,
             json_reply=True,
             model=self._model,
+            spec=self.spec,
         )
 
     def cache_params(self, inp: RoutingInput, options: list[RouteOption]) -> dict[str, Any]:
@@ -173,6 +225,7 @@ class JevRouter(BaseRouter):
     async def _decide(self, inp: RoutingInput, options: list[RouteOption]) -> RouteDecision:
         valid = [o.id for o in options] + ([ABSTAIN] if self.allow_abstain else [])
         messages = self._messages(inp, options)
+        static_chars, dynamic_chars = prompt_chars(messages)
         cost = 0.0
         tokens = {"prompt_tokens": 0, "completion_tokens": 0, "reasoning_tokens": 0}
         served: list[str | None] = []
@@ -182,7 +235,9 @@ class JevRouter(BaseRouter):
         choice: str | None = None
         conf: float | None = None
         conf_raw: Any = None
+        others: list[tuple[str, float]] = []
         raw_text = ""
+        ranked_reply = inp.level == "tool" and self.spec.output != "verbose"
         for call in range(self.parse_retries + 1):
             stats = RetryStats()
             msg: AIMessage = await call_with_retry(
@@ -202,7 +257,11 @@ class JevRouter(BaseRouter):
             served.append(u.get("served_model"))
             providers.append(u.get("provider"))
             raw_text = msg.content if isinstance(msg.content, str) else json.dumps(msg.content)
-            choice, conf, conf_raw = parse_reply(raw_text, valid)
+            if ranked_reply:
+                choice, conf, conf_raw, others = parse_ranked_reply(raw_text, valid)
+            else:
+                choice, conf, conf_raw = parse_reply(raw_text, valid)
+                others = parse_ranking(raw_text, valid) if choice else []
             if choice is not None:
                 break
             if call < self.parse_retries:
@@ -221,6 +280,8 @@ class JevRouter(BaseRouter):
             "served_models": served,
             "provider": providers[-1],
             "parse_retries_used": len(served) - 1,
+            "static_chars": static_chars,
+            "dynamic_chars": dynamic_chars,
         }
         if choice is None:
             usage["parse_fail"] = True
@@ -241,9 +302,7 @@ class JevRouter(BaseRouter):
                 cost_usd=cost,
                 usage=usage,
             )
-        candidates = ranked_candidates(
-            choice, conf, parse_ranking(raw_text, valid), [o.id for o in options]
-        )
+        candidates = ranked_candidates(choice, conf, others, [o.id for o in options])
         return RouteDecision(
             choice=choice,
             confidence=conf,

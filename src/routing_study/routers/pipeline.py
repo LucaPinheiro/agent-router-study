@@ -315,6 +315,8 @@ def build_routers(
             cache=_cache(c.cache),
             name=name,
             confidence=c.confidence,
+            prompt_variant=c.prompt_variant,
+            calibration=dict(c.calibration),
         )
     if "jev" in wanted:
         c = _need("jev")
@@ -328,6 +330,8 @@ def build_routers(
             history_turns=c.history_turns,
             allow_abstain=c.allow_abstain,
             cache=_cache(c.cache),
+            prompt_variant=c.prompt_variant,
+            calibration=dict(c.calibration),
         )
     return out
 

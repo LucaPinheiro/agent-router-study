@@ -20,6 +20,13 @@ class RouteOption(BaseModel):
     description: str
     examples: list[str] = Field(default_factory=list)
     keywords: list[str] = Field(default_factory=list)
+    # Prompt-only catalog data for the LLM/Jev prompt variants (docs/prompt-apex.md). Excluded
+    # from dumps, so response-cache keys of every router stay as they were; LLM/Jev routers key
+    # on their rendered prompt instead.
+    # `avoid`: the catalog's DON'T USE FOR clauses as (situation, ids that handle it) at this
+    # level; `shots`: catalog example messages resolved to this option.
+    avoid: list[tuple[str, list[str]]] = Field(default_factory=list, exclude=True)
+    shots: list[str] = Field(default_factory=list, exclude=True)
 
 
 class RoutingInput(BaseModel):

@@ -1,0 +1,13 @@
+# Router prompt variants (docs/prompt-apex.md). A `prompt_variant` is a `+`-joined list of
+# these tokens, applied left to right over the base spec, e.g. "P0+P1+P6c".
+# Keys of each token are PromptSpec fields (src/routing_study/prompts/routers/__init__.py).
+P0: {}                     # base: rules -> options -> loaded_skill/history -> message
+P1: { guide: true }        # disambiguation guide from the catalog's DON'T USE FOR clauses
+P2k1: { shots: 1 }         # 1 resolved catalog example per option, as demonstrations
+P2k2: { shots: 2 }         # 2 per option
+P3: { scope: true }        # explicit out-of-scope / __global__ / abstain rules
+P4: { rationale: true }    # short `rationale` field before the decision
+P5: { language: pt }       # instructions in pt-BR (option text is pt-BR anyway)
+P6: { output: scored }     # tool stage: ranking [{id, score}] top-k
+P6c: { output: compact }   # tool stage: ranking [id, ...] top-k (ids only) + one confidence
+k2: { rank_k: 2 }          # top-k size of the P6/P6c ranking (default 3)

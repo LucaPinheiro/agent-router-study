@@ -130,7 +130,7 @@ def test_a12_prompt_hash_covers_router_prompt_load_skill_and_system_template(
     base = run_prompt_hash()
     assert run_prompt_hash() == base
     for target, name, value in (
-        (llm, "_LEVEL_NOUN", {"skill": "SKILL", "tool": "TOOL"}),
+        (llm, "templates", lambda lang, t=llm.templates: {**t(lang), "role": "Route: {noun}."}),
         (nodes, "ESCALATION_TEXT", "outro texto"),
         (prompts, "HOST_RULES", "regras novas"),
         (nodes, "load_skill_tool", lambda catalog: {"name": "load_skill", "v": 2}),

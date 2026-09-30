@@ -14,6 +14,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import re
 import time
 from dataclasses import asdict, dataclass, field
 from typing import Any
@@ -38,6 +39,8 @@ DEFAULT_TTL_S = 300
 # tools (their vocabulary would pull BM25/embeddings towards the wrong tool); CONFIRMATION and
 # RESULT say nothing about when to use the tool. The executor still gets the full description.
 ROUTING_EXCLUDED_SECTIONS = ("DON'T USE FOR:", "CONFIRMATION:", "RESULT:")
+_AVOID = "DON'T USE FOR:"
+_USE = re.compile(r"\(use ([^)]*)\)")
 
 
 @dataclass(frozen=True)
@@ -109,9 +112,64 @@ class Catalog:
 
     # ------------------------------------------------------------ route options
 
+    def avoid_clauses(self, name: str) -> list[tuple[str, list[str]]]:
+        """DON'T USE FOR of a tool as [(clause, [tools to use instead])], verbatim, one per
+        `;`-separated clause; clauses that name no known tool are dropped."""
+        out: list[tuple[str, list[str]]] = []
+        for line in self.tool(name)["description"].split("\n"):
+            if not line.lstrip().startswith(_AVOID):
+                continue
+            for clause in line.split(_AVOID, 1)[1].split(";"):
+                targets = [
+                    t
+                    for m in _USE.finditer(clause)
+                    for t in re.findall(r"[a-z_]+", m.group(1))
+                    if self.has_tool(t)
+                ]
+                if targets:
+                    out.append((clause.strip(" .;"), list(dict.fromkeys(targets))))
+        return out
+
+    def _skill_avoid(self, skill_id: str) -> list[tuple[str, list[str]]]:
+        """The skill's tools' DON'T USE FOR clauses that point to ANOTHER skill, with each
+        `(use tool)` rewritten as `(use skill)`."""
+        tools = self.tools_for(skill_id) if skill_id != GLOBAL_OPTION else self.global_tools
+        out: list[tuple[str, list[str]]] = []
+        for name in tools:
+            for clause, targets in self.avoid_clauses(name):
+                skills = [s for s in dict.fromkeys(map(self.skill_of, targets)) if s != skill_id]
+                if not skills:
+                    continue
+
+                def to_skill(m: re.Match[str], home: str = skill_id) -> str:
+                    ids = [
+                        self.skill_of(t)
+                        for t in re.findall(r"[a-z_]+", m.group(1))
+                        if self.has_tool(t)
+                    ]
+                    ids = [i for i in dict.fromkeys(ids) if i and i != home]
+                    return f"(use {' / '.join(ids)})" if ids else ""
+
+                text = re.sub(r"\s+", " ", _USE.sub(to_skill, clause)).strip()
+                if (text, skills) not in out:
+                    out.append((text, skills))
+        return out
+
+    def _skill_shots(self, skill_id: str) -> list[str]:
+        """The skill's tool examples, round-robin over its tools (tool order)."""
+        tools = self.tools_for(skill_id) if skill_id != GLOBAL_OPTION else self.global_tools
+        pools = [list(self.meta(n, "examples", [])) for n in tools]
+        return [p[i] for i in range(max(map(len, pools), default=0)) for p in pools if i < len(p)]
+
     def skill_options(self) -> list[RouteOption]:
         opts = [
-            RouteOption(id=s.id, description=s.description, examples=s.examples)
+            RouteOption(
+                id=s.id,
+                description=s.description,
+                examples=s.examples,
+                avoid=self._skill_avoid(s.id),
+                shots=self._skill_shots(s.id),
+            )
             for s in self.skills.values()
         ]
         globals_ = self.global_tools
@@ -122,6 +180,8 @@ class Catalog:
                 + " ".join(self.tool(n)["description"].split("\n", 1)[0] for n in globals_),
                 examples=[e for n in globals_ for e in self.meta(n, "examples", [])],
                 keywords=[k for n in globals_ for k in self.meta(n, "keywords", [])],
+                avoid=self._skill_avoid(GLOBAL_OPTION),
+                shots=self._skill_shots(GLOBAL_OPTION),
             )
         )
         return opts
@@ -136,6 +196,8 @@ class Catalog:
             description=description,
             examples=list(self.meta(name, "examples", [])),
             keywords=list(self.meta(name, "keywords", [])),
+            avoid=self.avoid_clauses(name),
+            shots=list(self.meta(name, "examples", [])),
         )
 
     def tool_options(self, skill_id: str) -> list[RouteOption]:

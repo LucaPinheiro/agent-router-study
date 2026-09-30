@@ -41,6 +41,7 @@ from routing_study.llm import (
     validate_models,
 )
 from routing_study.prompts import AVAILABLE_SKILLS, HOST_RULES
+from routing_study.prompts.routers import TEMPLATE_HASH
 from routing_study.routers import llm as llm_router
 from routing_study.routers.base import Message, RouteOption, RoutingInput
 from routing_study.routers.common import REPETITION
@@ -207,6 +208,7 @@ def run_prompt_hash() -> str:
                 inp, [option], history_turns=1, allow_abstain=True, json_reply=json_reply
             )
             parts += [m.content for m in msgs]
+    parts.append(TEMPLATE_HASH)  # every router prompt variant (the config picks one)
     raw = json.dumps(parts, ensure_ascii=False, sort_keys=True, default=str)
     return hashlib.sha256(raw.encode()).hexdigest()[:12]
 
