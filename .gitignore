@@ -1,0 +1,11 @@
+.env
+.venv/
+__pycache__/
+.cache/
+.omc/
+results/
+.DS_Store
+.pytest_cache/
+.ruff_cache/
+.claude/
+graphify-out/
