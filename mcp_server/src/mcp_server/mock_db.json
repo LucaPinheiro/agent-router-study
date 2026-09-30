@@ -1,0 +1,4987 @@
+{
+ "reference_date": "2026-09-29",
+ "customers": [
+  {
+   "id": "C001",
+   "name": "Ana Silva",
+   "email": "ana.silva@example.com",
+   "tier": "standard",
+   "member_since": "2024-05-25",
+   "default_address": {
+    "street": "Rua das Flores",
+    "number": "466",
+    "complement": null,
+    "neighborhood": "Centro",
+    "city": "São Paulo",
+    "state": "SP",
+    "postal_code": "01859381"
+   },
+   "order_ids": [
+    "O0001",
+    "O0002",
+    "O0003"
+   ]
+  },
+  {
+   "id": "C002",
+   "name": "Bruno Souza",
+   "email": "bruno.souza@example.com",
+   "tier": "standard",
+   "member_since": "2021-05-24",
+   "default_address": {
+    "street": "Avenida Brasil",
+    "number": "1849",
+    "complement": "Casa 2",
+    "neighborhood": "Jardim América",
+    "city": "Rio de Janeiro",
+    "state": "RJ",
+    "postal_code": "20928990"
+   },
+   "order_ids": [
+    "O0004",
+    "O0005",
+    "O0006"
+   ]
+  },
+  {
+   "id": "C003",
+   "name": "Carla Oliveira",
+   "email": "carla.oliveira@example.com",
+   "tier": "standard",
+   "member_since": "2023-07-12",
+   "default_address": {
+    "street": "Rua XV de Novembro",
+    "number": "1093",
+    "complement": null,
+    "neighborhood": "Vila Nova",
+    "city": "Belo Horizonte",
+    "state": "MG",
+    "postal_code": "30847570"
+   },
+   "order_ids": [
+    "O0007",
+    "O0008",
+    "O0009"
+   ]
+  },
+  {
+   "id": "C004",
+   "name": "Diego Santos",
+   "email": "diego.santos@example.com",
+   "tier": "gold",
+   "member_since": "2021-09-18",
+   "default_address": {
+    "street": "Rua da Consolação",
+    "number": "1526",
+    "complement": "Casa 2",
+    "neighborhood": "Boa Vista",
+    "city": "Curitiba",
+    "state": "PR",
+    "postal_code": "80314786"
+   },
+   "order_ids": [
+    "O0010",
+    "O0011",
+    "O0012"
+   ]
+  },
+  {
+   "id": "C005",
+   "name": "Elisa Pereira",
+   "email": "elisa.pereira@example.com",
+   "tier": "platinum",
+   "member_since": "2024-02-24",
+   "default_address": {
+    "street": "Avenida Paulista",
+    "number": "948",
+    "complement": null,
+    "neighborhood": "Santa Cecília",
+    "city": "Porto Alegre",
+    "state": "RS",
+    "postal_code": "90924423"
+   },
+   "order_ids": [
+    "O0013",
+    "O0014",
+    "O0015"
+   ]
+  },
+  {
+   "id": "C006",
+   "name": "Fábio Lima",
+   "email": "fabio.lima@example.com",
+   "tier": "gold",
+   "member_since": "2024-06-02",
+   "default_address": {
+    "street": "Rua Augusta",
+    "number": "2404",
+    "complement": "Bloco B",
+    "neighborhood": "Moinhos",
+    "city": "Recife",
+    "state": "PE",
+    "postal_code": "50697508"
+   },
+   "order_ids": [
+    "O0016",
+    "O0017",
+    "O0018"
+   ]
+  },
+  {
+   "id": "C007",
+   "name": "Gabriela Costa",
+   "email": "gabriela.costa@example.com",
+   "tier": "gold",
+   "member_since": "2021-05-04",
+   "default_address": {
+    "street": "Rua dos Andradas",
+    "number": "57",
+    "complement": null,
+    "neighborhood": "Centro",
+    "city": "Salvador",
+    "state": "BA",
+    "postal_code": "40798649"
+   },
+   "order_ids": [
+    "O0019",
+    "O0020",
+    "O0021"
+   ]
+  },
+  {
+   "id": "C008",
+   "name": "Heitor Ribeiro",
+   "email": "heitor.ribeiro@example.com",
+   "tier": "platinum",
+   "member_since": "2025-07-17",
+   "default_address": {
+    "street": "Avenida Atlântica",
+    "number": "671",
+    "complement": null,
+    "neighborhood": "Jardim América",
+    "city": "Fortaleza",
+    "state": "CE",
+    "postal_code": "60713431"
+   },
+   "order_ids": [
+    "O0022",
+    "O0023",
+    "O0024"
+   ]
+  },
+  {
+   "id": "C009",
+   "name": "Isabela Almeida",
+   "email": "isabela.almeida@example.com",
+   "tier": "standard",
+   "member_since": "2021-08-26",
+   "default_address": {
+    "street": "Rua das Flores",
+    "number": "2171",
+    "complement": "Bloco B",
+    "neighborhood": "Vila Nova",
+    "city": "São Paulo",
+    "state": "SP",
+    "postal_code": "01316652"
+   },
+   "order_ids": [
+    "O0025",
+    "O0026",
+    "O0027"
+   ]
+  },
+  {
+   "id": "C010",
+   "name": "João Carvalho",
+   "email": "joão.carvalho@example.com",
+   "tier": "gold",
+   "member_since": "2021-11-24",
+   "default_address": {
+    "street": "Avenida Brasil",
+    "number": "1363",
+    "complement": null,
+    "neighborhood": "Boa Vista",
+    "city": "Rio de Janeiro",
+    "state": "RJ",
+    "postal_code": "20626343"
+   },
+   "order_ids": [
+    "O0028",
+    "O0029",
+    "O0030"
+   ]
+  },
+  {
+   "id": "C011",
+   "name": "Karina Silva",
+   "email": "karina.silva@example.com",
+   "tier": "standard",
+   "member_since": "2025-04-23",
+   "default_address": {
+    "street": "Rua XV de Novembro",
+    "number": "1922",
+    "complement": null,
+    "neighborhood": "Santa Cecília",
+    "city": "Belo Horizonte",
+    "state": "MG",
+    "postal_code": "30789769"
+   },
+   "order_ids": [
+    "O0031",
+    "O0032",
+    "O0033"
+   ]
+  },
+  {
+   "id": "C012",
+   "name": "Lucas Souza",
+   "email": "lucas.souza@example.com",
+   "tier": "standard",
+   "member_since": "2025-02-15",
+   "default_address": {
+    "street": "Rua da Consolação",
+    "number": "411",
+    "complement": null,
+    "neighborhood": "Moinhos",
+    "city": "Curitiba",
+    "state": "PR",
+    "postal_code": "80767653"
+   },
+   "order_ids": [
+    "O0034",
+    "O0035",
+    "O0036"
+   ]
+  },
+  {
+   "id": "C013",
+   "name": "Mariana Oliveira",
+   "email": "mariana.oliveira@example.com",
+   "tier": "gold",
+   "member_since": "2024-06-06",
+   "default_address": {
+    "street": "Avenida Paulista",
+    "number": "2286",
+    "complement": "Bloco B",
+    "neighborhood": "Centro",
+    "city": "Porto Alegre",
+    "state": "RS",
+    "postal_code": "90258294"
+   },
+   "order_ids": [
+    "O0037",
+    "O0038",
+    "O0039"
+   ]
+  },
+  {
+   "id": "C014",
+   "name": "Nicolas Santos",
+   "email": "nicolas.santos@example.com",
+   "tier": "standard",
+   "member_since": "2022-05-28",
+   "default_address": {
+    "street": "Rua Augusta",
+    "number": "288",
+    "complement": "Apto 12",
+    "neighborhood": "Jardim América",
+    "city": "Recife",
+    "state": "PE",
+    "postal_code": "50513222"
+   },
+   "order_ids": [
+    "O0040",
+    "O0041",
+    "O0042"
+   ]
+  },
+  {
+   "id": "C015",
+   "name": "Olívia Pereira",
+   "email": "olivia.pereira@example.com",
+   "tier": "standard",
+   "member_since": "2025-03-28",
+   "default_address": {
+    "street": "Rua dos Andradas",
+    "number": "1305",
+    "complement": null,
+    "neighborhood": "Vila Nova",
+    "city": "Salvador",
+    "state": "BA",
+    "postal_code": "40109569"
+   },
+   "order_ids": [
+    "O0043",
+    "O0044",
+    "O0045"
+   ]
+  },
+  {
+   "id": "C016",
+   "name": "Paulo Lima",
+   "email": "paulo.lima@example.com",
+   "tier": "standard",
+   "member_since": "2024-02-15",
+   "default_address": {
+    "street": "Avenida Atlântica",
+    "number": "560",
+    "complement": "Casa 2",
+    "neighborhood": "Boa Vista",
+    "city": "Fortaleza",
+    "state": "CE",
+    "postal_code": "60218209"
+   },
+   "order_ids": [
+    "O0046",
+    "O0047",
+    "O0048"
+   ]
+  },
+  {
+   "id": "C017",
+   "name": "Renata Costa",
+   "email": "renata.costa@example.com",
+   "tier": "standard",
+   "member_since": "2025-03-24",
+   "default_address": {
+    "street": "Rua das Flores",
+    "number": "1819",
+    "complement": "Bloco B",
+    "neighborhood": "Santa Cecília",
+    "city": "São Paulo",
+    "state": "SP",
+    "postal_code": "01674109"
+   },
+   "order_ids": [
+    "O0049",
+    "O0050",
+    "O0051"
+   ]
+  },
+  {
+   "id": "C018",
+   "name": "Samuel Ribeiro",
+   "email": "samuel.ribeiro@example.com",
+   "tier": "standard",
+   "member_since": "2023-05-04",
+   "default_address": {
+    "street": "Avenida Brasil",
+    "number": "643",
+    "complement": "Apto 12",
+    "neighborhood": "Moinhos",
+    "city": "Rio de Janeiro",
+    "state": "RJ",
+    "postal_code": "20985266"
+   },
+   "order_ids": [
+    "O0052",
+    "O0053",
+    "O0054"
+   ]
+  },
+  {
+   "id": "C019",
+   "name": "Tatiana Almeida",
+   "email": "tatiana.almeida@example.com",
+   "tier": "platinum",
+   "member_since": "2023-10-23",
+   "default_address": {
+    "street": "Rua XV de Novembro",
+    "number": "923",
+    "complement": null,
+    "neighborhood": "Centro",
+    "city": "Belo Horizonte",
+    "state": "MG",
+    "postal_code": "30775297"
+   },
+   "order_ids": [
+    "O0055",
+    "O0056",
+    "O0057"
+   ]
+  },
+  {
+   "id": "C020",
+   "name": "Vinícius Carvalho",
+   "email": "vinicius.carvalho@example.com",
+   "tier": "gold",
+   "member_since": "2021-07-25",
+   "default_address": {
+    "street": "Rua da Consolação",
+    "number": "166",
+    "complement": null,
+    "neighborhood": "Jardim América",
+    "city": "Curitiba",
+    "state": "PR",
+    "postal_code": "80710544"
+   },
+   "order_ids": [
+    "O0058",
+    "O0059",
+    "O0060"
+   ]
+  }
+ ],
+ "orders": [
+  {
+   "id": "O0001",
+   "customer_id": "C001",
+   "created_at": "2026-09-22",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "PAN-ANTI-5",
+     "name": "Jogo de panelas antiaderente 5 peças",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 499.9,
+      "currency": "BRL"
+     },
+     "category": "casa"
+    }
+   ],
+   "total": {
+    "amount": 499.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-DB1D56AA",
+   "delivery_address": {
+    "street": "Rua das Flores",
+    "number": "466",
+    "complement": null,
+    "neighborhood": "Centro",
+    "city": "São Paulo",
+    "state": "SP",
+    "postal_code": "01859381"
+   },
+   "shipment_id": "SHP-491B7249",
+   "estimated_delivery": "2026-09-25",
+   "delivered_at": "2026-09-25",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0002",
+   "customer_id": "C001",
+   "created_at": "2026-09-23",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "TEN-CASUAL-39",
+     "name": "Tênis casual Urbano tam. 39",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 259.9,
+      "currency": "BRL"
+     },
+     "category": "calcados"
+    }
+   ],
+   "total": {
+    "amount": 259.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-11046B81",
+   "delivery_address": {
+    "street": "Rua das Flores",
+    "number": "466",
+    "complement": null,
+    "neighborhood": "Centro",
+    "city": "São Paulo",
+    "state": "SP",
+    "postal_code": "01859381"
+   },
+   "shipment_id": "SHP-DFCB8216",
+   "estimated_delivery": "2026-09-27",
+   "delivered_at": "2026-09-27",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0003",
+   "customer_id": "C001",
+   "created_at": "2026-09-27",
+   "status": "processing",
+   "items": [
+    {
+     "sku": "PAN-ANTI-5",
+     "name": "Jogo de panelas antiaderente 5 peças",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 499.9,
+      "currency": "BRL"
+     },
+     "category": "casa"
+    }
+   ],
+   "total": {
+    "amount": 499.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-8A8801C0",
+   "delivery_address": {
+    "street": "Rua das Flores",
+    "number": "466",
+    "complement": null,
+    "neighborhood": "Centro",
+    "city": "São Paulo",
+    "state": "SP",
+    "postal_code": "01859381"
+   },
+   "shipment_id": null,
+   "estimated_delivery": "2026-10-05",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0004",
+   "customer_id": "C002",
+   "created_at": "2026-07-30",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "PAN-ANTI-5",
+     "name": "Jogo de panelas antiaderente 5 peças",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 499.9,
+      "currency": "BRL"
+     },
+     "category": "casa"
+    }
+   ],
+   "total": {
+    "amount": 499.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-4642C28D",
+   "delivery_address": {
+    "street": "Avenida Brasil",
+    "number": "1849",
+    "complement": "Casa 2",
+    "neighborhood": "Jardim América",
+    "city": "Rio de Janeiro",
+    "state": "RJ",
+    "postal_code": "20928990"
+   },
+   "shipment_id": "SHP-6071ED5D",
+   "estimated_delivery": "2026-08-05",
+   "delivered_at": "2026-08-05",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0005",
+   "customer_id": "C002",
+   "created_at": "2026-09-29",
+   "status": "awaiting_payment",
+   "items": [
+    {
+     "sku": "TEN-CASUAL-39",
+     "name": "Tênis casual Urbano tam. 39",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 259.9,
+      "currency": "BRL"
+     },
+     "category": "calcados"
+    }
+   ],
+   "total": {
+    "amount": 259.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-493485CC",
+   "delivery_address": {
+    "street": "Avenida Brasil",
+    "number": "1849",
+    "complement": "Casa 2",
+    "neighborhood": "Jardim América",
+    "city": "Rio de Janeiro",
+    "state": "RJ",
+    "postal_code": "20928990"
+   },
+   "shipment_id": null,
+   "estimated_delivery": "2026-10-07",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0006",
+   "customer_id": "C002",
+   "created_at": "2026-09-28",
+   "status": "awaiting_payment",
+   "items": [
+    {
+     "sku": "FON-BT-X2",
+     "name": "Fone Bluetooth X2",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 349.0,
+      "currency": "BRL"
+     },
+     "category": "eletronicos"
+    }
+   ],
+   "total": {
+    "amount": 349.0,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-4EC15CDA",
+   "delivery_address": {
+    "street": "Avenida Brasil",
+    "number": "1849",
+    "complement": "Casa 2",
+    "neighborhood": "Jardim América",
+    "city": "Rio de Janeiro",
+    "state": "RJ",
+    "postal_code": "20928990"
+   },
+   "shipment_id": null,
+   "estimated_delivery": "2026-10-08",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0007",
+   "customer_id": "C003",
+   "created_at": "2026-09-22",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "LIQ-PRO-900",
+     "name": "Liquidificador Pro 900W",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 279.9,
+      "currency": "BRL"
+     },
+     "category": "eletrodomesticos"
+    }
+   ],
+   "total": {
+    "amount": 279.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-4EF24BCB",
+   "delivery_address": {
+    "street": "Rua XV de Novembro",
+    "number": "1093",
+    "complement": null,
+    "neighborhood": "Vila Nova",
+    "city": "Belo Horizonte",
+    "state": "MG",
+    "postal_code": "30847570"
+   },
+   "shipment_id": "SHP-E5428B6E",
+   "estimated_delivery": "2026-09-27",
+   "delivered_at": "2026-09-27",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0008",
+   "customer_id": "C003",
+   "created_at": "2026-09-22",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "PAN-ANTI-5",
+     "name": "Jogo de panelas antiaderente 5 peças",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 499.9,
+      "currency": "BRL"
+     },
+     "category": "casa"
+    }
+   ],
+   "total": {
+    "amount": 499.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-E235DB5F",
+   "delivery_address": {
+    "street": "Rua XV de Novembro",
+    "number": "1093",
+    "complement": null,
+    "neighborhood": "Vila Nova",
+    "city": "Belo Horizonte",
+    "state": "MG",
+    "postal_code": "30847570"
+   },
+   "shipment_id": "SHP-8C8CC799",
+   "estimated_delivery": "2026-09-25",
+   "delivered_at": "2026-09-25",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0009",
+   "customer_id": "C003",
+   "created_at": "2026-08-16",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "TEN-CASUAL-39",
+     "name": "Tênis casual Urbano tam. 39",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 259.9,
+      "currency": "BRL"
+     },
+     "category": "calcados"
+    }
+   ],
+   "total": {
+    "amount": 259.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-3EBF17BD",
+   "delivery_address": {
+    "street": "Rua XV de Novembro",
+    "number": "1093",
+    "complement": null,
+    "neighborhood": "Vila Nova",
+    "city": "Belo Horizonte",
+    "state": "MG",
+    "postal_code": "30847570"
+   },
+   "shipment_id": "SHP-CF7A5A8A",
+   "estimated_delivery": "2026-08-22",
+   "delivered_at": "2026-08-22",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0010",
+   "customer_id": "C004",
+   "created_at": "2026-09-27",
+   "status": "processing",
+   "items": [
+    {
+     "sku": "GAR-TERM-1L",
+     "name": "Garrafa térmica 1L",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 119.9,
+      "currency": "BRL"
+     },
+     "category": "acessorios"
+    },
+    {
+     "sku": "TEN-CASUAL-39",
+     "name": "Tênis casual Urbano tam. 39",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 259.9,
+      "currency": "BRL"
+     },
+     "category": "calcados"
+    }
+   ],
+   "total": {
+    "amount": 379.8,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-667F1E28",
+   "delivery_address": {
+    "street": "Rua da Consolação",
+    "number": "1526",
+    "complement": "Casa 2",
+    "neighborhood": "Boa Vista",
+    "city": "Curitiba",
+    "state": "PR",
+    "postal_code": "80314786"
+   },
+   "shipment_id": null,
+   "estimated_delivery": "2026-10-09",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0011",
+   "customer_id": "C004",
+   "created_at": "2026-09-27",
+   "status": "processing",
+   "items": [
+    {
+     "sku": "LIQ-PRO-900",
+     "name": "Liquidificador Pro 900W",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 279.9,
+      "currency": "BRL"
+     },
+     "category": "eletrodomesticos"
+    }
+   ],
+   "total": {
+    "amount": 279.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-8814BC72",
+   "delivery_address": {
+    "street": "Rua da Consolação",
+    "number": "1526",
+    "complement": "Casa 2",
+    "neighborhood": "Boa Vista",
+    "city": "Curitiba",
+    "state": "PR",
+    "postal_code": "80314786"
+   },
+   "shipment_id": null,
+   "estimated_delivery": "2026-10-05",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0012",
+   "customer_id": "C004",
+   "created_at": "2026-09-23",
+   "status": "in_transit",
+   "items": [
+    {
+     "sku": "CAF-EXP-10",
+     "name": "Cafeteira expresso 10 bar",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 649.9,
+      "currency": "BRL"
+     },
+     "category": "eletrodomesticos"
+    }
+   ],
+   "total": {
+    "amount": 649.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-B355989B",
+   "delivery_address": {
+    "street": "Rua da Consolação",
+    "number": "1526",
+    "complement": "Casa 2",
+    "neighborhood": "Boa Vista",
+    "city": "Curitiba",
+    "state": "PR",
+    "postal_code": "80314786"
+   },
+   "shipment_id": "SHP-9D5060EF",
+   "estimated_delivery": "2026-09-23",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0013",
+   "customer_id": "C005",
+   "created_at": "2026-09-20",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "JAQ-JEANS-G",
+     "name": "Jaqueta jeans G",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 229.9,
+      "currency": "BRL"
+     },
+     "category": "vestuario"
+    }
+   ],
+   "total": {
+    "amount": 229.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-450E252F",
+   "delivery_address": {
+    "street": "Avenida Paulista",
+    "number": "948",
+    "complement": null,
+    "neighborhood": "Santa Cecília",
+    "city": "Porto Alegre",
+    "state": "RS",
+    "postal_code": "90924423"
+   },
+   "shipment_id": "SHP-DFBF18F1",
+   "estimated_delivery": "2026-09-27",
+   "delivered_at": "2026-09-27",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0014",
+   "customer_id": "C005",
+   "created_at": "2026-09-16",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "SMW-FIT-3",
+     "name": "Smartwatch Fit 3",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 899.0,
+      "currency": "BRL"
+     },
+     "category": "eletronicos"
+    }
+   ],
+   "total": {
+    "amount": 899.0,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-43C0EBBE",
+   "delivery_address": {
+    "street": "Avenida Paulista",
+    "number": "948",
+    "complement": null,
+    "neighborhood": "Santa Cecília",
+    "city": "Porto Alegre",
+    "state": "RS",
+    "postal_code": "90924423"
+   },
+   "shipment_id": "SHP-3A5776D2",
+   "estimated_delivery": "2026-09-24",
+   "delivered_at": "2026-09-24",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0015",
+   "customer_id": "C005",
+   "created_at": "2026-09-22",
+   "status": "cancelled",
+   "items": [
+    {
+     "sku": "PAN-ANTI-5",
+     "name": "Jogo de panelas antiaderente 5 peças",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 499.9,
+      "currency": "BRL"
+     },
+     "category": "casa"
+    }
+   ],
+   "total": {
+    "amount": 499.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-1F0874DB",
+   "delivery_address": {
+    "street": "Avenida Paulista",
+    "number": "948",
+    "complement": null,
+    "neighborhood": "Santa Cecília",
+    "city": "Porto Alegre",
+    "state": "RS",
+    "postal_code": "90924423"
+   },
+   "shipment_id": null,
+   "estimated_delivery": null,
+   "delivered_at": null,
+   "cancelled_at": "2026-09-23"
+  },
+  {
+   "id": "O0016",
+   "customer_id": "C006",
+   "created_at": "2026-09-19",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "LIQ-PRO-900",
+     "name": "Liquidificador Pro 900W",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 279.9,
+      "currency": "BRL"
+     },
+     "category": "eletrodomesticos"
+    }
+   ],
+   "total": {
+    "amount": 279.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-732550C9",
+   "delivery_address": {
+    "street": "Rua Augusta",
+    "number": "2404",
+    "complement": "Bloco B",
+    "neighborhood": "Moinhos",
+    "city": "Recife",
+    "state": "PE",
+    "postal_code": "50697508"
+   },
+   "shipment_id": "SHP-901F6B6B",
+   "estimated_delivery": "2026-09-25",
+   "delivered_at": "2026-09-25",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0017",
+   "customer_id": "C006",
+   "created_at": "2026-09-15",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "CAM-BAS-M",
+     "name": "Camiseta básica algodão M",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 59.9,
+      "currency": "BRL"
+     },
+     "category": "vestuario"
+    }
+   ],
+   "total": {
+    "amount": 59.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-F9A347D1",
+   "delivery_address": {
+    "street": "Rua Augusta",
+    "number": "2404",
+    "complement": "Bloco B",
+    "neighborhood": "Moinhos",
+    "city": "Recife",
+    "state": "PE",
+    "postal_code": "50697508"
+   },
+   "shipment_id": "SHP-9149077F",
+   "estimated_delivery": "2026-09-23",
+   "delivered_at": "2026-09-23",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0018",
+   "customer_id": "C006",
+   "created_at": "2026-09-28",
+   "status": "awaiting_payment",
+   "items": [
+    {
+     "sku": "CAF-EXP-10",
+     "name": "Cafeteira expresso 10 bar",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 649.9,
+      "currency": "BRL"
+     },
+     "category": "eletrodomesticos"
+    },
+    {
+     "sku": "LIQ-PRO-900",
+     "name": "Liquidificador Pro 900W",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 279.9,
+      "currency": "BRL"
+     },
+     "category": "eletrodomesticos"
+    }
+   ],
+   "total": {
+    "amount": 929.8,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-5CF22CE7",
+   "delivery_address": {
+    "street": "Rua Augusta",
+    "number": "2404",
+    "complement": "Bloco B",
+    "neighborhood": "Moinhos",
+    "city": "Recife",
+    "state": "PE",
+    "postal_code": "50697508"
+   },
+   "shipment_id": null,
+   "estimated_delivery": "2026-10-08",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0019",
+   "customer_id": "C007",
+   "created_at": "2026-09-20",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "TEN-CASUAL-39",
+     "name": "Tênis casual Urbano tam. 39",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 259.9,
+      "currency": "BRL"
+     },
+     "category": "calcados"
+    }
+   ],
+   "total": {
+    "amount": 259.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-DA34C726",
+   "delivery_address": {
+    "street": "Rua dos Andradas",
+    "number": "57",
+    "complement": null,
+    "neighborhood": "Centro",
+    "city": "Salvador",
+    "state": "BA",
+    "postal_code": "40798649"
+   },
+   "shipment_id": "SHP-9685E060",
+   "estimated_delivery": "2026-09-25",
+   "delivered_at": "2026-09-25",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0020",
+   "customer_id": "C007",
+   "created_at": "2026-09-18",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "PAN-ANTI-5",
+     "name": "Jogo de panelas antiaderente 5 peças",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 499.9,
+      "currency": "BRL"
+     },
+     "category": "casa"
+    }
+   ],
+   "total": {
+    "amount": 499.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-A8AC3F3A",
+   "delivery_address": {
+    "street": "Rua dos Andradas",
+    "number": "57",
+    "complement": null,
+    "neighborhood": "Centro",
+    "city": "Salvador",
+    "state": "BA",
+    "postal_code": "40798649"
+   },
+   "shipment_id": "SHP-E612D34A",
+   "estimated_delivery": "2026-09-23",
+   "delivered_at": "2026-09-23",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0021",
+   "customer_id": "C007",
+   "created_at": "2026-09-25",
+   "status": "in_transit",
+   "items": [
+    {
+     "sku": "LIQ-PRO-900",
+     "name": "Liquidificador Pro 900W",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 279.9,
+      "currency": "BRL"
+     },
+     "category": "eletrodomesticos"
+    },
+    {
+     "sku": "MOC-TRIP-40",
+     "name": "Mochila trilha 40L",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 319.9,
+      "currency": "BRL"
+     },
+     "category": "acessorios"
+    }
+   ],
+   "total": {
+    "amount": 599.8,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-1B06A966",
+   "delivery_address": {
+    "street": "Rua dos Andradas",
+    "number": "57",
+    "complement": null,
+    "neighborhood": "Centro",
+    "city": "Salvador",
+    "state": "BA",
+    "postal_code": "40798649"
+   },
+   "shipment_id": "SHP-C9CCAFA1",
+   "estimated_delivery": "2026-09-23",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0022",
+   "customer_id": "C008",
+   "created_at": "2026-09-20",
+   "status": "cancelled",
+   "items": [
+    {
+     "sku": "FON-BT-X2",
+     "name": "Fone Bluetooth X2",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 349.0,
+      "currency": "BRL"
+     },
+     "category": "eletronicos"
+    }
+   ],
+   "total": {
+    "amount": 349.0,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-B9A0DB7C",
+   "delivery_address": {
+    "street": "Avenida Atlântica",
+    "number": "671",
+    "complement": null,
+    "neighborhood": "Jardim América",
+    "city": "Fortaleza",
+    "state": "CE",
+    "postal_code": "60713431"
+   },
+   "shipment_id": null,
+   "estimated_delivery": null,
+   "delivered_at": null,
+   "cancelled_at": "2026-09-21"
+  },
+  {
+   "id": "O0023",
+   "customer_id": "C008",
+   "created_at": "2026-09-21",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "JAQ-JEANS-G",
+     "name": "Jaqueta jeans G",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 229.9,
+      "currency": "BRL"
+     },
+     "category": "vestuario"
+    }
+   ],
+   "total": {
+    "amount": 229.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-D454F47A",
+   "delivery_address": {
+    "street": "Avenida Atlântica",
+    "number": "671",
+    "complement": null,
+    "neighborhood": "Jardim América",
+    "city": "Fortaleza",
+    "state": "CE",
+    "postal_code": "60713431"
+   },
+   "shipment_id": "SHP-BEB221F8",
+   "estimated_delivery": "2026-09-24",
+   "delivered_at": "2026-09-24",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0024",
+   "customer_id": "C008",
+   "created_at": "2026-09-22",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "LIQ-PRO-900",
+     "name": "Liquidificador Pro 900W",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 279.9,
+      "currency": "BRL"
+     },
+     "category": "eletrodomesticos"
+    }
+   ],
+   "total": {
+    "amount": 279.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-0100E927",
+   "delivery_address": {
+    "street": "Avenida Atlântica",
+    "number": "671",
+    "complement": null,
+    "neighborhood": "Jardim América",
+    "city": "Fortaleza",
+    "state": "CE",
+    "postal_code": "60713431"
+   },
+   "shipment_id": "SHP-B1599CE7",
+   "estimated_delivery": "2026-09-26",
+   "delivered_at": "2026-09-26",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0025",
+   "customer_id": "C009",
+   "created_at": "2026-09-21",
+   "status": "in_transit",
+   "items": [
+    {
+     "sku": "SMW-FIT-3",
+     "name": "Smartwatch Fit 3",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 899.0,
+      "currency": "BRL"
+     },
+     "category": "eletronicos"
+    }
+   ],
+   "total": {
+    "amount": 899.0,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-5619CF79",
+   "delivery_address": {
+    "street": "Rua das Flores",
+    "number": "2171",
+    "complement": "Bloco B",
+    "neighborhood": "Vila Nova",
+    "city": "São Paulo",
+    "state": "SP",
+    "postal_code": "01316652"
+   },
+   "shipment_id": "SHP-14A3EBD5",
+   "estimated_delivery": "2026-09-30",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0026",
+   "customer_id": "C009",
+   "created_at": "2026-09-26",
+   "status": "in_transit",
+   "items": [
+    {
+     "sku": "JAQ-JEANS-G",
+     "name": "Jaqueta jeans G",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 229.9,
+      "currency": "BRL"
+     },
+     "category": "vestuario"
+    }
+   ],
+   "total": {
+    "amount": 229.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-B0D0D57D",
+   "delivery_address": {
+    "street": "Rua das Flores",
+    "number": "2171",
+    "complement": "Bloco B",
+    "neighborhood": "Vila Nova",
+    "city": "São Paulo",
+    "state": "SP",
+    "postal_code": "01316652"
+   },
+   "shipment_id": "SHP-FD820654",
+   "estimated_delivery": "2026-10-04",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0027",
+   "customer_id": "C009",
+   "created_at": "2026-09-22",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "TEN-RUN-42",
+     "name": "Tênis de corrida Veloz tam. 42",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 399.9,
+      "currency": "BRL"
+     },
+     "category": "calcados"
+    }
+   ],
+   "total": {
+    "amount": 399.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-B370D5B6",
+   "delivery_address": {
+    "street": "Rua das Flores",
+    "number": "2171",
+    "complement": "Bloco B",
+    "neighborhood": "Vila Nova",
+    "city": "São Paulo",
+    "state": "SP",
+    "postal_code": "01316652"
+   },
+   "shipment_id": "SHP-B7A7E4D6",
+   "estimated_delivery": "2026-09-25",
+   "delivered_at": "2026-09-25",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0028",
+   "customer_id": "C010",
+   "created_at": "2026-09-22",
+   "status": "in_transit",
+   "items": [
+    {
+     "sku": "JAQ-JEANS-G",
+     "name": "Jaqueta jeans G",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 229.9,
+      "currency": "BRL"
+     },
+     "category": "vestuario"
+    }
+   ],
+   "total": {
+    "amount": 229.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-26951F1B",
+   "delivery_address": {
+    "street": "Avenida Brasil",
+    "number": "1363",
+    "complement": null,
+    "neighborhood": "Boa Vista",
+    "city": "Rio de Janeiro",
+    "state": "RJ",
+    "postal_code": "20626343"
+   },
+   "shipment_id": "SHP-D70CF1D1",
+   "estimated_delivery": "2026-09-23",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0029",
+   "customer_id": "C010",
+   "created_at": "2026-09-19",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "CAF-EXP-10",
+     "name": "Cafeteira expresso 10 bar",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 649.9,
+      "currency": "BRL"
+     },
+     "category": "eletrodomesticos"
+    }
+   ],
+   "total": {
+    "amount": 649.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-C646AB15",
+   "delivery_address": {
+    "street": "Avenida Brasil",
+    "number": "1363",
+    "complement": null,
+    "neighborhood": "Boa Vista",
+    "city": "Rio de Janeiro",
+    "state": "RJ",
+    "postal_code": "20626343"
+   },
+   "shipment_id": "SHP-27AE8617",
+   "estimated_delivery": "2026-09-23",
+   "delivered_at": "2026-09-23",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0030",
+   "customer_id": "C010",
+   "created_at": "2026-09-26",
+   "status": "shipped",
+   "items": [
+    {
+     "sku": "TEN-CASUAL-39",
+     "name": "Tênis casual Urbano tam. 39",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 259.9,
+      "currency": "BRL"
+     },
+     "category": "calcados"
+    }
+   ],
+   "total": {
+    "amount": 259.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-30A1B676",
+   "delivery_address": {
+    "street": "Avenida Brasil",
+    "number": "1363",
+    "complement": null,
+    "neighborhood": "Boa Vista",
+    "city": "Rio de Janeiro",
+    "state": "RJ",
+    "postal_code": "20626343"
+   },
+   "shipment_id": "SHP-7C68BDCD",
+   "estimated_delivery": "2026-10-03",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0031",
+   "customer_id": "C011",
+   "created_at": "2026-09-28",
+   "status": "processing",
+   "items": [
+    {
+     "sku": "PAN-ANTI-5",
+     "name": "Jogo de panelas antiaderente 5 peças",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 499.9,
+      "currency": "BRL"
+     },
+     "category": "casa"
+    }
+   ],
+   "total": {
+    "amount": 499.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-9A092FD3",
+   "delivery_address": {
+    "street": "Rua XV de Novembro",
+    "number": "1922",
+    "complement": null,
+    "neighborhood": "Santa Cecília",
+    "city": "Belo Horizonte",
+    "state": "MG",
+    "postal_code": "30789769"
+   },
+   "shipment_id": null,
+   "estimated_delivery": "2026-10-05",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0032",
+   "customer_id": "C011",
+   "created_at": "2026-09-20",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "LIQ-PRO-900",
+     "name": "Liquidificador Pro 900W",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 279.9,
+      "currency": "BRL"
+     },
+     "category": "eletrodomesticos"
+    }
+   ],
+   "total": {
+    "amount": 279.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-8E8E9B57",
+   "delivery_address": {
+    "street": "Rua XV de Novembro",
+    "number": "1922",
+    "complement": null,
+    "neighborhood": "Santa Cecília",
+    "city": "Belo Horizonte",
+    "state": "MG",
+    "postal_code": "30789769"
+   },
+   "shipment_id": "SHP-A7CE7BC1",
+   "estimated_delivery": "2026-09-26",
+   "delivered_at": "2026-09-26",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0033",
+   "customer_id": "C011",
+   "created_at": "2025-08-14",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "VES-MIDI-P",
+     "name": "Vestido midi P",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 189.9,
+      "currency": "BRL"
+     },
+     "category": "vestuario"
+    }
+   ],
+   "total": {
+    "amount": 189.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-5A9CDCE7",
+   "delivery_address": {
+    "street": "Rua XV de Novembro",
+    "number": "1922",
+    "complement": null,
+    "neighborhood": "Santa Cecília",
+    "city": "Belo Horizonte",
+    "state": "MG",
+    "postal_code": "30789769"
+   },
+   "shipment_id": "SHP-72BEA915",
+   "estimated_delivery": "2025-08-20",
+   "delivered_at": "2025-08-20",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0034",
+   "customer_id": "C012",
+   "created_at": "2026-09-23",
+   "status": "in_transit",
+   "items": [
+    {
+     "sku": "CAM-BAS-M",
+     "name": "Camiseta básica algodão M",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 59.9,
+      "currency": "BRL"
+     },
+     "category": "vestuario"
+    }
+   ],
+   "total": {
+    "amount": 59.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-3C7899E0",
+   "delivery_address": {
+    "street": "Rua da Consolação",
+    "number": "411",
+    "complement": null,
+    "neighborhood": "Moinhos",
+    "city": "Curitiba",
+    "state": "PR",
+    "postal_code": "80767653"
+   },
+   "shipment_id": "SHP-96AC2510",
+   "estimated_delivery": "2026-09-23",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0035",
+   "customer_id": "C012",
+   "created_at": "2026-09-20",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "CAM-BAS-M",
+     "name": "Camiseta básica algodão M",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 59.9,
+      "currency": "BRL"
+     },
+     "category": "vestuario"
+    }
+   ],
+   "total": {
+    "amount": 59.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-A5CAA8FB",
+   "delivery_address": {
+    "street": "Rua da Consolação",
+    "number": "411",
+    "complement": null,
+    "neighborhood": "Moinhos",
+    "city": "Curitiba",
+    "state": "PR",
+    "postal_code": "80767653"
+   },
+   "shipment_id": "SHP-18FB3B83",
+   "estimated_delivery": "2026-09-26",
+   "delivered_at": "2026-09-26",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0036",
+   "customer_id": "C012",
+   "created_at": "2026-09-27",
+   "status": "awaiting_payment",
+   "items": [
+    {
+     "sku": "SMW-FIT-3",
+     "name": "Smartwatch Fit 3",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 899.0,
+      "currency": "BRL"
+     },
+     "category": "eletronicos"
+    }
+   ],
+   "total": {
+    "amount": 899.0,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-7D241720",
+   "delivery_address": {
+    "street": "Rua da Consolação",
+    "number": "411",
+    "complement": null,
+    "neighborhood": "Moinhos",
+    "city": "Curitiba",
+    "state": "PR",
+    "postal_code": "80767653"
+   },
+   "shipment_id": null,
+   "estimated_delivery": "2026-10-09",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0037",
+   "customer_id": "C013",
+   "created_at": "2026-09-18",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "MOC-TRIP-40",
+     "name": "Mochila trilha 40L",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 319.9,
+      "currency": "BRL"
+     },
+     "category": "acessorios"
+    }
+   ],
+   "total": {
+    "amount": 319.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-D710E6AA",
+   "delivery_address": {
+    "street": "Avenida Paulista",
+    "number": "2286",
+    "complement": "Bloco B",
+    "neighborhood": "Centro",
+    "city": "Porto Alegre",
+    "state": "RS",
+    "postal_code": "90258294"
+   },
+   "shipment_id": "SHP-3F537017",
+   "estimated_delivery": "2026-09-26",
+   "delivered_at": "2026-09-26",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0038",
+   "customer_id": "C013",
+   "created_at": "2026-09-28",
+   "status": "awaiting_payment",
+   "items": [
+    {
+     "sku": "MOC-TRIP-40",
+     "name": "Mochila trilha 40L",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 319.9,
+      "currency": "BRL"
+     },
+     "category": "acessorios"
+    }
+   ],
+   "total": {
+    "amount": 319.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-01C8206E",
+   "delivery_address": {
+    "street": "Avenida Paulista",
+    "number": "2286",
+    "complement": "Bloco B",
+    "neighborhood": "Centro",
+    "city": "Porto Alegre",
+    "state": "RS",
+    "postal_code": "90258294"
+   },
+   "shipment_id": null,
+   "estimated_delivery": "2026-10-08",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0039",
+   "customer_id": "C013",
+   "created_at": "2026-09-18",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "TEN-RUN-42",
+     "name": "Tênis de corrida Veloz tam. 42",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 399.9,
+      "currency": "BRL"
+     },
+     "category": "calcados"
+    }
+   ],
+   "total": {
+    "amount": 399.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-1E0C63E1",
+   "delivery_address": {
+    "street": "Avenida Paulista",
+    "number": "2286",
+    "complement": "Bloco B",
+    "neighborhood": "Centro",
+    "city": "Porto Alegre",
+    "state": "RS",
+    "postal_code": "90258294"
+   },
+   "shipment_id": "SHP-423DDB3C",
+   "estimated_delivery": "2026-09-25",
+   "delivered_at": "2026-09-25",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0040",
+   "customer_id": "C014",
+   "created_at": "2026-09-23",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "MOC-TRIP-40",
+     "name": "Mochila trilha 40L",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 319.9,
+      "currency": "BRL"
+     },
+     "category": "acessorios"
+    }
+   ],
+   "total": {
+    "amount": 319.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-87D59865",
+   "delivery_address": {
+    "street": "Rua Augusta",
+    "number": "288",
+    "complement": "Apto 12",
+    "neighborhood": "Jardim América",
+    "city": "Recife",
+    "state": "PE",
+    "postal_code": "50513222"
+   },
+   "shipment_id": "SHP-C5A9B0DC",
+   "estimated_delivery": "2026-09-26",
+   "delivered_at": "2026-09-26",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0041",
+   "customer_id": "C014",
+   "created_at": "2026-09-17",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "GAR-TERM-1L",
+     "name": "Garrafa térmica 1L",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 119.9,
+      "currency": "BRL"
+     },
+     "category": "acessorios"
+    }
+   ],
+   "total": {
+    "amount": 119.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-FF6950B8",
+   "delivery_address": {
+    "street": "Rua Augusta",
+    "number": "288",
+    "complement": "Apto 12",
+    "neighborhood": "Jardim América",
+    "city": "Recife",
+    "state": "PE",
+    "postal_code": "50513222"
+   },
+   "shipment_id": "SHP-F41D9FBA",
+   "estimated_delivery": "2026-09-25",
+   "delivered_at": "2026-09-25",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0042",
+   "customer_id": "C014",
+   "created_at": "2026-09-21",
+   "status": "in_transit",
+   "items": [
+    {
+     "sku": "GAR-TERM-1L",
+     "name": "Garrafa térmica 1L",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 119.9,
+      "currency": "BRL"
+     },
+     "category": "acessorios"
+    }
+   ],
+   "total": {
+    "amount": 119.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-833491E8",
+   "delivery_address": {
+    "street": "Rua Augusta",
+    "number": "288",
+    "complement": "Apto 12",
+    "neighborhood": "Jardim América",
+    "city": "Recife",
+    "state": "PE",
+    "postal_code": "50513222"
+   },
+   "shipment_id": "SHP-076D5ED9",
+   "estimated_delivery": "2026-10-03",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0043",
+   "customer_id": "C015",
+   "created_at": "2026-09-24",
+   "status": "shipped",
+   "items": [
+    {
+     "sku": "JAQ-JEANS-G",
+     "name": "Jaqueta jeans G",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 229.9,
+      "currency": "BRL"
+     },
+     "category": "vestuario"
+    },
+    {
+     "sku": "LIQ-PRO-900",
+     "name": "Liquidificador Pro 900W",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 279.9,
+      "currency": "BRL"
+     },
+     "category": "eletrodomesticos"
+    }
+   ],
+   "total": {
+    "amount": 509.8,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-36B02647",
+   "delivery_address": {
+    "street": "Rua dos Andradas",
+    "number": "1305",
+    "complement": null,
+    "neighborhood": "Vila Nova",
+    "city": "Salvador",
+    "state": "BA",
+    "postal_code": "40109569"
+   },
+   "shipment_id": "SHP-6151CB30",
+   "estimated_delivery": "2026-10-01",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0044",
+   "customer_id": "C015",
+   "created_at": "2026-09-20",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "VES-MIDI-P",
+     "name": "Vestido midi P",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 189.9,
+      "currency": "BRL"
+     },
+     "category": "vestuario"
+    }
+   ],
+   "total": {
+    "amount": 189.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-8397CCAF",
+   "delivery_address": {
+    "street": "Rua dos Andradas",
+    "number": "1305",
+    "complement": null,
+    "neighborhood": "Vila Nova",
+    "city": "Salvador",
+    "state": "BA",
+    "postal_code": "40109569"
+   },
+   "shipment_id": "SHP-5AD02E0A",
+   "estimated_delivery": "2026-09-24",
+   "delivered_at": "2026-09-24",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0045",
+   "customer_id": "C015",
+   "created_at": "2026-09-21",
+   "status": "in_transit",
+   "items": [
+    {
+     "sku": "LIQ-PRO-900",
+     "name": "Liquidificador Pro 900W",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 279.9,
+      "currency": "BRL"
+     },
+     "category": "eletrodomesticos"
+    },
+    {
+     "sku": "TEN-RUN-42",
+     "name": "Tênis de corrida Veloz tam. 42",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 399.9,
+      "currency": "BRL"
+     },
+     "category": "calcados"
+    }
+   ],
+   "total": {
+    "amount": 679.8,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-FCD51B2B",
+   "delivery_address": {
+    "street": "Rua dos Andradas",
+    "number": "1305",
+    "complement": null,
+    "neighborhood": "Vila Nova",
+    "city": "Salvador",
+    "state": "BA",
+    "postal_code": "40109569"
+   },
+   "shipment_id": "SHP-60DE601E",
+   "estimated_delivery": "2026-09-30",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0046",
+   "customer_id": "C016",
+   "created_at": "2026-09-20",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "MOC-TRIP-40",
+     "name": "Mochila trilha 40L",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 319.9,
+      "currency": "BRL"
+     },
+     "category": "acessorios"
+    }
+   ],
+   "total": {
+    "amount": 319.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-E11A83A2",
+   "delivery_address": {
+    "street": "Avenida Atlântica",
+    "number": "560",
+    "complement": "Casa 2",
+    "neighborhood": "Boa Vista",
+    "city": "Fortaleza",
+    "state": "CE",
+    "postal_code": "60218209"
+   },
+   "shipment_id": "SHP-4E8B6DD9",
+   "estimated_delivery": "2026-09-24",
+   "delivered_at": "2026-09-24",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0047",
+   "customer_id": "C016",
+   "created_at": "2026-07-12",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "VES-MIDI-P",
+     "name": "Vestido midi P",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 189.9,
+      "currency": "BRL"
+     },
+     "category": "vestuario"
+    }
+   ],
+   "total": {
+    "amount": 189.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-65AEA88A",
+   "delivery_address": {
+    "street": "Avenida Atlântica",
+    "number": "560",
+    "complement": "Casa 2",
+    "neighborhood": "Boa Vista",
+    "city": "Fortaleza",
+    "state": "CE",
+    "postal_code": "60218209"
+   },
+   "shipment_id": "SHP-249E2A51",
+   "estimated_delivery": "2026-07-15",
+   "delivered_at": "2026-07-15",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0048",
+   "customer_id": "C016",
+   "created_at": "2026-09-15",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "FON-BT-X2",
+     "name": "Fone Bluetooth X2",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 349.0,
+      "currency": "BRL"
+     },
+     "category": "eletronicos"
+    }
+   ],
+   "total": {
+    "amount": 349.0,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-324A06CE",
+   "delivery_address": {
+    "street": "Avenida Atlântica",
+    "number": "560",
+    "complement": "Casa 2",
+    "neighborhood": "Boa Vista",
+    "city": "Fortaleza",
+    "state": "CE",
+    "postal_code": "60218209"
+   },
+   "shipment_id": "SHP-60C51308",
+   "estimated_delivery": "2026-09-19",
+   "delivered_at": "2026-09-19",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0049",
+   "customer_id": "C017",
+   "created_at": "2026-09-23",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "LIQ-PRO-900",
+     "name": "Liquidificador Pro 900W",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 279.9,
+      "currency": "BRL"
+     },
+     "category": "eletrodomesticos"
+    }
+   ],
+   "total": {
+    "amount": 279.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-1908DEDB",
+   "delivery_address": {
+    "street": "Rua das Flores",
+    "number": "1819",
+    "complement": "Bloco B",
+    "neighborhood": "Santa Cecília",
+    "city": "São Paulo",
+    "state": "SP",
+    "postal_code": "01674109"
+   },
+   "shipment_id": "SHP-0A5C1C1B",
+   "estimated_delivery": "2026-09-26",
+   "delivered_at": "2026-09-26",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0050",
+   "customer_id": "C017",
+   "created_at": "2026-09-22",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "VES-MIDI-P",
+     "name": "Vestido midi P",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 189.9,
+      "currency": "BRL"
+     },
+     "category": "vestuario"
+    }
+   ],
+   "total": {
+    "amount": 189.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-0A52E42F",
+   "delivery_address": {
+    "street": "Rua das Flores",
+    "number": "1819",
+    "complement": "Bloco B",
+    "neighborhood": "Santa Cecília",
+    "city": "São Paulo",
+    "state": "SP",
+    "postal_code": "01674109"
+   },
+   "shipment_id": "SHP-CB389FFC",
+   "estimated_delivery": "2026-09-27",
+   "delivered_at": "2026-09-27",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0051",
+   "customer_id": "C017",
+   "created_at": "2026-09-20",
+   "status": "cancelled",
+   "items": [
+    {
+     "sku": "TEN-CASUAL-39",
+     "name": "Tênis casual Urbano tam. 39",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 259.9,
+      "currency": "BRL"
+     },
+     "category": "calcados"
+    },
+    {
+     "sku": "FON-BT-X2",
+     "name": "Fone Bluetooth X2",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 349.0,
+      "currency": "BRL"
+     },
+     "category": "eletronicos"
+    }
+   ],
+   "total": {
+    "amount": 608.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-035154E1",
+   "delivery_address": {
+    "street": "Rua das Flores",
+    "number": "1819",
+    "complement": "Bloco B",
+    "neighborhood": "Santa Cecília",
+    "city": "São Paulo",
+    "state": "SP",
+    "postal_code": "01674109"
+   },
+   "shipment_id": null,
+   "estimated_delivery": null,
+   "delivered_at": null,
+   "cancelled_at": "2026-09-21"
+  },
+  {
+   "id": "O0052",
+   "customer_id": "C018",
+   "created_at": "2026-09-19",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "CAM-BAS-M",
+     "name": "Camiseta básica algodão M",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 59.9,
+      "currency": "BRL"
+     },
+     "category": "vestuario"
+    }
+   ],
+   "total": {
+    "amount": 59.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-667EA584",
+   "delivery_address": {
+    "street": "Avenida Brasil",
+    "number": "643",
+    "complement": "Apto 12",
+    "neighborhood": "Moinhos",
+    "city": "Rio de Janeiro",
+    "state": "RJ",
+    "postal_code": "20985266"
+   },
+   "shipment_id": "SHP-82B8DE37",
+   "estimated_delivery": "2026-09-27",
+   "delivered_at": "2026-09-27",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0053",
+   "customer_id": "C018",
+   "created_at": "2026-09-29",
+   "status": "processing",
+   "items": [
+    {
+     "sku": "PAN-ANTI-5",
+     "name": "Jogo de panelas antiaderente 5 peças",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 499.9,
+      "currency": "BRL"
+     },
+     "category": "casa"
+    }
+   ],
+   "total": {
+    "amount": 499.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-8A0262F5",
+   "delivery_address": {
+    "street": "Avenida Brasil",
+    "number": "643",
+    "complement": "Apto 12",
+    "neighborhood": "Moinhos",
+    "city": "Rio de Janeiro",
+    "state": "RJ",
+    "postal_code": "20985266"
+   },
+   "shipment_id": null,
+   "estimated_delivery": "2026-10-07",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0054",
+   "customer_id": "C018",
+   "created_at": "2026-09-20",
+   "status": "in_transit",
+   "items": [
+    {
+     "sku": "JAQ-JEANS-G",
+     "name": "Jaqueta jeans G",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 229.9,
+      "currency": "BRL"
+     },
+     "category": "vestuario"
+    }
+   ],
+   "total": {
+    "amount": 229.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-11561B18",
+   "delivery_address": {
+    "street": "Avenida Brasil",
+    "number": "643",
+    "complement": "Apto 12",
+    "neighborhood": "Moinhos",
+    "city": "Rio de Janeiro",
+    "state": "RJ",
+    "postal_code": "20985266"
+   },
+   "shipment_id": "SHP-1174F2FF",
+   "estimated_delivery": "2026-09-23",
+   "delivered_at": null,
+   "cancelled_at": null
+  },
+  {
+   "id": "O0055",
+   "customer_id": "C019",
+   "created_at": "2026-09-20",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "TEN-CASUAL-39",
+     "name": "Tênis casual Urbano tam. 39",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 259.9,
+      "currency": "BRL"
+     },
+     "category": "calcados"
+    }
+   ],
+   "total": {
+    "amount": 259.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-A2152C32",
+   "delivery_address": {
+    "street": "Rua XV de Novembro",
+    "number": "923",
+    "complement": null,
+    "neighborhood": "Centro",
+    "city": "Belo Horizonte",
+    "state": "MG",
+    "postal_code": "30775297"
+   },
+   "shipment_id": "SHP-D8EAC5F7",
+   "estimated_delivery": "2026-09-25",
+   "delivered_at": "2026-09-25",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0056",
+   "customer_id": "C019",
+   "created_at": "2026-09-16",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "GAR-TERM-1L",
+     "name": "Garrafa térmica 1L",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 119.9,
+      "currency": "BRL"
+     },
+     "category": "acessorios"
+    }
+   ],
+   "total": {
+    "amount": 119.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-A62E4F2D",
+   "delivery_address": {
+    "street": "Rua XV de Novembro",
+    "number": "923",
+    "complement": null,
+    "neighborhood": "Centro",
+    "city": "Belo Horizonte",
+    "state": "MG",
+    "postal_code": "30775297"
+   },
+   "shipment_id": "SHP-3341FCB9",
+   "estimated_delivery": "2026-09-23",
+   "delivered_at": "2026-09-23",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0057",
+   "customer_id": "C019",
+   "created_at": "2026-09-24",
+   "status": "cancelled",
+   "items": [
+    {
+     "sku": "MOC-TRIP-40",
+     "name": "Mochila trilha 40L",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 319.9,
+      "currency": "BRL"
+     },
+     "category": "acessorios"
+    }
+   ],
+   "total": {
+    "amount": 319.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-D718FF2B",
+   "delivery_address": {
+    "street": "Rua XV de Novembro",
+    "number": "923",
+    "complement": null,
+    "neighborhood": "Centro",
+    "city": "Belo Horizonte",
+    "state": "MG",
+    "postal_code": "30775297"
+   },
+   "shipment_id": null,
+   "estimated_delivery": null,
+   "delivered_at": null,
+   "cancelled_at": "2026-09-25"
+  },
+  {
+   "id": "O0058",
+   "customer_id": "C020",
+   "created_at": "2026-09-18",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "SMW-FIT-3",
+     "name": "Smartwatch Fit 3",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 899.0,
+      "currency": "BRL"
+     },
+     "category": "eletronicos"
+    }
+   ],
+   "total": {
+    "amount": 899.0,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-162754E5",
+   "delivery_address": {
+    "street": "Rua da Consolação",
+    "number": "166",
+    "complement": null,
+    "neighborhood": "Jardim América",
+    "city": "Curitiba",
+    "state": "PR",
+    "postal_code": "80710544"
+   },
+   "shipment_id": "SHP-67334BA8",
+   "estimated_delivery": "2026-09-25",
+   "delivered_at": "2026-09-25",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0059",
+   "customer_id": "C020",
+   "created_at": "2026-09-18",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "JAQ-JEANS-G",
+     "name": "Jaqueta jeans G",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 229.9,
+      "currency": "BRL"
+     },
+     "category": "vestuario"
+    }
+   ],
+   "total": {
+    "amount": 229.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-64477234",
+   "delivery_address": {
+    "street": "Rua da Consolação",
+    "number": "166",
+    "complement": null,
+    "neighborhood": "Jardim América",
+    "city": "Curitiba",
+    "state": "PR",
+    "postal_code": "80710544"
+   },
+   "shipment_id": "SHP-A3A8361F",
+   "estimated_delivery": "2026-09-23",
+   "delivered_at": "2026-09-23",
+   "cancelled_at": null
+  },
+  {
+   "id": "O0060",
+   "customer_id": "C020",
+   "created_at": "2026-07-04",
+   "status": "delivered",
+   "items": [
+    {
+     "sku": "GAR-TERM-1L",
+     "name": "Garrafa térmica 1L",
+     "quantity": 1,
+     "unit_price": {
+      "amount": 119.9,
+      "currency": "BRL"
+     },
+     "category": "acessorios"
+    }
+   ],
+   "total": {
+    "amount": 119.9,
+    "currency": "BRL"
+   },
+   "payment_id": "PAY-7D889FB2",
+   "delivery_address": {
+    "street": "Rua da Consolação",
+    "number": "166",
+    "complement": null,
+    "neighborhood": "Jardim América",
+    "city": "Curitiba",
+    "state": "PR",
+    "postal_code": "80710544"
+   },
+   "shipment_id": "SHP-474A4C2C",
+   "estimated_delivery": "2026-07-12",
+   "delivered_at": "2026-07-12",
+   "cancelled_at": null
+  }
+ ],
+ "payments": [
+  {
+   "id": "PAY-DB1D56AA",
+   "order_id": "O0001",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 499.9,
+    "currency": "BRL"
+   },
+   "installments": 10,
+   "paid_at": "2026-09-22",
+   "card_last4": "2424",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-11046B81",
+   "order_id": "O0002",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 259.9,
+    "currency": "BRL"
+   },
+   "installments": 2,
+   "paid_at": "2026-09-23",
+   "card_last4": "9279",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-8A8801C0",
+   "order_id": "O0003",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 499.9,
+    "currency": "BRL"
+   },
+   "installments": 10,
+   "paid_at": "2026-09-27",
+   "card_last4": "7873",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-4642C28D",
+   "order_id": "O0004",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 499.9,
+    "currency": "BRL"
+   },
+   "installments": 3,
+   "paid_at": "2026-07-30",
+   "card_last4": "5552",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-493485CC",
+   "order_id": "O0005",
+   "method": "boleto",
+   "status": "pending",
+   "amount": {
+    "amount": 259.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": null,
+   "card_last4": null,
+   "boleto_due_date": "2026-10-02",
+   "boleto_barcode": "10237325558403174516657166016187837490071110732"
+  },
+  {
+   "id": "PAY-4EC15CDA",
+   "order_id": "O0006",
+   "method": "boleto",
+   "status": "pending",
+   "amount": {
+    "amount": 349.0,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": null,
+   "card_last4": null,
+   "boleto_due_date": "2026-10-01",
+   "boleto_barcode": "83826406176764221423947358440663327763206703134"
+  },
+  {
+   "id": "PAY-4EF24BCB",
+   "order_id": "O0007",
+   "method": "pix",
+   "status": "approved",
+   "amount": {
+    "amount": 279.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-22",
+   "card_last4": null,
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-E235DB5F",
+   "order_id": "O0008",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 499.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-22",
+   "card_last4": "4733",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-3EBF17BD",
+   "order_id": "O0009",
+   "method": "credit_card",
+   "status": "chargeback",
+   "amount": {
+    "amount": 259.9,
+    "currency": "BRL"
+   },
+   "installments": 3,
+   "paid_at": "2026-08-16",
+   "card_last4": "8428",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-667F1E28",
+   "order_id": "O0010",
+   "method": "boleto",
+   "status": "approved",
+   "amount": {
+    "amount": 379.8,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-27",
+   "card_last4": null,
+   "boleto_due_date": "2026-09-30",
+   "boleto_barcode": "10022751387190857946991333985729786875753536312"
+  },
+  {
+   "id": "PAY-8814BC72",
+   "order_id": "O0011",
+   "method": "pix",
+   "status": "approved",
+   "amount": {
+    "amount": 279.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-27",
+   "card_last4": null,
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-B355989B",
+   "order_id": "O0012",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 649.9,
+    "currency": "BRL"
+   },
+   "installments": 3,
+   "paid_at": "2026-09-23",
+   "card_last4": "4598",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-450E252F",
+   "order_id": "O0013",
+   "method": "pix",
+   "status": "approved",
+   "amount": {
+    "amount": 229.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-20",
+   "card_last4": null,
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-43C0EBBE",
+   "order_id": "O0014",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 899.0,
+    "currency": "BRL"
+   },
+   "installments": 6,
+   "paid_at": "2026-09-16",
+   "card_last4": "3340",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-1F0874DB",
+   "order_id": "O0015",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 499.9,
+    "currency": "BRL"
+   },
+   "installments": 10,
+   "paid_at": "2026-09-22",
+   "card_last4": "5304",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-732550C9",
+   "order_id": "O0016",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 279.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-19",
+   "card_last4": "1771",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-F9A347D1",
+   "order_id": "O0017",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 59.9,
+    "currency": "BRL"
+   },
+   "installments": 6,
+   "paid_at": "2026-09-15",
+   "card_last4": "2040",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-5CF22CE7",
+   "order_id": "O0018",
+   "method": "boleto",
+   "status": "pending",
+   "amount": {
+    "amount": 929.8,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": null,
+   "card_last4": null,
+   "boleto_due_date": "2026-10-01",
+   "boleto_barcode": "73831072414907332435803514225077436965627786396"
+  },
+  {
+   "id": "PAY-DA34C726",
+   "order_id": "O0019",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 259.9,
+    "currency": "BRL"
+   },
+   "installments": 6,
+   "paid_at": "2026-09-20",
+   "card_last4": "3591",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-A8AC3F3A",
+   "order_id": "O0020",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 499.9,
+    "currency": "BRL"
+   },
+   "installments": 10,
+   "paid_at": "2026-09-18",
+   "card_last4": "3927",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-1B06A966",
+   "order_id": "O0021",
+   "method": "pix",
+   "status": "approved",
+   "amount": {
+    "amount": 599.8,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-25",
+   "card_last4": null,
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-B9A0DB7C",
+   "order_id": "O0022",
+   "method": "pix",
+   "status": "approved",
+   "amount": {
+    "amount": 349.0,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-20",
+   "card_last4": null,
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-D454F47A",
+   "order_id": "O0023",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 229.9,
+    "currency": "BRL"
+   },
+   "installments": 2,
+   "paid_at": "2026-09-21",
+   "card_last4": "2290",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-0100E927",
+   "order_id": "O0024",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 279.9,
+    "currency": "BRL"
+   },
+   "installments": 2,
+   "paid_at": "2026-09-22",
+   "card_last4": "8787",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-5619CF79",
+   "order_id": "O0025",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 899.0,
+    "currency": "BRL"
+   },
+   "installments": 3,
+   "paid_at": "2026-09-21",
+   "card_last4": "8177",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-B0D0D57D",
+   "order_id": "O0026",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 229.9,
+    "currency": "BRL"
+   },
+   "installments": 3,
+   "paid_at": "2026-09-26",
+   "card_last4": "1344",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-B370D5B6",
+   "order_id": "O0027",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 399.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-22",
+   "card_last4": "4750",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-26951F1B",
+   "order_id": "O0028",
+   "method": "pix",
+   "status": "approved",
+   "amount": {
+    "amount": 229.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-22",
+   "card_last4": null,
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-C646AB15",
+   "order_id": "O0029",
+   "method": "pix",
+   "status": "approved",
+   "amount": {
+    "amount": 649.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-19",
+   "card_last4": null,
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-30A1B676",
+   "order_id": "O0030",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 259.9,
+    "currency": "BRL"
+   },
+   "installments": 6,
+   "paid_at": "2026-09-26",
+   "card_last4": "6804",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-9A092FD3",
+   "order_id": "O0031",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 499.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-28",
+   "card_last4": "5073",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-8E8E9B57",
+   "order_id": "O0032",
+   "method": "pix",
+   "status": "approved",
+   "amount": {
+    "amount": 279.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-20",
+   "card_last4": null,
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-5A9CDCE7",
+   "order_id": "O0033",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 189.9,
+    "currency": "BRL"
+   },
+   "installments": 2,
+   "paid_at": "2025-08-14",
+   "card_last4": "2235",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-3C7899E0",
+   "order_id": "O0034",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 59.9,
+    "currency": "BRL"
+   },
+   "installments": 6,
+   "paid_at": "2026-09-23",
+   "card_last4": "8886",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-A5CAA8FB",
+   "order_id": "O0035",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 59.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-20",
+   "card_last4": "7396",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-7D241720",
+   "order_id": "O0036",
+   "method": "boleto",
+   "status": "pending",
+   "amount": {
+    "amount": 899.0,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": null,
+   "card_last4": null,
+   "boleto_due_date": "2026-09-30",
+   "boleto_barcode": "11017602009384575938632651986670595545436692444"
+  },
+  {
+   "id": "PAY-D710E6AA",
+   "order_id": "O0037",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 319.9,
+    "currency": "BRL"
+   },
+   "installments": 10,
+   "paid_at": "2026-09-18",
+   "card_last4": "1998",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-01C8206E",
+   "order_id": "O0038",
+   "method": "boleto",
+   "status": "pending",
+   "amount": {
+    "amount": 319.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": null,
+   "card_last4": null,
+   "boleto_due_date": "2026-10-01",
+   "boleto_barcode": "24879744448118135993511850622788760666812707723"
+  },
+  {
+   "id": "PAY-1E0C63E1",
+   "order_id": "O0039",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 399.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-18",
+   "card_last4": "4044",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-87D59865",
+   "order_id": "O0040",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 319.9,
+    "currency": "BRL"
+   },
+   "installments": 6,
+   "paid_at": "2026-09-23",
+   "card_last4": "9565",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-FF6950B8",
+   "order_id": "O0041",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 119.9,
+    "currency": "BRL"
+   },
+   "installments": 3,
+   "paid_at": "2026-09-17",
+   "card_last4": "4910",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-833491E8",
+   "order_id": "O0042",
+   "method": "pix",
+   "status": "approved",
+   "amount": {
+    "amount": 119.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-21",
+   "card_last4": null,
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-36B02647",
+   "order_id": "O0043",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 509.8,
+    "currency": "BRL"
+   },
+   "installments": 2,
+   "paid_at": "2026-09-24",
+   "card_last4": "6718",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-8397CCAF",
+   "order_id": "O0044",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 189.9,
+    "currency": "BRL"
+   },
+   "installments": 6,
+   "paid_at": "2026-09-20",
+   "card_last4": "9900",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-FCD51B2B",
+   "order_id": "O0045",
+   "method": "boleto",
+   "status": "approved",
+   "amount": {
+    "amount": 679.8,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-21",
+   "card_last4": null,
+   "boleto_due_date": "2026-09-24",
+   "boleto_barcode": "42730777066087386854467212919412820905156185166"
+  },
+  {
+   "id": "PAY-E11A83A2",
+   "order_id": "O0046",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 319.9,
+    "currency": "BRL"
+   },
+   "installments": 3,
+   "paid_at": "2026-09-20",
+   "card_last4": "4335",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-65AEA88A",
+   "order_id": "O0047",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 189.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-07-12",
+   "card_last4": "7939",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-324A06CE",
+   "order_id": "O0048",
+   "method": "boleto",
+   "status": "approved",
+   "amount": {
+    "amount": 349.0,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-15",
+   "card_last4": null,
+   "boleto_due_date": "2026-09-18",
+   "boleto_barcode": "94053836787379346956620811090021484387582751801"
+  },
+  {
+   "id": "PAY-1908DEDB",
+   "order_id": "O0049",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 279.9,
+    "currency": "BRL"
+   },
+   "installments": 3,
+   "paid_at": "2026-09-23",
+   "card_last4": "3426",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-0A52E42F",
+   "order_id": "O0050",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 189.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-22",
+   "card_last4": "6862",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-035154E1",
+   "order_id": "O0051",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 608.9,
+    "currency": "BRL"
+   },
+   "installments": 10,
+   "paid_at": "2026-09-20",
+   "card_last4": "7658",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-667EA584",
+   "order_id": "O0052",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 59.9,
+    "currency": "BRL"
+   },
+   "installments": 3,
+   "paid_at": "2026-09-19",
+   "card_last4": "7745",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-8A0262F5",
+   "order_id": "O0053",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 499.9,
+    "currency": "BRL"
+   },
+   "installments": 6,
+   "paid_at": "2026-09-29",
+   "card_last4": "1634",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-11561B18",
+   "order_id": "O0054",
+   "method": "credit_card",
+   "status": "refunded",
+   "amount": {
+    "amount": 229.9,
+    "currency": "BRL"
+   },
+   "installments": 6,
+   "paid_at": "2026-09-20",
+   "card_last4": "6728",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-A2152C32",
+   "order_id": "O0055",
+   "method": "pix",
+   "status": "approved",
+   "amount": {
+    "amount": 259.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-20",
+   "card_last4": null,
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-A62E4F2D",
+   "order_id": "O0056",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 119.9,
+    "currency": "BRL"
+   },
+   "installments": 3,
+   "paid_at": "2026-09-16",
+   "card_last4": "1452",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-D718FF2B",
+   "order_id": "O0057",
+   "method": "pix",
+   "status": "approved",
+   "amount": {
+    "amount": 319.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-24",
+   "card_last4": null,
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-162754E5",
+   "order_id": "O0058",
+   "method": "pix",
+   "status": "approved",
+   "amount": {
+    "amount": 899.0,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-18",
+   "card_last4": null,
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-64477234",
+   "order_id": "O0059",
+   "method": "credit_card",
+   "status": "approved",
+   "amount": {
+    "amount": 229.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-09-18",
+   "card_last4": "8144",
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  },
+  {
+   "id": "PAY-7D889FB2",
+   "order_id": "O0060",
+   "method": "pix",
+   "status": "approved",
+   "amount": {
+    "amount": 119.9,
+    "currency": "BRL"
+   },
+   "installments": 1,
+   "paid_at": "2026-07-04",
+   "card_last4": null,
+   "boleto_due_date": null,
+   "boleto_barcode": null
+  }
+ ],
+ "shipments": [
+  {
+   "id": "SHP-491B7249",
+   "order_id": "O0001",
+   "carrier": "Total Express",
+   "tracking_code": "BRB5AEEFD0ABR",
+   "status": "delivered",
+   "eta": "2026-09-25",
+   "events": [
+    {
+     "at": "2026-09-23T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-24T08:30:00-03:00",
+     "location": "Unidade de tratamento São Paulo/SP",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-25T14:10:00-03:00",
+     "location": "São Paulo/SP",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-DFCB8216",
+   "order_id": "O0002",
+   "carrier": "Correios",
+   "tracking_code": "BR1233623E2BR",
+   "status": "delivered",
+   "eta": "2026-09-27",
+   "events": [
+    {
+     "at": "2026-09-24T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-25T08:30:00-03:00",
+     "location": "Unidade de tratamento São Paulo/SP",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-27T14:10:00-03:00",
+     "location": "São Paulo/SP",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-6071ED5D",
+   "order_id": "O0004",
+   "carrier": "Loggi",
+   "tracking_code": "BR5512F9275BR",
+   "status": "delivered",
+   "eta": "2026-08-05",
+   "events": [
+    {
+     "at": "2026-07-31T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-08-01T08:30:00-03:00",
+     "location": "Unidade de tratamento Rio de Janeiro/RJ",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-08-05T14:10:00-03:00",
+     "location": "Rio de Janeiro/RJ",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-E5428B6E",
+   "order_id": "O0007",
+   "carrier": "Jadlog",
+   "tracking_code": "BRE02C1BFCEBR",
+   "status": "delivered",
+   "eta": "2026-09-27",
+   "events": [
+    {
+     "at": "2026-09-23T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-24T08:30:00-03:00",
+     "location": "Unidade de tratamento Belo Horizonte/MG",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-27T14:10:00-03:00",
+     "location": "Belo Horizonte/MG",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-8C8CC799",
+   "order_id": "O0008",
+   "carrier": "Jadlog",
+   "tracking_code": "BR0A44DAB5FBR",
+   "status": "delivered",
+   "eta": "2026-09-25",
+   "events": [
+    {
+     "at": "2026-09-23T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-24T08:30:00-03:00",
+     "location": "Unidade de tratamento Belo Horizonte/MG",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-25T14:10:00-03:00",
+     "location": "Belo Horizonte/MG",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-CF7A5A8A",
+   "order_id": "O0009",
+   "carrier": "Jadlog",
+   "tracking_code": "BRCA347835EBR",
+   "status": "delivered",
+   "eta": "2026-08-22",
+   "events": [
+    {
+     "at": "2026-08-17T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-08-18T08:30:00-03:00",
+     "location": "Unidade de tratamento Belo Horizonte/MG",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-08-22T14:10:00-03:00",
+     "location": "Belo Horizonte/MG",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-9D5060EF",
+   "order_id": "O0012",
+   "carrier": "Jadlog",
+   "tracking_code": "BR9DFC8B086BR",
+   "status": "lost",
+   "eta": "2026-09-23",
+   "events": [
+    {
+     "at": "2026-09-24T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-25T08:30:00-03:00",
+     "location": "Unidade de tratamento Curitiba/PR",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-27T11:00:00-03:00",
+     "location": "Unidade de tratamento Curitiba/PR",
+     "description": "Objeto não localizado no fluxo postal (extraviado)"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-DFBF18F1",
+   "order_id": "O0013",
+   "carrier": "Jadlog",
+   "tracking_code": "BRD9324DE51BR",
+   "status": "delivered",
+   "eta": "2026-09-27",
+   "events": [
+    {
+     "at": "2026-09-21T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-22T08:30:00-03:00",
+     "location": "Unidade de tratamento Porto Alegre/RS",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-27T14:10:00-03:00",
+     "location": "Porto Alegre/RS",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-3A5776D2",
+   "order_id": "O0014",
+   "carrier": "Jadlog",
+   "tracking_code": "BRF74A9880CBR",
+   "status": "delivered",
+   "eta": "2026-09-24",
+   "events": [
+    {
+     "at": "2026-09-17T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-18T08:30:00-03:00",
+     "location": "Unidade de tratamento Porto Alegre/RS",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-24T14:10:00-03:00",
+     "location": "Porto Alegre/RS",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-901F6B6B",
+   "order_id": "O0016",
+   "carrier": "Correios",
+   "tracking_code": "BR3C7239F5FBR",
+   "status": "delivered",
+   "eta": "2026-09-25",
+   "events": [
+    {
+     "at": "2026-09-20T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-21T08:30:00-03:00",
+     "location": "Unidade de tratamento Recife/PE",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-25T14:10:00-03:00",
+     "location": "Recife/PE",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-9149077F",
+   "order_id": "O0017",
+   "carrier": "Total Express",
+   "tracking_code": "BR49413A4DBBR",
+   "status": "delivered",
+   "eta": "2026-09-23",
+   "events": [
+    {
+     "at": "2026-09-16T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-17T08:30:00-03:00",
+     "location": "Unidade de tratamento Recife/PE",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-23T14:10:00-03:00",
+     "location": "Recife/PE",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-9685E060",
+   "order_id": "O0019",
+   "carrier": "Total Express",
+   "tracking_code": "BR9DB5C30CEBR",
+   "status": "delivered",
+   "eta": "2026-09-25",
+   "events": [
+    {
+     "at": "2026-09-21T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-22T08:30:00-03:00",
+     "location": "Unidade de tratamento Salvador/BA",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-25T14:10:00-03:00",
+     "location": "Salvador/BA",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-E612D34A",
+   "order_id": "O0020",
+   "carrier": "Correios",
+   "tracking_code": "BRC7EDF5D3FBR",
+   "status": "delivered",
+   "eta": "2026-09-23",
+   "events": [
+    {
+     "at": "2026-09-19T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-20T08:30:00-03:00",
+     "location": "Unidade de tratamento Salvador/BA",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-23T14:10:00-03:00",
+     "location": "Salvador/BA",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-C9CCAFA1",
+   "order_id": "O0021",
+   "carrier": "Loggi",
+   "tracking_code": "BR42D677AAFBR",
+   "status": "lost",
+   "eta": "2026-09-23",
+   "events": [
+    {
+     "at": "2026-09-26T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-27T08:30:00-03:00",
+     "location": "Unidade de tratamento Salvador/BA",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-27T11:00:00-03:00",
+     "location": "Unidade de tratamento Salvador/BA",
+     "description": "Objeto não localizado no fluxo postal (extraviado)"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-BEB221F8",
+   "order_id": "O0023",
+   "carrier": "Correios",
+   "tracking_code": "BR3B076B0A6BR",
+   "status": "delivered",
+   "eta": "2026-09-24",
+   "events": [
+    {
+     "at": "2026-09-22T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-23T08:30:00-03:00",
+     "location": "Unidade de tratamento Fortaleza/CE",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-24T14:10:00-03:00",
+     "location": "Fortaleza/CE",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-B1599CE7",
+   "order_id": "O0024",
+   "carrier": "Loggi",
+   "tracking_code": "BR9AC39AA5FBR",
+   "status": "delivered",
+   "eta": "2026-09-26",
+   "events": [
+    {
+     "at": "2026-09-23T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-24T08:30:00-03:00",
+     "location": "Unidade de tratamento Fortaleza/CE",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-26T14:10:00-03:00",
+     "location": "Fortaleza/CE",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-14A3EBD5",
+   "order_id": "O0025",
+   "carrier": "Total Express",
+   "tracking_code": "BR925104AA8BR",
+   "status": "delivery_failed",
+   "eta": "2026-09-30",
+   "events": [
+    {
+     "at": "2026-09-22T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-23T08:30:00-03:00",
+     "location": "Unidade de tratamento São Paulo/SP",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-28T15:20:00-03:00",
+     "location": "São Paulo/SP",
+     "description": "Tentativa de entrega sem sucesso: destinatário ausente"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-FD820654",
+   "order_id": "O0026",
+   "carrier": "Loggi",
+   "tracking_code": "BR18EA03E1BBR",
+   "status": "in_transit",
+   "eta": "2026-10-04",
+   "events": [
+    {
+     "at": "2026-09-27T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-28T08:30:00-03:00",
+     "location": "Unidade de tratamento São Paulo/SP",
+     "description": "Objeto em trânsito"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-B7A7E4D6",
+   "order_id": "O0027",
+   "carrier": "Correios",
+   "tracking_code": "BR662BAB08ABR",
+   "status": "delivered",
+   "eta": "2026-09-25",
+   "events": [
+    {
+     "at": "2026-09-23T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-24T08:30:00-03:00",
+     "location": "Unidade de tratamento São Paulo/SP",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-25T14:10:00-03:00",
+     "location": "São Paulo/SP",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-D70CF1D1",
+   "order_id": "O0028",
+   "carrier": "Loggi",
+   "tracking_code": "BRE244F9505BR",
+   "status": "lost",
+   "eta": "2026-09-23",
+   "events": [
+    {
+     "at": "2026-09-23T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-24T08:30:00-03:00",
+     "location": "Unidade de tratamento Rio de Janeiro/RJ",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-27T11:00:00-03:00",
+     "location": "Unidade de tratamento Rio de Janeiro/RJ",
+     "description": "Objeto não localizado no fluxo postal (extraviado)"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-27AE8617",
+   "order_id": "O0029",
+   "carrier": "Total Express",
+   "tracking_code": "BRF43FF3F86BR",
+   "status": "delivered",
+   "eta": "2026-09-23",
+   "events": [
+    {
+     "at": "2026-09-20T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-21T08:30:00-03:00",
+     "location": "Unidade de tratamento Rio de Janeiro/RJ",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-23T14:10:00-03:00",
+     "location": "Rio de Janeiro/RJ",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-7C68BDCD",
+   "order_id": "O0030",
+   "carrier": "Total Express",
+   "tracking_code": "BR2B099BF80BR",
+   "status": "label_created",
+   "eta": "2026-10-03",
+   "events": [
+    {
+     "at": "2026-09-27T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-A7CE7BC1",
+   "order_id": "O0032",
+   "carrier": "Loggi",
+   "tracking_code": "BRBBF269D80BR",
+   "status": "delivered",
+   "eta": "2026-09-26",
+   "events": [
+    {
+     "at": "2026-09-21T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-22T08:30:00-03:00",
+     "location": "Unidade de tratamento Belo Horizonte/MG",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-26T14:10:00-03:00",
+     "location": "Belo Horizonte/MG",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-72BEA915",
+   "order_id": "O0033",
+   "carrier": "Total Express",
+   "tracking_code": "BR95159353EBR",
+   "status": "delivered",
+   "eta": "2025-08-20",
+   "events": [
+    {
+     "at": "2025-08-15T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2025-08-16T08:30:00-03:00",
+     "location": "Unidade de tratamento Belo Horizonte/MG",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2025-08-20T14:10:00-03:00",
+     "location": "Belo Horizonte/MG",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-96AC2510",
+   "order_id": "O0034",
+   "carrier": "Loggi",
+   "tracking_code": "BR21A955D48BR",
+   "status": "lost",
+   "eta": "2026-09-23",
+   "events": [
+    {
+     "at": "2026-09-24T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-25T08:30:00-03:00",
+     "location": "Unidade de tratamento Curitiba/PR",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-27T11:00:00-03:00",
+     "location": "Unidade de tratamento Curitiba/PR",
+     "description": "Objeto não localizado no fluxo postal (extraviado)"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-18FB3B83",
+   "order_id": "O0035",
+   "carrier": "Jadlog",
+   "tracking_code": "BRAA662BB8DBR",
+   "status": "delivered",
+   "eta": "2026-09-26",
+   "events": [
+    {
+     "at": "2026-09-21T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-22T08:30:00-03:00",
+     "location": "Unidade de tratamento Curitiba/PR",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-26T14:10:00-03:00",
+     "location": "Curitiba/PR",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-3F537017",
+   "order_id": "O0037",
+   "carrier": "Jadlog",
+   "tracking_code": "BRBE9C22A94BR",
+   "status": "delivered",
+   "eta": "2026-09-26",
+   "events": [
+    {
+     "at": "2026-09-19T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-20T08:30:00-03:00",
+     "location": "Unidade de tratamento Porto Alegre/RS",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-26T14:10:00-03:00",
+     "location": "Porto Alegre/RS",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-423DDB3C",
+   "order_id": "O0039",
+   "carrier": "Correios",
+   "tracking_code": "BR6280942E8BR",
+   "status": "delivered",
+   "eta": "2026-09-25",
+   "events": [
+    {
+     "at": "2026-09-19T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-20T08:30:00-03:00",
+     "location": "Unidade de tratamento Porto Alegre/RS",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-25T14:10:00-03:00",
+     "location": "Porto Alegre/RS",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-C5A9B0DC",
+   "order_id": "O0040",
+   "carrier": "Jadlog",
+   "tracking_code": "BR0ACF6EAD9BR",
+   "status": "delivered",
+   "eta": "2026-09-26",
+   "events": [
+    {
+     "at": "2026-09-24T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-25T08:30:00-03:00",
+     "location": "Unidade de tratamento Recife/PE",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-26T14:10:00-03:00",
+     "location": "Recife/PE",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-F41D9FBA",
+   "order_id": "O0041",
+   "carrier": "Jadlog",
+   "tracking_code": "BR068E256AEBR",
+   "status": "delivered",
+   "eta": "2026-09-25",
+   "events": [
+    {
+     "at": "2026-09-18T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-19T08:30:00-03:00",
+     "location": "Unidade de tratamento Recife/PE",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-25T14:10:00-03:00",
+     "location": "Recife/PE",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-076D5ED9",
+   "order_id": "O0042",
+   "carrier": "Jadlog",
+   "tracking_code": "BR85806F162BR",
+   "status": "out_for_delivery",
+   "eta": "2026-10-03",
+   "events": [
+    {
+     "at": "2026-09-22T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-23T08:30:00-03:00",
+     "location": "Unidade de tratamento Recife/PE",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-29T07:45:00-03:00",
+     "location": "Recife/PE",
+     "description": "Objeto saiu para entrega"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-6151CB30",
+   "order_id": "O0043",
+   "carrier": "Correios",
+   "tracking_code": "BR9C5B2877EBR",
+   "status": "label_created",
+   "eta": "2026-10-01",
+   "events": [
+    {
+     "at": "2026-09-25T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-5AD02E0A",
+   "order_id": "O0044",
+   "carrier": "Jadlog",
+   "tracking_code": "BRFA8A94045BR",
+   "status": "delivered",
+   "eta": "2026-09-24",
+   "events": [
+    {
+     "at": "2026-09-21T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-22T08:30:00-03:00",
+     "location": "Unidade de tratamento Salvador/BA",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-24T14:10:00-03:00",
+     "location": "Salvador/BA",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-60DE601E",
+   "order_id": "O0045",
+   "carrier": "Jadlog",
+   "tracking_code": "BRB9133CD42BR",
+   "status": "delivery_failed",
+   "eta": "2026-09-30",
+   "events": [
+    {
+     "at": "2026-09-22T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-23T08:30:00-03:00",
+     "location": "Unidade de tratamento Salvador/BA",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-28T15:20:00-03:00",
+     "location": "Salvador/BA",
+     "description": "Tentativa de entrega sem sucesso: destinatário ausente"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-4E8B6DD9",
+   "order_id": "O0046",
+   "carrier": "Jadlog",
+   "tracking_code": "BR5A6C925B9BR",
+   "status": "delivered",
+   "eta": "2026-09-24",
+   "events": [
+    {
+     "at": "2026-09-21T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-22T08:30:00-03:00",
+     "location": "Unidade de tratamento Fortaleza/CE",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-24T14:10:00-03:00",
+     "location": "Fortaleza/CE",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-249E2A51",
+   "order_id": "O0047",
+   "carrier": "Jadlog",
+   "tracking_code": "BR7CC7B97B0BR",
+   "status": "delivered",
+   "eta": "2026-07-15",
+   "events": [
+    {
+     "at": "2026-07-13T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-07-14T08:30:00-03:00",
+     "location": "Unidade de tratamento Fortaleza/CE",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-07-15T14:10:00-03:00",
+     "location": "Fortaleza/CE",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-60C51308",
+   "order_id": "O0048",
+   "carrier": "Jadlog",
+   "tracking_code": "BRD4E313892BR",
+   "status": "delivered",
+   "eta": "2026-09-19",
+   "events": [
+    {
+     "at": "2026-09-16T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-17T08:30:00-03:00",
+     "location": "Unidade de tratamento Fortaleza/CE",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-19T14:10:00-03:00",
+     "location": "Fortaleza/CE",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-0A5C1C1B",
+   "order_id": "O0049",
+   "carrier": "Total Express",
+   "tracking_code": "BRD6F066AB0BR",
+   "status": "delivered",
+   "eta": "2026-09-26",
+   "events": [
+    {
+     "at": "2026-09-24T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-25T08:30:00-03:00",
+     "location": "Unidade de tratamento São Paulo/SP",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-26T14:10:00-03:00",
+     "location": "São Paulo/SP",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-CB389FFC",
+   "order_id": "O0050",
+   "carrier": "Loggi",
+   "tracking_code": "BRC7F0688C6BR",
+   "status": "delivered",
+   "eta": "2026-09-27",
+   "events": [
+    {
+     "at": "2026-09-23T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-24T08:30:00-03:00",
+     "location": "Unidade de tratamento São Paulo/SP",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-27T14:10:00-03:00",
+     "location": "São Paulo/SP",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-82B8DE37",
+   "order_id": "O0052",
+   "carrier": "Loggi",
+   "tracking_code": "BRD34FB35AEBR",
+   "status": "delivered",
+   "eta": "2026-09-27",
+   "events": [
+    {
+     "at": "2026-09-20T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-21T08:30:00-03:00",
+     "location": "Unidade de tratamento Rio de Janeiro/RJ",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-27T14:10:00-03:00",
+     "location": "Rio de Janeiro/RJ",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-1174F2FF",
+   "order_id": "O0054",
+   "carrier": "Jadlog",
+   "tracking_code": "BRA4AACD680BR",
+   "status": "lost",
+   "eta": "2026-09-23",
+   "events": [
+    {
+     "at": "2026-09-21T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-22T08:30:00-03:00",
+     "location": "Unidade de tratamento Rio de Janeiro/RJ",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-27T11:00:00-03:00",
+     "location": "Unidade de tratamento Rio de Janeiro/RJ",
+     "description": "Objeto não localizado no fluxo postal (extraviado)"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-D8EAC5F7",
+   "order_id": "O0055",
+   "carrier": "Jadlog",
+   "tracking_code": "BRE6833499FBR",
+   "status": "delivered",
+   "eta": "2026-09-25",
+   "events": [
+    {
+     "at": "2026-09-21T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-22T08:30:00-03:00",
+     "location": "Unidade de tratamento Belo Horizonte/MG",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-25T14:10:00-03:00",
+     "location": "Belo Horizonte/MG",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-3341FCB9",
+   "order_id": "O0056",
+   "carrier": "Correios",
+   "tracking_code": "BR9A81EADA8BR",
+   "status": "delivered",
+   "eta": "2026-09-23",
+   "events": [
+    {
+     "at": "2026-09-17T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-18T08:30:00-03:00",
+     "location": "Unidade de tratamento Belo Horizonte/MG",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-23T14:10:00-03:00",
+     "location": "Belo Horizonte/MG",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-67334BA8",
+   "order_id": "O0058",
+   "carrier": "Correios",
+   "tracking_code": "BRDBF1D63CABR",
+   "status": "delivered",
+   "eta": "2026-09-25",
+   "events": [
+    {
+     "at": "2026-09-19T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-20T08:30:00-03:00",
+     "location": "Unidade de tratamento Curitiba/PR",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-25T14:10:00-03:00",
+     "location": "Curitiba/PR",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-A3A8361F",
+   "order_id": "O0059",
+   "carrier": "Correios",
+   "tracking_code": "BR313DDE2C1BR",
+   "status": "delivered",
+   "eta": "2026-09-23",
+   "events": [
+    {
+     "at": "2026-09-19T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-09-20T08:30:00-03:00",
+     "location": "Unidade de tratamento Curitiba/PR",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-09-23T14:10:00-03:00",
+     "location": "Curitiba/PR",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  },
+  {
+   "id": "SHP-474A4C2C",
+   "order_id": "O0060",
+   "carrier": "Loggi",
+   "tracking_code": "BR3EFD36FAFBR",
+   "status": "delivered",
+   "eta": "2026-07-12",
+   "events": [
+    {
+     "at": "2026-07-05T10:00:00-03:00",
+     "location": "Centro de distribuição Cajamar/SP",
+     "description": "Etiqueta criada e pedido despachado"
+    },
+    {
+     "at": "2026-07-06T08:30:00-03:00",
+     "location": "Unidade de tratamento Curitiba/PR",
+     "description": "Objeto em trânsito"
+    },
+    {
+     "at": "2026-07-12T14:10:00-03:00",
+     "location": "Curitiba/PR",
+     "description": "Objeto entregue ao destinatário"
+    }
+   ],
+   "reschedules_used": 0
+  }
+ ],
+ "refunds": [
+  {
+   "id": "REF-6BCCBDE7",
+   "order_id": "O0001",
+   "payment_id": "PAY-DB1D56AA",
+   "status": "processing",
+   "amount": {
+    "amount": 499.9,
+    "currency": "BRL"
+   },
+   "method": "credit_card",
+   "requested_at": "2026-09-28",
+   "expected_by": "2026-10-09"
+  },
+  {
+   "id": "REF-687DE4DF",
+   "order_id": "O0016",
+   "payment_id": "PAY-732550C9",
+   "status": "processing",
+   "amount": {
+    "amount": 279.9,
+    "currency": "BRL"
+   },
+   "method": "credit_card",
+   "requested_at": "2026-09-28",
+   "expected_by": "2026-10-09"
+  },
+  {
+   "id": "REF-4BC73E1C",
+   "order_id": "O0017",
+   "payment_id": "PAY-F9A347D1",
+   "status": "processing",
+   "amount": {
+    "amount": 59.9,
+    "currency": "BRL"
+   },
+   "method": "credit_card",
+   "requested_at": "2026-09-28",
+   "expected_by": "2026-10-09"
+  },
+  {
+   "id": "REF-89C2436C",
+   "order_id": "O0020",
+   "payment_id": "PAY-A8AC3F3A",
+   "status": "processing",
+   "amount": {
+    "amount": 499.9,
+    "currency": "BRL"
+   },
+   "method": "credit_card",
+   "requested_at": "2026-09-28",
+   "expected_by": "2026-10-09"
+  },
+  {
+   "id": "REF-688FF8DD",
+   "order_id": "O0023",
+   "payment_id": "PAY-D454F47A",
+   "status": "processing",
+   "amount": {
+    "amount": 229.9,
+    "currency": "BRL"
+   },
+   "method": "credit_card",
+   "requested_at": "2026-09-28",
+   "expected_by": "2026-10-09"
+  },
+  {
+   "id": "REF-DD56EE53",
+   "order_id": "O0027",
+   "payment_id": "PAY-B370D5B6",
+   "status": "processing",
+   "amount": {
+    "amount": 399.9,
+    "currency": "BRL"
+   },
+   "method": "credit_card",
+   "requested_at": "2026-09-28",
+   "expected_by": "2026-10-09"
+  },
+  {
+   "id": "REF-F86536EF",
+   "order_id": "O0041",
+   "payment_id": "PAY-FF6950B8",
+   "status": "processing",
+   "amount": {
+    "amount": 119.9,
+    "currency": "BRL"
+   },
+   "method": "credit_card",
+   "requested_at": "2026-09-28",
+   "expected_by": "2026-10-09"
+  },
+  {
+   "id": "REF-F86783F7",
+   "order_id": "O0044",
+   "payment_id": "PAY-8397CCAF",
+   "status": "processing",
+   "amount": {
+    "amount": 189.9,
+    "currency": "BRL"
+   },
+   "method": "credit_card",
+   "requested_at": "2026-09-28",
+   "expected_by": "2026-10-09"
+  },
+  {
+   "id": "REF-175E72B1",
+   "order_id": "O0054",
+   "payment_id": "PAY-11561B18",
+   "status": "processing",
+   "amount": {
+    "amount": 229.9,
+    "currency": "BRL"
+   },
+   "method": "credit_card",
+   "requested_at": "2026-09-28",
+   "expected_by": "2026-10-09"
+  }
+ ],
+ "returns": [
+  {
+   "id": "DEV-DAAD18C1",
+   "order_id": "O0001",
+   "sku": "PAN-ANTI-5",
+   "reason": "arrependimento",
+   "status": "approved",
+   "created_at": "2026-09-26",
+   "post_by": "2026-10-07"
+  },
+  {
+   "id": "DEV-0481B885",
+   "order_id": "O0008",
+   "sku": "PAN-ANTI-5",
+   "reason": "arrependimento",
+   "status": "approved",
+   "created_at": "2026-09-26",
+   "post_by": "2026-10-07"
+  },
+  {
+   "id": "DEV-C65FA246",
+   "order_id": "O0016",
+   "sku": "LIQ-PRO-900",
+   "reason": "arrependimento",
+   "status": "approved",
+   "created_at": "2026-09-26",
+   "post_by": "2026-10-07"
+  },
+  {
+   "id": "DEV-C23744CF",
+   "order_id": "O0017",
+   "sku": "CAM-BAS-M",
+   "reason": "arrependimento",
+   "status": "approved",
+   "created_at": "2026-09-24",
+   "post_by": "2026-10-07"
+  },
+  {
+   "id": "DEV-4A7EC1B6",
+   "order_id": "O0020",
+   "sku": "PAN-ANTI-5",
+   "reason": "arrependimento",
+   "status": "approved",
+   "created_at": "2026-09-24",
+   "post_by": "2026-10-07"
+  },
+  {
+   "id": "DEV-9C876C36",
+   "order_id": "O0023",
+   "sku": "JAQ-JEANS-G",
+   "reason": "arrependimento",
+   "status": "approved",
+   "created_at": "2026-09-25",
+   "post_by": "2026-10-07"
+  },
+  {
+   "id": "DEV-0C032A61",
+   "order_id": "O0024",
+   "sku": "LIQ-PRO-900",
+   "reason": "arrependimento",
+   "status": "approved",
+   "created_at": "2026-09-27",
+   "post_by": "2026-10-07"
+  },
+  {
+   "id": "DEV-ED24D625",
+   "order_id": "O0027",
+   "sku": "TEN-RUN-42",
+   "reason": "arrependimento",
+   "status": "approved",
+   "created_at": "2026-09-26",
+   "post_by": "2026-10-07"
+  },
+  {
+   "id": "DEV-3FA9C0D2",
+   "order_id": "O0035",
+   "sku": "CAM-BAS-M",
+   "reason": "arrependimento",
+   "status": "approved",
+   "created_at": "2026-09-27",
+   "post_by": "2026-10-07"
+  },
+  {
+   "id": "DEV-EF1C2210",
+   "order_id": "O0037",
+   "sku": "MOC-TRIP-40",
+   "reason": "arrependimento",
+   "status": "approved",
+   "created_at": "2026-09-27",
+   "post_by": "2026-10-07"
+  },
+  {
+   "id": "DEV-01F12017",
+   "order_id": "O0039",
+   "sku": "TEN-RUN-42",
+   "reason": "arrependimento",
+   "status": "approved",
+   "created_at": "2026-09-26",
+   "post_by": "2026-10-07"
+  },
+  {
+   "id": "DEV-7E5AC432",
+   "order_id": "O0040",
+   "sku": "MOC-TRIP-40",
+   "reason": "arrependimento",
+   "status": "approved",
+   "created_at": "2026-09-27",
+   "post_by": "2026-10-07"
+  },
+  {
+   "id": "DEV-D5A866DA",
+   "order_id": "O0041",
+   "sku": "GAR-TERM-1L",
+   "reason": "arrependimento",
+   "status": "approved",
+   "created_at": "2026-09-26",
+   "post_by": "2026-10-07"
+  },
+  {
+   "id": "DEV-49CCA14F",
+   "order_id": "O0044",
+   "sku": "VES-MIDI-P",
+   "reason": "arrependimento",
+   "status": "approved",
+   "created_at": "2026-09-25",
+   "post_by": "2026-10-07"
+  },
+  {
+   "id": "DEV-AC6F07C9",
+   "order_id": "O0046",
+   "sku": "MOC-TRIP-40",
+   "reason": "arrependimento",
+   "status": "approved",
+   "created_at": "2026-09-25",
+   "post_by": "2026-10-07"
+  },
+  {
+   "id": "DEV-EFC0F4D6",
+   "order_id": "O0056",
+   "sku": "GAR-TERM-1L",
+   "reason": "arrependimento",
+   "status": "approved",
+   "created_at": "2026-09-24",
+   "post_by": "2026-10-07"
+  }
+ ]
+}
