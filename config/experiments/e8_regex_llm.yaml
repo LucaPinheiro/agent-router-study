@@ -12,8 +12,21 @@ routing:
       - { strategy: llm }
 
 strategies:
-  regex:     { rules_path: config/regex_rules.yaml }
-  bm25:      { k1: 1.5, b: 0.75 }
+  regex:
+    rules_path: config/regex_rules.yaml
+    history_turns: 2        # tuned by 5-fold CV on dev (scripts/analysis/tune_router.py)
+    history_weight: 0.3
+    calibration:            # isotonic raw -> P(correct), fitted on dev
+      skill: { x: [0.165, 0.290455, 0.516429, 0.926568], y: [0.5, 0.692308, 0.818182, 0.97561] }
+      tool:  { x: [0.156, 0.3425, 0.834878], y: [0.571429, 0.681818, 0.925234] }
+  bm25:
+    variant: l              # BM25L; tuned by 5-fold CV on dev (scripts/analysis/tune_router.py)
+    k1: 0.9
+    b: 0.75
+    history_turns: 2
+    calibration:            # isotonic raw margin -> P(correct), fitted on dev
+      skill: { x: [0.235057, 0.606347, 0.667855, 0.894067], y: [0.557692, 0.62963, 0.727273, 0.82] }
+      tool:  { x: [0.005008, 0.096028, 0.49934, 0.868684], y: [0.166667, 0.5, 0.517241, 0.548387] }
   embedding: { model: qwen/qwen3-embedding-8b, similarity: max_example, confidence: softmax, softmax_temperature: 0.05 }
   llm:       { model: anthropic/claude-sonnet-5, temperature: 0, confidence: self_reported }
   jev:       { model: typesafe/jev-router, parse_retries: 1 }
