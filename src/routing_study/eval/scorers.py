@@ -554,6 +554,44 @@ def skill_can_be_correct(skill: str | None, expected: dict[str, Any]) -> bool:
 # ---------------------------------------------------------------- turn scores
 
 
+E2E_ONLY = (
+    "args_valid",
+    "args_invented",
+    "e2e_success",
+    "e2e_strict",
+    "first_call_success",
+    "clarification_credited",
+    "recovered_credited",
+    "entity_grounded",
+    "grounded",
+)
+
+
+def first_label(expected: dict[str, Any]) -> dict[str, Any]:
+    """The gold restricted to its FIRST acceptable skill and tool (strict sensitivity)."""
+    return expected | {
+        "acceptable_skills": expected["acceptable_skills"][:1],
+        "acceptable_tools": expected["acceptable_tools"][:1],
+    }
+
+
+def first_label_joint(
+    skill: str, tool: str, expected: dict[str, Any], rec: dict[str, Any], escalated: bool = False
+) -> float:
+    """Joint correctness against the first-listed labels only (methodology M4 sensitivity);
+    the out-of-scope escalation mapping is the same as the primary score's."""
+    strict = first_label(expected)
+    if rec["mode"] == "routing-only":
+        return routing_scores(skill, tool, strict)["joint_correct"]
+    return route_scores(
+        skill,
+        tool,
+        strict,
+        escalated=escalated,
+        skill_overridable=rec["native"] or skill in (ABSTAIN, GLOBAL_OPTION),
+    )["joint_correct"]
+
+
 def score_turn(
     rec: dict[str, Any],
     expected: dict[str, Any],
@@ -574,10 +612,9 @@ def score_turn(
     if rec["mode"] == "routing-only":
         return (
             routing_scores(skill, tool, expected)
+            | {"joint_first_label": first_label_joint(skill, tool, expected, rec)}
             | {"resolved_by": resolved_by}
-            | dict.fromkeys(
-                ("args_valid", "args_invented", "e2e_success", "e2e_strict", "grounded")
-            )
+            | dict.fromkeys(E2E_ONLY)
         )
     clarified = clarified_without_call(rec, expected, schemas, turns)
     if clarified:  # asked the question the next step needed; credit the tool it was for
@@ -597,6 +634,7 @@ def score_turn(
     scores["abstain_correct"] = abstain_score(
         rec.get("outcome") == "abstained" or escalated, expected
     )
+    scores["joint_first_label"] = first_label_joint(skill, tool, expected, rec, escalated)
     scores["resolved_by"] = resolved_by
     args_ok = True if clarified else args_valid(rec, expected, schemas, turns)
     call = completion_call(rec)
@@ -605,11 +643,12 @@ def score_turn(
     # The server ran the right tool: completed, a business refusal that depends on the mock
     # fixture's order state (NOT_ELIGIBLE) on the order the user meant, or a correct
     # "which order?" clarification.
+    which_order = asked_which_order(call, expected, answer)
     finished = (
         call is None
         or call["status"] == "completed"
         or refused_referred_order(call, expected, turns or [], rec.get("customer"))
-        or asked_which_order(call, expected, answer)
+        or which_order
     )
     # tool_correct stays strict (first call); e2e_success is the customer's outcome, so a
     # later completed call to an acceptable tool with valid args also counts.
@@ -617,6 +656,13 @@ def score_turn(
     recovered = None if first_ok else recovered_call(rec, expected, schemas, read_only, turns)
     success = bool(scores["skill_correct"]) and (first_ok or recovered is not None)
     scores["e2e_success"] = float(success)
+    # F6 decomposition (the three parts sum to e2e_success): the first business call did it;
+    # a clarifying question was credited (no call, or "which order?" after the tool asked);
+    # a later acceptable call recovered the goal
+    clar = success and first_ok and bool(clarified or which_order)
+    scores["clarification_credited"] = float(clar)
+    scores["recovered_credited"] = float(success and not first_ok)
+    scores["first_call_success"] = float(success and first_ok and not clar)
     # H3: the call that decided the outcome filled a required fact nobody gave
     decisive = recovered or (None if clarified else call)
     invented = invented_args(decisive, expected, schemas, turns) if decisive else None
@@ -629,7 +675,8 @@ def score_turn(
             *(c.get("structured") for c in business_calls(rec)),
             *(t.get("content") for t in turns or [] if t.get("role") == "user"),
         ]
-        scores["grounded"] = float(grounded(answer, [e for e in evidence if e])[0])
+        scores["entity_grounded"] = float(grounded(answer, [e for e in evidence if e])[0])
     else:
-        scores["grounded"] = None
+        scores["entity_grounded"] = None
+    scores["grounded"] = scores["entity_grounded"]  # alias of the pre-F6 name (old rows)
     return scores

@@ -184,4 +184,6 @@ def test_f4_report_contrasts_use_a_configurable_reference_at_case_level(tmp_path
     text = render([path], contrasts=[ni])
     assert "| H1 | e9 | e5 | non_inferiority ±3pp | 20 | -50.0 [" in text
     assert "not shown" in text
-    assert "contrasts" not in render([path])  # no implicit reference
+    plain = render([path])
+    assert "contrasts" not in plain  # no implicit reference
+    assert "secondary metrics" in plain and "joint_1st_label%" in plain  # F6

@@ -27,7 +27,17 @@ from typing import Any
 
 import numpy as np
 
-from routing_study.eval.rescore import read_rescored
+from routing_study.eval.metrics import (
+    abstention_pr,
+    baselines,
+    calibration,
+    joint_confidence,
+    level_pairs,
+    recall_at_k,
+    risk_coverage,
+    skill_tools_of,
+)
+from routing_study.eval.rescore import load_dataset, load_tools, read_rescored
 from routing_study.eval.stats import (
     Contrast,
     bootstrap_mean,
@@ -41,6 +51,7 @@ COLUMNS = {
         ("skill%", "skill_correct"),
         ("tool_top1%", "tool_correct"),
         ("joint%", "joint_correct"),
+        ("joint_1st_label%", "joint_first_label"),
         ("abst%", "abstain_correct"),
     ),
     "e2e": (
@@ -48,12 +59,17 @@ COLUMNS = {
         ("tool_first_call%", "tool_correct"),
         ("args%", "args_valid"),
         ("e2e%", "e2e_success"),
+        ("= first_call%", "first_call_success"),
+        ("+ clarif%", "clarification_credited"),
+        ("+ recovered%", "recovered_credited"),
         ("e2e_strict%", "e2e_strict"),
         ("invented%", "args_invented"),
+        ("joint_1st_label%", "joint_first_label"),
         ("abst%", "abstain_correct"),
-        ("grnd%", "grounded"),
+        ("entity_grnd%", "entity_grounded"),
     ),
 }
+ALIASES = {"entity_grounded": "grounded"}  # pre-F6 rows carry the old name
 HEADLINE = {"routing-only": "joint_correct", "e2e": "e2e_success"}
 # correctness scores: an error row counts 0 for these (ITT); other scores (rates of a bad
 # outcome such as args_invented, or grounded) are not applicable to an error row
@@ -66,6 +82,10 @@ CORRECTNESS = frozenset(
         "args_valid",
         "e2e_success",
         "e2e_strict",
+        "joint_first_label",
+        "first_call_success",
+        "clarification_credited",
+        "recovered_credited",
     )
 )
 
@@ -75,7 +95,8 @@ def itt(r: dict[str, Any], score: str) -> float | None:
     scores and has no value for the others."""
     if r.get("error"):
         return 0.0 if score in CORRECTNESS else None
-    v = (r.get("scores") or {}).get(score)
+    scores = r.get("scores") or {}
+    v = scores.get(score, scores.get(ALIASES.get(score, ""), None))
     return None if v is None else float(v)
 
 
@@ -176,6 +197,16 @@ def summarize(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 key = r["scores"].get("resolved_by") or "-"
                 resolved[key] = resolved.get(key, 0) + 1
             row["resolved_by"] = resolved
+            row["recall"] = {
+                k: mean(vs)
+                if (vs := [v for r in rs if (v := recall_at_k(r, k)) is not None])
+                else None
+                for k in (1, 2, 3)
+            }
+            row["abstention"] = abstention_pr(rs)
+            routed = [r for r in rs if not r.get("native")]
+            row["risk"] = risk_coverage((joint_confidence(r), itt(r, head) or 0.0) for r in routed)
+            row["cal"] = {lv: calibration(level_pairs(rs, lv)) for lv in ("skill", "tool")}
             row["headline_scores"] = _headline(rs, None, head)
             out.append(row)
     return out
@@ -241,6 +272,63 @@ def render_contrasts(rows: list[dict[str, Any]], contrasts: list[Contrast], head
     return lines + [""]
 
 
+def _f(x: float | None, pct: bool = True, digits: int = 1) -> str:
+    if x is None:
+        return "-"
+    return f"{100 * x:.{digits}f}" if pct else f"{x:.{digits + 2}f}"
+
+
+def _cal(c: dict[str, Any] | None) -> str:
+    if not c:
+        return "-"
+    bins = "/".join(str(b[0]) for b in c["bins"])
+    return f"{c['brier']:.3f} / {c['ece']:.3f} (n={c['n']}; bins {bins})"
+
+
+def render_secondary(rows: list[dict[str, Any]], mode: str, head: str) -> list[str]:
+    lines = [
+        f"### {mode} secondary metrics (docs/metrics.md)",
+        "",
+        "| run | recall@1 | recall@2 | recall@3 | abst. precision | abst. recall (n expected) "
+        f"| AURC ({head}) | coverage @5% risk | skill Brier / ECE (adaptive bins) "
+        "| tool Brier / ECE |",
+        "|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    for r in rows:
+        a, rk = r["abstention"], r["risk"]
+        lines.append(
+            f"| {r['run']} | {_f(r['recall'][1])} | {_f(r['recall'][2])} | {_f(r['recall'][3])} "
+            f"| {_f(a['precision'])} | {_f(a['recall'])} ({a['n_expected']}) "
+            f"| {_f(rk['aurc'], pct=False) if rk else '-'} "
+            f"| {_f(rk['coverage_at_risk']) if rk else '-'} "
+            f"| {_cal(r['cal']['skill'])} | {_cal(r['cal']['tool'])} |"
+        )
+    return lines + [""]
+
+
+def render_baselines(rows: list[dict[str, Any]]) -> list[str]:
+    """Trivial routers on the cases of these runs (golds from the rescored rows; majority
+    fitted on dev; catalog from mcp_server/tools_list.json)."""
+    cases = {r["case_id"]: {"expected": r["expected"]} for r in rows if r.get("expected")}
+    try:
+        dev = list(load_dataset("dev")[0].values())
+        table = baselines(list(cases.values()), dev, skill_tools_of(load_tools()))
+    except (OSError, ValueError, KeyError) as exc:
+        return [f"(trivial baselines unavailable: {exc})", ""]
+    lines = [
+        f"### trivial baselines on these {len(cases)} cases (majority fitted on dev)",
+        "",
+        "| baseline | skill% | tool% | joint% | abst% |",
+        "|---|---|---|---|---|",
+    ]
+    for name, m in table.items():
+        lines.append(
+            f"| {name} | {_f(m['skill_correct'])} | {_f(m['tool_correct'])} "
+            f"| {_f(m['joint_correct'])} | {_f(m['abstain_correct'])} |"
+        )
+    return lines + [""]
+
+
 def default_contrasts(rows: list[dict[str, Any]], reference: str) -> list[Contrast]:
     """Every run vs `reference` (a run or config name), two-sided, in one family."""
     names = contrast_scores(rows)
@@ -258,11 +346,14 @@ def render(
     paths: Iterable[Path],
     reference: str | None = None,
     contrasts: list[Contrast] | None = None,
+    with_baselines: bool = True,
 ) -> str:
-    summary = summarize(load_results(paths))
+    raw = load_results(paths)
+    summary = summarize(raw)
     lines: list[str] = []
     for mode in ("routing-only", "e2e"):
         rows = [r for r in summary if r["mode"] == mode]
+        group_rows = [r for r in raw if r["mode"] == mode]
         if not rows:
             continue
         head = HEADLINE[mode]
@@ -315,4 +406,7 @@ def render(
         mine = [c for c in wanted if c.run in names or c.reference in names]
         if mine:
             lines += render_contrasts(rows, mine, head)
+        lines += render_secondary(rows, mode, head)
+        if mode == "routing-only" and with_baselines:
+            lines += render_baselines(group_rows)
     return "\n".join(lines)

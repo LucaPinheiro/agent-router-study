@@ -387,3 +387,46 @@ def test_f5_native_skill_is_the_skill_loaded_after_a_global_tool() -> None:
     assert chosen_skill(_rec([search, load], native=True)) == "trocas_devolucoes"
     assert chosen_skill(_rec([search], native=True)) == "__global__"
     assert chosen_skill(_rec([], native=True)) == "__abstain__"
+
+
+# ---------------------------------------------------------------- F6
+
+
+def test_f6_e2e_decomposition_partitions_e2e_success() -> None:
+    cancel = CANCEL_ANY | {"args": {"order_id": "O0001"}}
+    first = score_turn(_rec([_call("cancel_order", {"order_id": "O0001"})]), cancel, SCHEMAS)
+    clar = score_turn(
+        _rec(
+            [],
+            answer="Qual pedido quer cancelar: O0001 ou O0002?",
+            exposed=["cancel_order"],
+            tool="cancel_order",
+        ),
+        CANCEL_ANY,
+        SCHEMAS,
+    )
+    rec_calls = [
+        _call("get_order_status", {"order_id": "O0001"}),
+        _call("cancel_order", {"order_id": "O0001"}),
+    ]
+    recovered = score_turn(_rec(rec_calls), cancel, SCHEMAS, read_only=READ_ONLY)
+    parts = ("first_call_success", "clarification_credited", "recovered_credited")
+    assert [first[k] for k in parts] == [1.0, 0.0, 0.0]
+    assert [clar[k] for k in parts] == [0.0, 1.0, 0.0]
+    assert [recovered[k] for k in parts] == [0.0, 0.0, 1.0]
+    for s in (first, clar, recovered):
+        assert sum(s[k] for k in parts) == s["e2e_success"] == 1.0
+        assert s["entity_grounded"] == s["grounded"]  # alias kept for old rows
+
+
+def test_f6_first_label_only_is_a_stricter_sensitivity() -> None:
+    exp = {
+        "acceptable_skills": ["trocas_devolucoes", "pedidos_logistica"],
+        "acceptable_tools": ["create_return_request", "cancel_order"],
+        "args": {},
+    }
+    ro = _rec([], mode="routing-only", skill="pedidos_logistica", tool="cancel_order")
+    s = score_turn(ro, exp, SCHEMAS)
+    assert s["joint_correct"] == 1.0 and s["joint_first_label"] == 0.0
+    oos = _rec([], mode="routing-only", skill="__global__", tool="escalate_to_human")
+    assert score_turn(oos, OUT_OF_SCOPE, SCHEMAS)["joint_first_label"] == 1.0

@@ -121,6 +121,11 @@ async def test_routed_exposes_top_k_plus_globals_and_answers() -> None:
         "e2e_success": 1.0,
         "args_invented": 0.0,
         "e2e_strict": 1.0,
+        "joint_first_label": 1.0,
+        "first_call_success": 1.0,
+        "clarification_credited": 0.0,
+        "recovered_credited": 0.0,
+        "entity_grounded": 1.0,
         "grounded": 1.0,
     }
 
