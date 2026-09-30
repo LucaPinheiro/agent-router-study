@@ -126,20 +126,48 @@ def load_cases(split: str, limit: int | None = None, data_dir: Path = DATA_DIR) 
 
 
 @contextmanager
-def results_writer(out: Path, *, overwrite: bool) -> Iterator[IO[str]]:
+def results_writer(out: Path, *, overwrite: bool, resume: bool = False) -> Iterator[IO[str]]:
     """Rows go to `<out>.partial` (created with "x": two runs never share it) and the file is
     renamed to `out` only when the run finishes, so a crash never leaves a file that looks
-    complete (review M3). A leftover .partial blocks a new run unless `overwrite`."""
+    complete (review M3). A leftover .partial blocks a new run unless `overwrite`.
+    `resume` (F11) APPENDS to the existing rows: a finished `out` is moved back to .partial
+    first, a crashed run's .partial is continued; nothing already paid is ever deleted."""
     partial = out.with_name(out.name + ".partial")
-    if overwrite:
-        partial.unlink(missing_ok=True)
-    elif partial.exists():
-        raise FileExistsError(f"{partial} exists (crashed or running): pass --overwrite")
-    with partial.open("x", encoding="utf-8") as fh:
+    if resume:
+        if out.exists() and partial.exists():
+            raise FileExistsError(f"both {out} and {partial} exist: merge them by hand")
+        if out.exists():
+            os.replace(out, partial)
+        mode = "a"
+    else:
+        if overwrite:
+            partial.unlink(missing_ok=True)
+        elif partial.exists():
+            raise FileExistsError(f"{partial} exists (crashed or running): pass --overwrite")
+        mode = "x"
+    with partial.open(mode, encoding="utf-8") as fh:
         yield fh
-    if out.exists() and not overwrite:
+    if out.exists() and not (overwrite or resume):
         raise FileExistsError(f"{out} appeared during the run; rows kept in {partial}")
     os.replace(partial, out)
+
+
+def existing_rows(out: Path) -> list[dict[str, Any]]:
+    """Rows already written for a run (`out`, else its crashed `.partial`). A torn last line
+    (a crash mid-write) is moved to `<file>.torn-<unix time>` (kept, never deleted) and cut
+    from the file, so appended rows start on a clean line."""
+    partial = out.with_name(out.name + ".partial")
+    path = out if out.exists() else partial
+    if not path.exists():
+        return []
+    text = path.read_text(encoding="utf-8")
+    lines = text.splitlines(keepends=True)
+    if lines and not lines[-1].endswith("\n"):
+        torn = path.with_name(f"{path.name}.torn-{int(time.time())}")
+        torn.write_text(lines[-1], encoding="utf-8")
+        path.write_text("".join(lines[:-1]), encoding="utf-8")
+        lines = lines[:-1]
+    return [json.loads(x) for x in lines if x.strip()]
 
 
 def git_sha(cwd: Path | None = None) -> str:
@@ -334,6 +362,10 @@ class Runner:
     concurrency: int = 4
     upload_dataset: bool = True
     overwrite: bool = False
+    # F11: append the missing (case, rep) keys to an existing results file
+    resume: bool = False
+    # F11: USD per turn by provider for the budget guard (measured costs); None = a priori
+    budget_per_turn: dict[str, float] | None = None
     # per invocation: re-running the same --run-name never resumes an old checkpoint thread
     invocation: str = field(default_factory=lambda: uuid.uuid4().hex[:8])
 
@@ -350,7 +382,7 @@ class Runner:
 
     async def run(self, cases: list[Case]) -> Path:
         out = self._results_path()
-        if out.exists() and not self.overwrite:
+        if out.exists() and not (self.overwrite or self.resume):
             raise FileExistsError(f"{out} exists: pick another --run-name or pass --overwrite")
         if self.native and self.mode == "routing-only":
             raise ValueError("routing-only needs a routed config (E1–E9); E0 has no router")
@@ -363,8 +395,14 @@ class Runner:
             raise ValueError("REDIS_URL is required (catalog cache + checkpointer)")
         import redis.asyncio as aioredis
 
+        done: set[tuple[str, int]] = set()
+        if self.resume:
+            done = {(r["case_id"], int(r["rep"])) for r in existing_rows(out)}
+        todo = [
+            (c, rep) for rep in range(1, self.reps + 1) for c in cases if (c.id, rep) not in done
+        ]
         supported = await validate_models(self.settings, names=self.model_roles())
-        await self.check_budget(len(cases) * self.reps)
+        await self.check_budget(len(todo))
         await preload_ollama(self.settings, self.model_roles())
         redis = aioredis.from_url(self.settings.redis_url)
         self.catalog = CatalogProvider(self.settings, redis)
@@ -399,6 +437,8 @@ class Runner:
             "reps": str(self.reps),
             "prompt_tracks": json.dumps(prompt_tracks(self.settings, self.model_roles())),
         }
+        if self.resume:
+            self.assert_same_version(existing_rows(out))
         self.dataset_id: str | None = None
         self.dataset_run_id: str | None = None
         uploaded = self.upload_dataset and self._upload(cases)
@@ -410,7 +450,7 @@ class Runner:
         try:
             async with redis_checkpointer(self.settings.redis_url) as saver:
                 graph = build_graph(saver, routing_only=self.mode == "routing-only")
-                with results_writer(out, overwrite=self.overwrite) as fh:
+                with results_writer(out, overwrite=self.overwrite, resume=self.resume) as fh:
 
                     async def one(case: Case, rep: int) -> None:
                         async with sem:
@@ -422,9 +462,8 @@ class Runner:
 
                     try:  # a spend cap cancels every in-flight case
                         async with asyncio.TaskGroup() as tg:
-                            for rep in range(1, self.reps + 1):
-                                for c in cases:
-                                    tg.create_task(one(c, rep))
+                            for c, rep in todo:
+                                tg.create_task(one(c, rep))
                     except BaseExceptionGroup as group:
                         budget = group.subgroup(BudgetExceededError)
                         if budget is not None:
@@ -450,12 +489,28 @@ class Runner:
                 roles |= set(shadow_set(self.settings))
         return roles
 
+    def assert_same_version(self, rows: list[dict[str, Any]]) -> None:
+        """Resume only rows of the same code-independent version: config, prompt, catalog
+        and dataset hashes of every existing row must equal this run's (F11)."""
+        keys = ("config_hash", "prompt_hash", "catalog_hash", "dataset_sha256")
+        for k in keys:
+            got = {r.get(k) for r in rows if r.get(k) is not None}
+            if got and got != {self.meta[k]}:
+                raise ValueError(
+                    f"resume refused: existing rows have {k}={sorted(map(str, got))}, "
+                    f"this run {self.meta[k]}"
+                )
+
     async def check_budget(self, turns: int) -> None:
-        """Refuse to start when ledger spend + this run's a-priori upper bound would pass an
-        account cap (per provider: AWS for Bedrock, OpenRouter)."""
+        """Refuse to start when ledger spend + this run's projected cost would pass an
+        account cap (per provider: AWS for Bedrock, OpenRouter): the measured per-turn cost
+        when given (`budget_per_turn`, manifest runner), else the a-priori upper bound."""
         from routing_study.eval.estimate import apriori_costs, list_prices
 
-        by, _ = apriori_costs(self.settings, self.mode, await list_prices(self.settings))
+        if self.budget_per_turn is not None:
+            by = self.budget_per_turn
+        else:
+            by, _ = apriori_costs(self.settings, self.mode, await list_prices(self.settings))
         ledger = ledger_for(self.settings)
         for provider, per_turn in by.items():
             ledger.check(provider, per_turn * turns, what=f"projected run ({turns} turns)")

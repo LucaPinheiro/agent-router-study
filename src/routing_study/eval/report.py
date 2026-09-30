@@ -253,7 +253,8 @@ def contrast_scores(rows: list[dict[str, Any]]) -> dict[str, dict[Any, float]]:
 def render_contrasts(rows: list[dict[str, Any]], contrasts: list[Contrast], head: str) -> list[str]:
     results = evaluate_contrasts(contrast_scores(rows), contrasts)
     lines = [
-        f"### contrasts on {head} (case level: per-case means over reps; Holm within family)",
+        f"### contrasts on {head} (joint for routing-only, e2e_success for e2e; case level: "
+        "per-case means over reps; Holm within family)",
         "",
         "| family | run | reference | kind | n cases | Δ pp 95% CI (paired bootstrap) "
         "| McNemar case-level (run-only/ref-only) | sign-flip p | Holm p | reject | verdict |",
@@ -361,6 +362,7 @@ def render(
     raw = load_results(paths)
     summary = summarize(raw)
     lines: list[str] = []
+    wanted = list(contrasts or [])
     groups = sorted(
         {(r["split"], r["mode"]) for r in summary},
         key=lambda g: (g[0], ("routing-only", "e2e").index(g[1])),
@@ -417,14 +419,11 @@ def render(
         ]
         lines += [f"| {r['run']} | {r['n_shared']} | {fmt_ci(r['error_free_ci'])} |" for r in rows]
         lines.append("")
-        wanted = contrasts if contrasts is not None else []
         if reference is not None:
-            wanted = wanted + default_contrasts(rows, reference)
-        names = contrast_scores(rows)
-        mine = [c for c in wanted if c.run in names or c.reference in names]
-        if mine:
-            lines += render_contrasts(rows, mine, head)
+            wanted += default_contrasts(rows, reference)
         lines += render_secondary(rows, mode, head)
         if mode == "routing-only" and with_baselines:
             lines += render_baselines(group_rows)
+    if wanted:  # one evaluation: Holm families may span groups (e.g. H1-H3)
+        lines += ["## contrasts", ""] + render_contrasts(summary, wanted, "the headline")
     return "\n".join(lines)

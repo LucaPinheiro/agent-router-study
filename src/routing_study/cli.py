@@ -1,4 +1,5 @@
-"""`study` CLI: run | rescore | report | simulate | estimate | budget | graph | trace."""
+"""`study` CLI: run | run-manifest | rescore | report | simulate | estimate | budget | graph |
+trace."""
 
 from __future__ import annotations
 
@@ -128,17 +129,47 @@ def report(
         list[str] | None,
         typer.Option(help="run:reference[:family[:kind[:margin]]] (repeatable)"),
     ] = None,
+    manifest: Annotated[
+        Path | None,
+        typer.Option(exists=True, dir_okay=False, help="run manifest: its runs + contrasts"),
+    ] = None,
+    split: Annotated[str | None, typer.Option(help="with --manifest: only this split")] = None,
 ) -> None:
     """Accuracy / cost / latency per run (ITT, 95% CIs) and case-level contrasts, from an
-    EXPLICIT list of RESCORED results files (never a whole directory, F7)."""
+    EXPLICIT list of RESCORED results files or a manifest's runs (never a directory, F7)."""
     from routing_study.eval.report import render
     from routing_study.eval.stats import Contrast
 
-    if not files:
+    contrasts = [Contrast.parse(c) for c in contrast or []]
+    paths = list(files or [])
+    if manifest is not None:
+        from routing_study.eval.manifest import load_manifest, manifest_report_paths
+
+        m = load_manifest(manifest)
+        paths += manifest_report_paths(m, split)
+        contrasts += [c.contrast() for c in m.contrasts]
+    if not paths:
         typer.echo("study report needs explicit rescored paths or a manifest (no directory glob)")
         raise typer.Exit(code=2)
-    contrasts = [Contrast.parse(c) for c in contrast or []]
-    typer.echo(render(files, reference=reference, contrasts=contrasts))
+    typer.echo(render(paths, reference=reference, contrasts=contrasts))
+
+
+@app.command("run-manifest")
+def run_manifest(
+    manifest: Annotated[Path, typer.Argument(exists=True, dir_okay=False)],
+    only: Annotated[list[str] | None, typer.Option(help="run only these entries")] = None,
+    dry_run: Annotated[
+        bool, typer.Option(help="status, version checks and projected cost only")
+    ] = False,
+) -> None:
+    """Execute a pre-registered run manifest (priority order; version guard; measured-cost
+    budget check; resume by (case, rep); <=2% errors or <=2 infra retries, else flagged)."""
+    from routing_study.eval.manifest import execute, load_manifest
+
+    states = execute(load_manifest(manifest), manifest, only=only, dry_run=dry_run, echo=typer.echo)
+    typer.echo(" ".join(f"{k}={v}" for k, v in states.items()))
+    if any(v in ("aborted", "flagged", "budget", "incomplete") for v in states.values()):
+        raise typer.Exit(code=1)
 
 
 @app.command()

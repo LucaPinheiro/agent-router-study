@@ -1,0 +1,116 @@
+# Final study run manifest: TEMPLATE (F11). The lead fills in and freezes it at
+# pre-registration (git tag prereg-v1). Execute it with:
+#   uv run study run-manifest config/study_manifest.yaml --dry-run   # status + projected cost
+#   uv run study run-manifest config/study_manifest.yaml             # priority order
+#   uv run study report --manifest config/study_manifest.yaml --split test_v2
+#
+# Rules (src/routing_study/eval/manifest.py; methodology-final.md B6, PRE-REGISTRATION):
+# - Version guard. Each run's LLM/Jev routers must be on its `prompt_track`. The frozen
+#   `config_hash` / `prompt_hash` (fill them from `--dry-run` or the first row, then commit)
+#   must be reproduced. Existing rows must carry the same hashes.
+# - Budget. The measured cost per turn times the missing turns is checked against the ledger
+#   caps before each run. The a-priori upper bound is used only when nothing was measured.
+# - Resume. Missing (case, rep) keys are appended to results/<name>.jsonl. A paid partial is
+#   never deleted.
+# - Complete: every key present and error rate <= error_budget. Otherwise the error rows are
+#   retried (kept in <name>.retryK.errors.jsonl), up to max_infra_retries times. A run still
+#   above budget is FLAGGED: fix the infrastructure and redo it from scratch. It is never
+#   re-run for any other reason.
+# Files still to be created before the freeze:
+# - data/dataset_test_v2.jsonl (T1);
+# - the *_tuned.yaml copies (scripts/analysis/apply_prompt_selection.py);
+# - config/manifest/*.ids for fixed subsets, when a subset must be fixed.
+version: 1
+split: test_v2
+results_dir: results
+error_budget: 0.02
+max_infra_retries: 2
+
+runs:
+  # ---- 1. free routers at full scale: infrastructure smoke test (and part of the design)
+  - { name: v2-e1-regex-routing-r1, config: config/experiments/e1_regex.yaml, mode: routing-only, reps: 1, priority: 10, purpose: "RQ1 regex, S4" }
+  - { name: v2-e2-bm25-routing-r1, config: config/experiments/e2_bm25.yaml, mode: routing-only, reps: 1, priority: 10, purpose: "RQ1 BM25" }
+  - { name: v2-e3-embedding-routing-r1, config: config/experiments/e3_embedding.yaml, mode: routing-only, reps: 1, priority: 10, purpose: "RQ1 embedding, S4" }
+  - name: v2-e1-regex-routing-repeat20
+    config: config/experiments/e1_regex.yaml
+    mode: routing-only
+    cases: { limit: 20 }
+    priority: 11
+    purpose: "determinism check (0 flips expected)"
+
+  # ---- 2. Jev single (canonical), 3 reps
+  - { name: v2-e4-jev-canonical-routing-r3, config: config/experiments/e4_jev.yaml, prompt_track: canonical, mode: routing-only, reps: 3, priority: 20, purpose: "S2 Jev vs Sonnet" }
+
+  # ---- 3. shadow pass, tuned track (E9 decider), 3 reps: cascade replay + thresholds only
+  - name: v2-shadow-tuned-routing-r3
+    config: config/experiments/e9_regex_jev_llm.yaml
+    prompt_track: tuned
+    mode: routing-only
+    routing_mode: shadow
+    reps: 3
+    priority: 30
+    purpose: "cascade replay / threshold analysis (never an isolated-strategy headline, B3)"
+
+  # ---- 4. real single / cascade runs on the tuned track: the LLM steps are cache hits of the
+  #         shadow pass (same case, rep, prompt), so their billed cost is ~0 (M8)
+  - { name: v2-e5-sonnet-tuned-routing-r3, config: config/experiments/e5_llm_sonnet_tuned.yaml, prompt_track: tuned, mode: routing-only, reps: 3, priority: 35, purpose: "H1/H2 reference, S1" }
+  - { name: v2-e4-jev-tuned-routing-r3, config: config/experiments/e4_jev_tuned.yaml, prompt_track: tuned, mode: routing-only, reps: 3, priority: 35, purpose: "S1 Jev" }
+  - { name: v2-e7-tuned-routing-r3, config: config/experiments/e7_regex_jev.yaml, prompt_track: tuned, mode: routing-only, reps: 3, priority: 36, purpose: "H2" }
+  - { name: v2-e8-tuned-routing-r3, config: config/experiments/e8_regex_llm.yaml, prompt_track: tuned, mode: routing-only, reps: 3, priority: 36, purpose: "estimation" }
+  - { name: v2-e9-tuned-routing-r3, config: config/experiments/e9_regex_jev_llm.yaml, prompt_track: tuned, mode: routing-only, reps: 3, priority: 36, purpose: "H1" }
+
+  # ---- 5. Sonnet canonical, 3 reps
+  - { name: v2-e5-sonnet-canonical-routing-r3, config: config/experiments/e5_llm_sonnet.yaml, prompt_track: canonical, mode: routing-only, reps: 3, priority: 40, purpose: "S1, S2 reference" }
+
+  # ---- 6. Haiku: 1 rep + a second rep on 60 stratified cases (flip rate, M7), both tracks
+  - { name: v2-e6-haiku-canonical-routing-r1, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, reps: 1, priority: 50, purpose: "S2" }
+  - { name: v2-e6-haiku-canonical-rep2-60, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, cases: { limit: 60 }, priority: 51, purpose: "flip rate" }
+  - { name: v2-e6-haiku-tuned-routing-r1, config: config/experiments/e6_llm_haiku_tuned.yaml, prompt_track: tuned, mode: routing-only, reps: 1, priority: 50, purpose: "S1 Haiku" }
+  - { name: v2-e6-haiku-tuned-rep2-60, config: config/experiments/e6_llm_haiku_tuned.yaml, prompt_track: tuned, mode: routing-only, cases: { limit: 60 }, priority: 51, purpose: "flip rate" }
+
+  # ---- 7. Qwen3-8B local: 1 rep + 50-case determinism check, both tracks
+  - { name: v2-e6b-qwen-canonical-routing-r1, config: config/experiments/e6b_llm_qwen3_local.yaml, prompt_track: canonical, mode: routing-only, reps: 1, priority: 60, concurrency: 1, purpose: "S2" }
+  - { name: v2-e6b-qwen-canonical-repeat50, config: config/experiments/e6b_llm_qwen3_local.yaml, prompt_track: canonical, mode: routing-only, cases: { limit: 50 }, priority: 61, concurrency: 1, purpose: "determinism (0 flips expected)" }
+  - { name: v2-e6b-qwen-tuned-routing-r1, config: config/experiments/e6b_llm_qwen3_local_tuned.yaml, prompt_track: tuned, mode: routing-only, reps: 1, priority: 60, concurrency: 1, purpose: "S1 Qwen" }
+  - { name: v2-e6b-qwen-tuned-repeat50, config: config/experiments/e6b_llm_qwen3_local_tuned.yaml, prompt_track: tuned, mode: routing-only, cases: { limit: 50 }, priority: 61, concurrency: 1, purpose: "determinism" }
+
+  # ---- 8. latency benchmark (cache off, interleaved, 100 cases, M8): run by its own script,
+  #         not by this manifest (it needs strategies.<s>.cache=false and round-robin order)
+
+  # ---- 9. end-to-end, 1 rep (the tracks are pre-registered here, M6)
+  - { name: v2-e0-native-e2e-r1, config: config/experiments/e0_native.yaml, mode: e2e, reps: 1, priority: 80, purpose: "H3 reference" }
+  - { name: v2-e1-regex-e2e-r1, config: config/experiments/e1_regex.yaml, mode: e2e, reps: 1, priority: 81, purpose: "estimation" }
+  - { name: v2-e5-sonnet-canonical-e2e-r1, config: config/experiments/e5_llm_sonnet.yaml, prompt_track: canonical, mode: e2e, reps: 1, priority: 81, purpose: "estimation" }
+  - { name: v2-e7-tuned-e2e-r1, config: config/experiments/e7_regex_jev.yaml, prompt_track: tuned, mode: e2e, reps: 1, priority: 81, purpose: "estimation (recommended default, M6)" }
+  - { name: v2-e6b-qwen-canonical-e2e-r1, config: config/experiments/e6b_llm_qwen3_local.yaml, prompt_track: canonical, mode: e2e, reps: 1, priority: 82, concurrency: 1, purpose: "estimation" }
+  - { name: v2-e9-tuned-e2e-r1, config: config/experiments/e9_regex_jev_llm.yaml, prompt_track: tuned, mode: e2e, reps: 1, priority: 80, purpose: "H3" }
+  # executor variance: a second rep of E0 and E9 on 60 stratified cases (M6)
+  - { name: v2-e0-native-e2e-rep2-60, config: config/experiments/e0_native.yaml, mode: e2e, cases: { limit: 60 }, priority: 85, purpose: "executor variance" }
+  - { name: v2-e9-tuned-e2e-rep2-60, config: config/experiments/e9_regex_jev_llm.yaml, prompt_track: tuned, mode: e2e, cases: { limit: 60 }, priority: 85, purpose: "executor variance" }
+
+  # ---- 10. RQ5 leave-tools-out (M2): needs the reduced catalogs; add entries once they exist
+
+  # ---- 11. test-v1 (exposed) replication with the free routers only (B1 option A)
+  - { name: v1-e1-regex-routing-r1, config: config/experiments/e1_regex.yaml, split: test_v1, mode: routing-only, reps: 1, priority: 100, purpose: "replication / contamination check" }
+  - { name: v1-e2-bm25-routing-r1, config: config/experiments/e2_bm25.yaml, split: test_v1, mode: routing-only, reps: 1, priority: 100, purpose: "replication" }
+  - { name: v1-e3-embedding-routing-r1, config: config/experiments/e3_embedding.yaml, split: test_v1, mode: routing-only, reps: 1, priority: 100, purpose: "replication" }
+
+# Pre-registered contrasts. Holm runs within each family. Headline: joint (routing-only),
+# e2e_success (e2e).
+contrasts:
+  # confirmatory (Holm across H1-H3)
+  - { run: v2-e9-tuned-routing-r3, reference: v2-e5-sonnet-tuned-routing-r3, family: H, kind: non_inferiority, margin: 0.03 }
+  - { run: v2-e7-tuned-routing-r3, reference: v2-e5-sonnet-tuned-routing-r3, family: H, kind: non_inferiority, margin: 0.03 }
+  - { run: v2-e9-tuned-e2e-r1, reference: v2-e0-native-e2e-r1, family: H, kind: two_sided }
+  # S1: prompt tuning gain >= 0 per LLM router (one-sided)
+  - { run: v2-e5-sonnet-tuned-routing-r3, reference: v2-e5-sonnet-canonical-routing-r3, family: S1, kind: greater }
+  - { run: v2-e6-haiku-tuned-routing-r1, reference: v2-e6-haiku-canonical-routing-r1, family: S1, kind: greater }
+  - { run: v2-e6b-qwen-tuned-routing-r1, reference: v2-e6b-qwen-canonical-routing-r1, family: S1, kind: greater }
+  - { run: v2-e4-jev-tuned-routing-r3, reference: v2-e4-jev-canonical-routing-r3, family: S1, kind: greater }
+  # S2: model vs model on the canonical track, TOST equivalence at +-3 pp
+  - { run: v2-e6-haiku-canonical-routing-r1, reference: v2-e5-sonnet-canonical-routing-r3, family: S2, kind: equivalence, margin: 0.03 }
+  - { run: v2-e6b-qwen-canonical-routing-r1, reference: v2-e5-sonnet-canonical-routing-r3, family: S2, kind: equivalence, margin: 0.03 }
+  - { run: v2-e4-jev-canonical-routing-r3, reference: v2-e5-sonnet-canonical-routing-r3, family: S2, kind: equivalence, margin: 0.03 }
+  # S3 (dev -> test gap of regex / BM25) compares with the dev CV numbers: not a run contrast
+  # S4: lexical vs semantic
+  - { run: v2-e3-embedding-routing-r1, reference: v2-e1-regex-routing-r1, family: S4, kind: two_sided }
