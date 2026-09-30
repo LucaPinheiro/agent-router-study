@@ -88,6 +88,36 @@ class _Metered:
         model = getattr(self, "model_name", None) or getattr(self, "model_id", "")
         return CallMeter(self.ledger, self.provider_name, model, upper)
 
+    def _settle_billed_failure(self, meter: CallMeter, exc: BaseException) -> None:
+        """The client raised AFTER the provider answered (and billed), e.g. openai's
+        LengthFinishReasonError under a json_schema format: record that usage in the ledger
+        and attach it to the exception (`call_usage`) so the router can report it."""
+        usage = billed_usage(exc)
+        if usage is None:
+            return
+        if self.provider_name == "ollama":
+            usage.update(cost_usd=0.0, provider="ollama")
+        meter.done(usage)
+        try:
+            exc.call_usage = usage  # type: ignore[attr-defined]
+        except AttributeError:  # pragma: no cover - exceptions with __slots__
+            pass
+
+
+def billed_usage(exc: BaseException) -> dict[str, Any] | None:
+    """Unified usage of the completion an openai client exception carries, if any."""
+    completion = getattr(exc, "completion", None)
+    usage = getattr(completion, "usage", None)
+    if completion is None or usage is None:
+        return None
+    meta = {
+        "token_usage": usage.model_dump(),
+        "model_name": getattr(completion, "model", None),
+        "provider": getattr(completion, "provider", None),
+        "id": getattr(completion, "id", None),
+    }
+    return extract_call_usage(AIMessage("", response_metadata=meta))
+
 
 def result_usage(result: ChatResult) -> dict[str, Any]:
     """Usage of a raw `_agenerate` result: langchain-core only merges `llm_output` (where
@@ -110,7 +140,11 @@ class OpenRouterChat(_Metered, ChatOpenAI):
         self, messages: list[BaseMessage], stop: Any = None, run_manager: Any = None, **kw: Any
     ) -> ChatResult:
         with self._meter(messages, **kw) as meter:
-            result = await super()._agenerate(messages, stop, run_manager, **kw)
+            try:
+                result = await super()._agenerate(messages, stop, run_manager, **kw)
+            except Exception as exc:
+                self._settle_billed_failure(meter, exc)
+                raise
             meter.done(result_usage(result))
         return result
 
@@ -151,7 +185,11 @@ class OllamaChat(_Metered, ChatOpenAI):
         self, messages: list[BaseMessage], stop: Any = None, run_manager: Any = None, **kw: Any
     ) -> ChatResult:
         with self._meter(messages, **kw) as meter:
-            result = await super()._agenerate(messages, stop, run_manager, **kw)
+            try:
+                result = await super()._agenerate(messages, stop, run_manager, **kw)
+            except Exception as exc:
+                self._settle_billed_failure(meter, exc)
+                raise
             out = result.llm_output = result.llm_output or {}
             out["provider"] = "ollama"
             out["token_usage"] = {**(out.get("token_usage") or {}), "cost": 0.0}

@@ -340,3 +340,60 @@ def test_jev_router_caps_output_tokens() -> None:
     s = load_settings("config/experiments/e4_jev.yaml")
     jev = build_routers(s, {"jev"}, supported_parameters={})["jev"]
     assert jev.chat.max_tokens == 512
+
+
+@respx.mock
+async def test_billed_reply_that_the_client_rejects_still_reaches_the_ledger(settings):
+    """A reply cut by max_tokens under a json_schema format makes the openai client raise
+    LengthFinishReasonError AFTER the provider billed it: the spend must be settled anyway,
+    and the usage rides on the exception (`call_usage`) for the router's partial usage."""
+    import openai
+
+    from routing_study.budget import ledger_for
+    from routing_study.llm import structured_runnable
+
+    respx.post(f"{BASE}/chat/completions").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "id": "gen-cut",
+                "object": "chat.completion",
+                "created": 1,
+                "model": "anthropic/claude-sonnet-5",
+                "provider": "Anthropic",
+                "choices": [
+                    {
+                        "index": 0,
+                        "finish_reason": "length",
+                        "message": {"role": "assistant", "content": '{"choice": "a'},
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 900,
+                    "completion_tokens": 64,
+                    "total_tokens": 964,
+                    "cost": 0.0042,
+                    "prompt_tokens_details": {"cached_tokens": 800, "cache_write_tokens": 0},
+                },
+            },
+        )
+    )
+    chat = make_chat_model(
+        settings, "anthropic/claude-sonnet-5", max_tokens=64, http_async_client=httpx.AsyncClient()
+    )
+    schema = {
+        "title": "Pick",
+        "type": "object",
+        "properties": {"choice": {"type": "string", "enum": ["a", "b"]}},
+        "required": ["choice"],
+        "additionalProperties": False,
+    }
+    before = len(ledger_for(settings).rows())
+    with pytest.raises(openai.LengthFinishReasonError) as info:
+        await structured_runnable(chat, schema).ainvoke("x")
+    rows = ledger_for(settings).rows()
+    assert len(rows) == before + 1
+    assert rows[-1]["cost_usd"] == pytest.approx(0.0042) and rows[-1]["cache_read"] == 800
+    usage = info.value.call_usage  # type: ignore[attr-defined]
+    assert usage["cost_usd"] == pytest.approx(0.0042) and usage["completion_tokens"] == 64
+    assert usage["served_model"] == "anthropic/claude-sonnet-5"
