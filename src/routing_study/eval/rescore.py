@@ -33,6 +33,7 @@ DATA_DIR = Path("data")
 TOOLS_LIST = Path("mcp_server/tools_list.json")
 EXPERIMENTS_DIR = Path("config/experiments")
 UNKNOWN = "unknown (not recorded in rows)"
+NA = "n/a"  # a used model has no list price (OpenRouter pricing -1, e.g. the Jev meta-router)
 
 
 def sha256_file(path: Path) -> str:
@@ -115,29 +116,59 @@ def config_models(config: str, experiments_dir: Path = EXPERIMENTS_DIR) -> dict[
 
 def list_price_usd(
     row: dict[str, Any], models: dict[str, str], prices: dict[str, tuple[float, float]]
-) -> float | None:
+) -> float | str | None:
     """Cost at list price with NO prompt-cache discount (review L2): consulted router steps
-    + executor tokens. None when a used model has no known price or tokens are missing."""
+    (each step's recorded tokens) + executor tokens. A failed step that recorded no tokens
+    costs 0; `NA` when a used model has a negative (unknown) list price; None when a used
+    model has no price at all or a successful paid step recorded no tokens."""
     total = 0.0
+    na = False
+
+    def price(model: str | None) -> tuple[float, float] | None:
+        nonlocal na
+        if model not in prices:
+            return None
+        pin, pout = prices[model]  # type: ignore[index]
+        if pin < 0 or pout < 0:
+            na = True
+            return 0.0, 0.0
+        return pin, pout
+
     for stage in (row.get("skill"), row.get("tool")):
         for st in (stage or {}).get("steps") or []:
             strategy = st.get("strategy")
             if strategy in ("regex", "bm25"):
                 continue
-            model = models.get("embedding" if strategy == "hybrid" else strategy or "")
             usage = st.get("usage") or {}
-            if model not in prices or "prompt_tokens" not in usage:
+            if "prompt_tokens" not in usage:
+                if usage.get("error"):
+                    continue  # the call failed before producing tokens
                 return None
-            pin, pout = prices[model]
-            total += pin * usage.get("prompt_tokens", 0) + pout * usage.get("completion_tokens", 0)
+            pp = price(models.get("embedding" if strategy == "hybrid" else strategy or ""))
+            if pp is None:
+                return None
+            total += pp[0] * usage.get("prompt_tokens", 0) + pp[1] * usage.get(
+                "completion_tokens", 0
+            )
     tokens = row.get("tokens") or {}
     if row.get("mode") == "e2e" and tokens.get("agent_calls"):
-        model = models.get("executor")
-        if model not in prices:
+        pp = price(models.get("executor"))
+        if pp is None:
             return None
-        pin, pout = prices[model]
-        total += pin * tokens.get("prompt", 0) + pout * tokens.get("completion", 0)
-    return total
+        total += pp[0] * tokens.get("prompt", 0) + pp[1] * tokens.get("completion", 0)
+    return NA if na else total
+
+
+def billed_total(row: dict[str, Any]) -> float:
+    """What the run was billed: every routing strategy that ran (in shadow mode the shadow
+    strategies too: `shadow_billed_usd`, equal to `billed_usd` outside shadow mode) plus the
+    executor (F7)."""
+    routing = 0.0
+    for st in ("skill", "tool"):
+        stage = row.get(st) or {}
+        billed = stage.get("shadow_billed_usd")
+        routing += float(billed if billed is not None else stage.get("billed_usd") or 0.0)
+    return routing + float((row.get("cost_usd") or {}).get("agent") or 0.0)
 
 
 def row_error(row: dict[str, Any]) -> str | None:
@@ -213,9 +244,7 @@ def rescore_rows(
             else {}
         )
         cost = dict(raw.get("cost_usd") or {})
-        cost["billed_total"] = sum(
-            float((raw.get(st) or {}).get("billed_usd") or 0.0) for st in ("skill", "tool")
-        ) + float(cost.get("agent") or 0.0)
+        cost["billed_total"] = billed_total(raw)
         if prices is not None:
             config = raw.get("config", "")
             models = models_by_config.setdefault(config, config_models(config))

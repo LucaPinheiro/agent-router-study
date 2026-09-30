@@ -119,14 +119,26 @@ def rescore(
 def report(
     files: Annotated[
         list[Path] | None,
-        typer.Argument(help="rescored results (default: results/rescored/*.jsonl)"),
+        typer.Argument(help="rescored results files of the runs to compare (explicit list)"),
+    ] = None,
+    reference: Annotated[
+        str | None, typer.Option(help="run or config every other run is contrasted with")
+    ] = None,
+    contrast: Annotated[
+        list[str] | None,
+        typer.Option(help="run:reference[:family[:kind[:margin]]] (repeatable)"),
     ] = None,
 ) -> None:
-    """Accuracy / cost / latency per run, with 95% CIs, from RESCORED results files."""
+    """Accuracy / cost / latency per run (ITT, 95% CIs) and case-level contrasts, from an
+    EXPLICIT list of RESCORED results files (never a whole directory, F7)."""
     from routing_study.eval.report import render
+    from routing_study.eval.stats import Contrast
 
-    paths = files or sorted(RESCORED.glob("*.jsonl"))
-    typer.echo(render(paths))
+    if not files:
+        typer.echo("study report needs explicit rescored paths or a manifest (no directory glob)")
+        raise typer.Exit(code=2)
+    contrasts = [Contrast.parse(c) for c in contrast or []]
+    typer.echo(render(files, reference=reference, contrasts=contrasts))
 
 
 @app.command()

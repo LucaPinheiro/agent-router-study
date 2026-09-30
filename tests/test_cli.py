@@ -29,3 +29,10 @@ def test_run_rejects_unknown_mode():
         app, ["run", "--config", "config/experiments/e9_regex_jev_llm.yaml", "--mode", "e3e"]
     )
     assert res.exit_code == 2
+
+
+def test_report_requires_explicit_runs_or_a_manifest():
+    """F7: no implicit whole-directory report."""
+    res = CliRunner().invoke(app, ["report"])
+    assert res.exit_code != 0
+    assert "paths" in res.output or "manifest" in res.output

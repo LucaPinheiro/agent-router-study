@@ -171,3 +171,33 @@ def test_l2_list_price_uncached_cost(env) -> None:
     assert list_price_usd(row, models, prices) == pytest.approx(1500e-6 + 20e-5 + 4000e-6 + 200e-5)
     assert list_price_usd(row, models, {"a/m": (1e-6, 1e-5)}) is None  # unknown price
     assert PROVENANCE == "_provenance"
+
+
+# ---------------------------------------------------------------- F7
+
+
+def test_f7_paid_includes_the_shadow_strategies_billing(env) -> None:
+    row = _row()
+    row["skill"] |= {"billed_usd": 0.0, "shadow_billed_usd": 0.003}
+    row["tool"] |= {"billed_usd": 0.0005, "shadow_billed_usd": 0.001}
+    _, [out] = _rescore(env, [row])
+    assert out["cost_usd"]["billed_total"] == pytest.approx(0.004)
+
+
+def test_f7_list_price_uses_step_tokens_and_marks_negative_prices_na(env) -> None:
+    from routing_study.eval.rescore import NA, list_price_usd
+
+    row = _row()
+    row["skill"]["steps"] = [
+        _step("regex", None),
+        _step("jev", None, error="Timeout"),  # failed call: no tokens, billed nothing
+        _step("llm", "pedidos_logistica", prompt_tokens=1000, completion_tokens=10),
+    ]
+    row["tool"]["steps"][0]["usage"] = {"prompt_tokens": 500, "completion_tokens": 10}
+    models = {"llm": "a/m", "jev": "openrouter/auto"}
+    prices = {"a/m": (1e-6, 1e-5), "openrouter/auto": (-1.0, -1.0)}
+    assert list_price_usd(row, models, prices) == pytest.approx(1500e-6 + 20e-5)
+    row["skill"]["steps"][1] = _step("jev", "pedidos_logistica", prompt_tokens=10)
+    assert list_price_usd(row, models, prices) == NA  # the meta-router has no list price
+    row["skill"]["steps"][1] = _step("jev", "pedidos_logistica")  # a success without tokens
+    assert list_price_usd(row, models, {**prices, "openrouter/auto": (1e-6, 1e-6)}) is None

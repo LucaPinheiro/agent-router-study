@@ -37,7 +37,7 @@ from routing_study.eval.metrics import (
     risk_coverage,
     skill_tools_of,
 )
-from routing_study.eval.rescore import load_dataset, load_tools, read_rescored
+from routing_study.eval.rescore import NA, load_dataset, load_tools, read_rescored
 from routing_study.eval.stats import (
     Contrast,
     bootstrap_mean,
@@ -148,11 +148,14 @@ def _headline(rs: list[dict[str, Any]], keys: set[str] | None, head: str) -> dic
 
 
 def summarize(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    by_mode: dict[str, dict[str, list[dict[str, Any]]]] = {}
+    """One summary row per run, grouped by (split, mode): runs of different splits are
+    never pooled or intersected (F7)."""
+    by_group: dict[tuple[str, str], dict[str, list[dict[str, Any]]]] = {}
     for r in rows:
-        by_mode.setdefault(r["mode"], {}).setdefault(r["run_name"], []).append(r)
+        key = (str(r.get("split") or "?"), r["mode"])
+        by_group.setdefault(key, {}).setdefault(r["run_name"], []).append(r)
     out = []
-    for mode, groups in by_mode.items():
+    for (split, mode), groups in by_group.items():
         shared = shared_cases(groups)
         head = HEADLINE[mode]
         for name, rs in groups.items():
@@ -162,6 +165,7 @@ def summarize(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "run": name,
                 "config": rs[0]["config"],
                 "mode": mode,
+                "split": split,
                 "n": len(rs),
                 "errors": errors,
                 "error_rate": errors / len(rs) if rs else 0.0,
@@ -183,7 +187,13 @@ def summarize(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             )
             row["study_total"] = sum(float(r["cost_usd"].get("total") or 0.0) for r in ok)
             lst = [r["cost_usd"].get("list_uncached") for r in ok]
-            row["list_case"] = mean(lst) if lst and None not in lst else None  # type: ignore[arg-type]
+            row["list_case"] = (
+                NA
+                if NA in lst
+                else mean(lst)  # type: ignore[arg-type]
+                if lst and None not in lst
+                else None
+            )
             turn = [float(r["latency_ms"]["turn"]) for r in ok]
             row["turn_p50"] = _p(turn, 50)
             rt = [float(r["latency_ms"]["routing"]) for r in ok]
@@ -351,11 +361,13 @@ def render(
     raw = load_results(paths)
     summary = summarize(raw)
     lines: list[str] = []
-    for mode in ("routing-only", "e2e"):
-        rows = [r for r in summary if r["mode"] == mode]
-        group_rows = [r for r in raw if r["mode"] == mode]
-        if not rows:
-            continue
+    groups = sorted(
+        {(r["split"], r["mode"]) for r in summary},
+        key=lambda g: (g[0], ("routing-only", "e2e").index(g[1])),
+    )
+    for split, mode in groups:
+        rows = [r for r in summary if (r["split"], r["mode"]) == (split, mode)]
+        group_rows = [r for r in raw if (str(r.get("split") or "?"), r["mode"]) == (split, mode)]
         head = HEADLINE[mode]
         cols = [c for c, _ in COLUMNS[mode]]
         header = (
@@ -367,7 +379,9 @@ def render(
             + ["rt_p95", "ex_p50", "ex_p95", "resolved_by"]
         )
         lines += [
-            f"## {mode}: intention to treat (an error row counts as wrong)",
+            f"## {split} / {mode}: intention to treat (an error row counts as wrong)",
+            "",
+            "runs: " + ", ".join(r["run"] for r in rows),
             "",
             "| " + " | ".join(header) + " |",
             "|" + "---|" * len(header),
@@ -381,7 +395,11 @@ def render(
             cells += [
                 fmt_ci(r["cost_ci"], scale=1000.0, digits=4),
                 f"{r['paid_total']:.4f}",
-                "-" if r["list_case"] is None else f"{r['list_case']:.5f}",
+                "-"
+                if r["list_case"] is None
+                else r["list_case"]
+                if r["list_case"] == NA
+                else f"{r['list_case']:.5f}",
                 fmt_ci(r["latency_ci"], scale=1.0, digits=0),
                 _ms(r["routing_p95"]),
                 _ms(r["executor_p50"]),
@@ -391,8 +409,8 @@ def render(
             lines.append("| " + " | ".join(cells) + " |")
         lines += [
             "",
-            f"### {mode} SENSITIVITY: {rows[0]['cases_shared']} case ids error-free in every "
-            "run listed",
+            f"### {split} / {mode} SENSITIVITY: {rows[0]['cases_shared']} case ids error-free "
+            "in every run listed",
             "",
             f"| run | n_shared | {head} 95% CI (error-free intersection) |",
             "|---|---|---|",

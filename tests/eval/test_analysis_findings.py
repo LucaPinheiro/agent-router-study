@@ -187,3 +187,28 @@ def test_f4_report_contrasts_use_a_configurable_reference_at_case_level(tmp_path
     plain = render([path])
     assert "contrasts" not in plain  # no implicit reference
     assert "secondary metrics" in plain and "joint_1st_label%" in plain  # F6
+
+
+def test_f7_report_groups_by_split_and_mode_and_lists_the_runs(tmp_path: Path) -> None:
+    rows = []
+    for i in range(5):
+        rows.append(_rescored("a-dev", "e1_regex", f"c{i}", 1.0) | {"split": "dev"})
+        rows.append(_rescored("b-test", "e1_regex", f"t{i}", 0.0) | {"split": "test_v2"})
+    rows.append(_rescored("b-test", "e1_regex", "t9", 0.0, error="x") | {"split": "test_v2"})
+    path = tmp_path / "r.jsonl"
+    path.write_text(json.dumps({"_provenance": {}}) + "\n" + "\n".join(map(json.dumps, rows)))
+    text = render([path])
+    assert "## dev / routing-only" in text and "## test_v2 / routing-only" in text
+    assert "runs: a-dev" in text and "runs: b-test" in text
+    # the dev run's error-free set is not intersected with the test run's
+    assert "SENSITIVITY: 5 case ids error-free in every run" in text
+
+
+def test_f7_report_list_price_na(tmp_path: Path) -> None:
+    rows = [
+        _rescored("a", "e4_jev", "c1", 1.0)
+        | {"cost_usd": {"total": 0.001, "billed_total": 0.0, "list_uncached": "n/a"}}
+    ]
+    path = tmp_path / "r.jsonl"
+    path.write_text(json.dumps({"_provenance": {}}) + "\n" + "\n".join(map(json.dumps, rows)))
+    assert "| n/a |" in render([path])
