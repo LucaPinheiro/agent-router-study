@@ -11,13 +11,14 @@ import time
 import unicodedata
 from collections.abc import Awaitable, Callable
 from contextvars import ContextVar
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Literal
 
 import diskcache
 from langfuse import get_client, observe
 
 from routing_study.prompts import escape_data
 from routing_study.routers.base import RouteDecision, RouteOption, RoutingInput
+from routing_study.routers.calibration import Calibration
 
 log = logging.getLogger(__name__)
 
@@ -52,8 +53,77 @@ _PT_STOPWORDS = frozenset(
 )
 
 
-def tokenize(text: str) -> list[str]:
-    return [t for t in re.findall(r"\w+", normalize(text)) if t not in _PT_STOPWORDS]
+# `extended`: courtesy / filler words of customer messages; they carry no intent but collide
+# with option vocabulary ("bom dia" vs "entregar outro dia"). Greeting phrases go first.
+_PT_EXTRA_STOPWORDS = frozenset(
+    """oi ola ei opa eai salve bom boa tarde noite obrigado obrigada obg grato grata favor
+    gentileza pfv pf por obsequio prezados prezado prezada senhor senhora moco moca gente galera
+    pessoal ai aqui tipo sabe saca entao bem vcs voces voce vc tb tbm tambem la agora
+    urgente""".split()
+)
+_GREETING = re.compile(r"\b(bom dia|boa tarde|boa noite|por favor|por gentileza)\b")
+
+Stemmer = Literal["none", "light", "prefix"]
+Stopwords = Literal["basic", "extended"]
+
+# Light pt-BR suffix stripper (RSLP-inspired, accent-free input): plural -> nominal/verbal
+# suffix (longest first) -> final vowel, never leaving fewer than `_MIN_STEM` characters.
+_MIN_STEM = 3
+_PLURAL = (("oes", "ao"), ("aes", "ao"), ("ais", "al"), ("eis", "el"), ("ns", "m"), ("s", ""))
+_SUFFIXES = tuple(
+    sorted(
+        """amento imento mente idade acao icao ador edor idor ante encia ancia avel ivel ismo
+        ista zinho zinha inho inha issimo ando endo indo aram eram iram avam ava aria eria iria
+        ado ada ido ida ou ei ar er ir am em""".split(),
+        key=len,
+        reverse=True,
+    )
+)
+
+
+def stem_pt(token: str) -> str:
+    """Light stemmer: 'devolvido'/'devolver' -> 'devolv', 'reembolsos' -> 'reembols'."""
+    if len(token) <= _MIN_STEM or token.isdigit():
+        return token
+    for suf, rep in _PLURAL:
+        if token.endswith(suf) and len(token) - len(suf) >= _MIN_STEM:
+            token = token[: -len(suf)] + rep
+            break
+    for suf in _SUFFIXES:
+        if token.endswith(suf) and len(token) - len(suf) >= _MIN_STEM:
+            token = token[: -len(suf)]
+            break
+    if token[-1] in "aeo" and len(token) - 1 >= _MIN_STEM:
+        token = token[:-1]
+    return token
+
+
+def tokenize(
+    text: str,
+    stemmer: Stemmer = "none",
+    stopwords: Stopwords = "basic",
+    prefix_len: int = 5,
+) -> list[str]:
+    """Accent-free word tokens without stopwords; optionally stemmed (`light` suffix
+    stripper or `prefix` truncation to `prefix_len` characters)."""
+    text = normalize(text)
+    stop = _PT_STOPWORDS
+    if stopwords == "extended":
+        text = _GREETING.sub(" ", text)
+        stop = _PT_STOPWORDS | _PT_EXTRA_STOPWORDS
+    tokens = [t for t in re.findall(r"\w+", text) if t not in stop]
+    if stemmer == "light":
+        return [stem_pt(t) for t in tokens]
+    if stemmer == "prefix":
+        return [t[:prefix_len] for t in tokens]
+    return tokens
+
+
+def turns_text(inp: RoutingInput, turns: int) -> str:
+    """Content of the last `turns` history messages (both roles), for lexical routers."""
+    if turns <= 0:
+        return ""
+    return "\n".join(m.content for m in inp.history[-turns:])
 
 
 def option_document(opt: RouteOption) -> str:
@@ -209,8 +279,15 @@ class BaseRouter:
     name: ClassVar[str]
     paid: ClassVar[bool] = False  # paid routers become Langfuse generations
 
-    def __init__(self, cache: ResponseCache | None = None) -> None:
+    def __init__(
+        self,
+        cache: ResponseCache | None = None,
+        calibration: dict[str, Calibration] | None = None,
+    ) -> None:
         self.cache = cache
+        # per level (skill/tool): raw confidence -> P(correct); applied after the cache, so
+        # re-fitting it never invalidates cached decisions
+        self.calibration = calibration or {}
 
     @property
     def model(self) -> str | None:
@@ -257,7 +334,7 @@ class BaseRouter:
             )
             hit = self.cache.get(key)
             if hit is not None:
-                return hit
+                return self._calibrated(inp, hit)
         t0 = time.perf_counter()
         decision = await self._decide(inp, options)
         # Routing latency: HTTP work + local compute, not semaphore/RPM queueing or retry
@@ -277,7 +354,18 @@ class BaseRouter:
             and not decision.usage.get("parse_fail")
         ):
             self.cache.set(key, decision)
-        return decision
+        return self._calibrated(inp, decision)
+
+    def _calibrated(self, inp: RoutingInput, decision: RouteDecision) -> RouteDecision:
+        """Maps the confidence through the level's calibration; the raw value stays in
+        `usage.raw_confidence` (what calibration is fitted on)."""
+        cal = self.calibration.get(inp.level)
+        if cal is None or decision.choice is None:
+            return decision
+        usage = {**decision.usage, "raw_confidence": decision.confidence}
+        return decision.model_copy(
+            update={"confidence": clamp01(cal(decision.confidence)), "usage": usage}
+        )
 
 
 def abstain(strategy: str, **usage: Any) -> RouteDecision:

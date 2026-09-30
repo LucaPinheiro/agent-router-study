@@ -20,6 +20,8 @@ from pydantic_settings import (
     YamlConfigSettingsSource,
 )
 
+from routing_study.routers.calibration import Calibration
+
 StrategyName = Literal["regex", "bm25", "embedding", "llm", "jev", "hybrid"]
 
 
@@ -93,13 +95,39 @@ class RoutingConfig(_Config):
     shadow_strategies: list[StrategyName] = Field(default_factory=list)
 
 
+Level = Literal["skill", "tool"]
+
+
 class RegexStrategy(_Config):
     rules_path: str = "config/regex_rules.yaml"
+    # score(message) + history_weight * score(last `history_turns` messages)
+    history_turns: int = Field(default=0, ge=0)
+    history_weight: float = Field(default=0.5, ge=0.0)
+    # raw confidence -> P(correct) per level, fitted on dev folds (scripts/analysis/tune_router.py)
+    calibration: dict[Level, Calibration] = Field(default_factory=dict)
+
+
+class BM25FieldRepeats(_Config):
+    """Times each catalog field's tokens appear in the option document (term-frequency
+    weight; 0 drops the field)."""
+
+    description: int = Field(default=1, ge=0)
+    examples: int = Field(default=1, ge=0)
+    keywords: int = Field(default=1, ge=0)
 
 
 class BM25Strategy(_Config):
-    k1: float = 1.5
-    b: float = 0.75
+    k1: float = Field(default=1.5, ge=0.0)
+    b: float = Field(default=0.75, ge=0.0, le=1.0)
+    variant: Literal["okapi", "l"] = "okapi"  # l = BM25L (IDF stays > 0 on tiny corpora)
+    delta: float = Field(default=0.5, ge=0.0)  # BM25L only
+    stemmer: Literal["none", "light", "prefix"] = "none"
+    prefix_len: int = Field(default=5, ge=2)
+    stopwords: Literal["basic", "extended"] = "basic"
+    field_repeats: BM25FieldRepeats = Field(default_factory=BM25FieldRepeats)
+    history_turns: int = Field(default=0, ge=0)
+    history_weight: float = Field(default=0.5, ge=0.0)
+    calibration: dict[Level, Calibration] = Field(default_factory=dict)
 
 
 class EmbeddingStrategy(_Config):

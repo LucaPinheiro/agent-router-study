@@ -265,10 +265,28 @@ def build_routers(
 
     out: dict[str, Router] = {}
     if "regex" in wanted:
-        out["regex"] = RegexRouter.from_path(_need("regex").rules_path)
+        c = _need("regex")
+        out["regex"] = RegexRouter.from_path(
+            c.rules_path,
+            dict(c.calibration),
+            history_turns=c.history_turns,
+            history_weight=c.history_weight,
+        )
     if "bm25" in wanted or "hybrid" in wanted:
         c = cfg.bm25 or _need("bm25")
-        bm25 = BM25Router(k1=c.k1, b=c.b)
+        bm25 = BM25Router(
+            k1=c.k1,
+            b=c.b,
+            calibration=dict(c.calibration),
+            stemmer=c.stemmer,
+            prefix_len=c.prefix_len,
+            stopwords=c.stopwords,
+            field_repeats=c.field_repeats.model_dump(),
+            history_turns=c.history_turns,
+            history_weight=c.history_weight,
+            variant=c.variant,
+            delta=c.delta,
+        )
         if "bm25" in wanted:
             out["bm25"] = bm25
     if "embedding" in wanted or "hybrid" in wanted:
