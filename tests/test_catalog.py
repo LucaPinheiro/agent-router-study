@@ -188,3 +188,91 @@ async def test_invalid_params_is_a_tool_visible_error() -> None:
 async def test_transport_and_session_errors_raise(exc: BaseException) -> None:
     with pytest.raises(type(exc)):
         await _tools(exc).call("x", {})
+
+
+# ---------------------------------------------------------------- F8: rendered P1 guide
+
+
+def _live_guide(level: str, options: list, skill: str | None = None) -> str:
+    from routing_study.prompts.routers import parse_variant
+    from routing_study.routers.base import RoutingInput
+    from routing_study.routers.llm import build_messages
+
+    inp = RoutingInput(message="oi", level=level, loaded_skill=skill)  # type: ignore[arg-type]
+    msgs = build_messages(
+        inp,
+        options,
+        history_turns=0,
+        allow_abstain=False,
+        json_reply=False,
+        spec=parse_variant("P0+P1"),
+    )
+    content = msgs[0].content
+    system = content if isinstance(content, str) else content[0]["text"]
+    return system.split("<guide>")[1].split("</guide>")[0]
+
+
+@pytest.fixture(scope="module")
+async def live_catalog() -> Catalog:
+    from fastmcp import Client
+    from mcp_server.server import mcp
+
+    return await catalog_mod.fetch_catalog(Settings(_env_file=None), Client(mcp))
+
+
+async def test_p1_skill_guide_keeps_only_skill_level_subjects(live_catalog: Catalog) -> None:
+    guide = _live_guide("skill", live_catalog.skill_options())
+    lines = [ln for ln in guide.splitlines() if ln.startswith("- not ")]
+    # order-state preconditions of one tool's action are not skill-level facts
+    for false in (
+        "- not pedidos_logistica: pedido já entregue",
+        "- not pedidos_logistica: se o pedido já foi entregue",
+        "pedido já enviado (use __global__)",
+        "- not pagamentos_reembolsos: pedido ainda não enviado",
+        "- not pagamentos_reembolsos: se o pedido ainda não foi enviado",
+        "- not trocas_devolucoes: pedido não entregue",
+        "- not trocas_devolucoes: pedido não enviado",
+        "- not trocas_devolucoes: pedido extraviado",
+        "- not trocas_devolucoes: se o pedido",
+        # mixed clause: request_refund (same skill) is one of its targets
+        "- not pagamentos_reembolsos: desistência ou devolução",
+    ):
+        assert false not in guide, false
+    # a skill is never told to avoid a clause pointing (also) to itself
+    for ln in lines:
+        home = ln.removeprefix("- not ").split(":", 1)[0]
+        assert f"use {home}" not in ln and f"/ {home}" not in ln, ln
+    for true in (
+        "- not pedidos_logistica: dinheiro de volta de pedido já cancelado ou extraviado "
+        "(use pagamentos_reembolsos)",
+        "- not pedidos_logistica: cobrança não reconhecida (use pagamentos_reembolsos)",
+        "- not pagamentos_reembolsos: status do pedido (use pedidos_logistica)",
+        "- not pagamentos_reembolsos: produto recebido a devolver (use trocas_devolucoes)",
+        "- not trocas_devolucoes: rastrear a entrega de um pedido (use pedidos_logistica)",
+        "- not __global__: rastreio (use pedidos_logistica)",
+    ):
+        assert true in guide, true
+
+
+async def test_p1_tool_guide_keeps_tool_level_preconditions(live_catalog: Catalog) -> None:
+    trocas = _live_guide(
+        "tool", live_catalog.tool_options("trocas_devolucoes"), "trocas_devolucoes"
+    )
+    assert "- not create_exchange: dinheiro de volta (use create_return_request)" in trocas
+    assert "- not create_return_request: trocar tamanho ou cor (use create_exchange)" in trocas
+    pedidos = _live_guide(
+        "tool", live_catalog.tool_options("pedidos_logistica"), "pedidos_logistica"
+    )
+    # the precondition stays where it is true: between two tools of the option set
+    assert (
+        "- not update_delivery_address: se o pedido já foi enviado (use escalate_to_human)"
+        in pedidos
+    )
+    assert "- not reschedule_delivery: desistir do pedido (use cancel_order)" in pedidos
+    pagamentos = _live_guide(
+        "tool", live_catalog.tool_options("pagamentos_reembolsos"), "pagamentos_reembolsos"
+    )
+    assert (
+        "- not dispute_charge: desistência ou devolução "
+        "(use cancel_order, request_refund ou create_return_request)" in pagamentos
+    )

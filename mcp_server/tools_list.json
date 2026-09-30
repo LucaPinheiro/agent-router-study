@@ -11,7 +11,7 @@
   {
    "name": "cancel_order",
    "title": "Cancelar pedido",
-   "description": "Cancela um pedido que ainda não foi enviado; o estorno do pagamento é automático. Irreversível.\nWHEN TO USE: \"quero cancelar meu pedido\", desistência antes do envio.\nDON'T USE FOR: pedido já entregue (use create_return_request); dinheiro de volta de pedido já cancelado ou extraviado (use request_refund); cobrança não reconhecida (use dispute_charge).\nPARAMETERS: order_id opcional se o cliente tem um só pedido; reason opcional.\nCONFIRMATION: o servidor não pede confirmação; a ação é irreversível.\nRESULT: protocolo, valor e prazo do estorno; repasse sem alterar.",
+   "description": "Cancela um pedido que ainda não foi enviado; o estorno do pagamento é automático. Irreversível.\nWHEN TO USE: \"quero cancelar meu pedido\", desistência antes do envio.\nDON'T USE FOR: se o pedido já foi entregue (use create_return_request); dinheiro de volta de pedido já cancelado ou extraviado (use request_refund); cobrança não reconhecida (use dispute_charge).\nPARAMETERS: order_id opcional se o cliente tem um só pedido; reason opcional.\nCONFIRMATION: o servidor não pede confirmação; a ação é irreversível.\nRESULT: protocolo, valor e prazo do estorno; repasse sem alterar.",
    "inputSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -636,7 +636,7 @@
   {
    "name": "create_exchange",
    "title": "Abrir troca",
-   "description": "Abre a troca de um item entregue por outro tamanho, cor ou variação do mesmo produto.\nWHEN TO USE: \"veio no tamanho errado, quero trocar\", \"quero outra cor\", em até 30 dias da entrega.\nDON'T USE FOR: dinheiro de volta (use create_return_request); defeito após 30 dias (use open_warranty_claim); pedido não entregue (use get_order_status).\nPARAMETERS: new_variant = tamanho, cor ou variação dita pelo cliente; sku opcional se o pedido tem um só item.\nCONFIRMATION: não requer.\nRESULT: id da troca e prazo de postagem; repasse sem alterar.",
+   "description": "Abre a troca de um item entregue por outro tamanho, cor ou variação do mesmo produto.\nWHEN TO USE: \"veio no tamanho errado, quero trocar\", \"quero outra cor\", em até 30 dias da entrega.\nDON'T USE FOR: dinheiro de volta (use create_return_request); defeito após 30 dias (use open_warranty_claim); se o pedido ainda não foi entregue (use get_order_status).\nPARAMETERS: new_variant = tamanho, cor ou variação dita pelo cliente; sku opcional se o pedido tem um só item.\nCONFIRMATION: não requer.\nRESULT: id da troca e prazo de postagem; repasse sem alterar.",
    "inputSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -928,7 +928,7 @@
   {
    "name": "create_return_request",
    "title": "Abrir devolução",
-   "description": "Abre a devolução de produto entregue, com reembolso após a loja receber o item.\nWHEN TO USE: \"quero devolver\", arrependimento em até 7 dias; defeito, avaria ou produto errado em até 30 dias da entrega.\nDON'T USE FOR: pedido não enviado (use cancel_order); trocar tamanho ou cor (use create_exchange); defeito após 30 dias (use open_warranty_claim); pedido extraviado (use request_refund).\nPARAMETERS: reason = arrependimento | defeito | avariado | produto_errado | tamanho_errado; sku opcional (omitido = pedido inteiro).\nCONFIRMATION: não requer.\nRESULT: id da devolução, valor e prazo de postagem; repasse sem alterar.",
+   "description": "Abre a devolução de produto entregue, com reembolso após a loja receber o item.\nWHEN TO USE: \"quero devolver\", arrependimento em até 7 dias; defeito, avaria ou produto errado em até 30 dias da entrega.\nDON'T USE FOR: se o pedido ainda não foi enviado (use cancel_order); trocar tamanho ou cor (use create_exchange); defeito após 30 dias (use open_warranty_claim); se o pedido foi extraviado (use request_refund).\nPARAMETERS: reason = arrependimento | defeito | avariado | produto_errado | tamanho_errado; sku opcional (omitido = pedido inteiro).\nCONFIRMATION: não requer.\nRESULT: id da devolução, valor e prazo de postagem; repasse sem alterar.",
    "inputSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -3565,7 +3565,7 @@
   {
    "name": "open_warranty_claim",
    "title": "Acionar garantia",
-   "description": "Aciona a garantia de um produto com defeito que apareceu após 30 dias e em até 12 meses da entrega.\nWHEN TO USE: \"parou de funcionar\", \"deu defeito depois de alguns meses\".\nDON'T USE FOR: defeito em até 30 dias da entrega ou produto que chegou quebrado (use create_return_request ou create_exchange); pedido não entregue (use track_shipment).\nPARAMETERS: defect_description = defeito nas palavras do cliente; sku opcional se o pedido tem um só item.\nCONFIRMATION: não requer.\nRESULT: id do chamado de garantia e prazo de resposta; repasse sem alterar.",
+   "description": "Aciona a garantia de um produto com defeito que apareceu após 30 dias e em até 12 meses da entrega.\nWHEN TO USE: \"parou de funcionar\", \"deu defeito depois de alguns meses\".\nDON'T USE FOR: defeito em até 30 dias da entrega ou produto que chegou quebrado (use create_return_request ou create_exchange); se o pedido ainda não foi entregue (use track_shipment).\nPARAMETERS: defect_description = defeito nas palavras do cliente; sku opcional se o pedido tem um só item.\nCONFIRMATION: não requer.\nRESULT: id do chamado de garantia e prazo de resposta; repasse sem alterar.",
    "inputSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -3857,7 +3857,7 @@
   {
    "name": "request_refund",
    "title": "Solicitar reembolso",
-   "description": "Solicita o reembolso de um pedido cancelado que não foi estornado ou extraviado na entrega.\nWHEN TO USE: \"quero meu dinheiro de volta\" de pedido cancelado sem estorno ou que nunca chegou (extraviado).\nDON'T USE FOR: pedido ainda não enviado (use cancel_order); produto recebido a devolver (use create_return_request); acompanhar reembolso já pedido (use get_refund_status); cobrança não reconhecida (use dispute_charge).\nPARAMETERS: order_id opcional se o cliente tem um só pedido; reason = motivo curto.\nCONFIRMATION: não requer.\nRESULT: id do reembolso, valor e prazo; repasse sem alterar.",
+   "description": "Solicita o reembolso de um pedido cancelado que não foi estornado ou extraviado na entrega.\nWHEN TO USE: \"quero meu dinheiro de volta\" de pedido cancelado sem estorno ou que nunca chegou (extraviado).\nDON'T USE FOR: se o pedido ainda não foi enviado (use cancel_order); produto recebido a devolver (use create_return_request); acompanhar reembolso já pedido (use get_refund_status); cobrança não reconhecida (use dispute_charge).\nPARAMETERS: order_id opcional se o cliente tem um só pedido; reason = motivo curto.\nCONFIRMATION: não requer.\nRESULT: id do reembolso, valor e prazo; repasse sem alterar.",
    "inputSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -5019,7 +5019,7 @@
   {
    "name": "update_delivery_address",
    "title": "Alterar endereço de entrega",
-   "description": "Altera o endereço de entrega de um pedido que ainda não foi enviado.\nWHEN TO USE: o cliente quer receber em outro endereço ou corrigir o endereço de um pedido em preparação.\nDON'T USE FOR: mudar a data de entrega (use reschedule_delivery); pedido já enviado (use escalate_to_human); alterar o cadastro.\nPARAMETERS: só o endereço novo dito pelo cliente; nunca copie o atual. complement opcional; state = UF; postal_code = CEP de 8 dígitos.\nCONFIRMATION: não requer.\nRESULT: protocolo e endereço novo; repasse sem alterar.",
+   "description": "Altera o endereço de entrega de um pedido que ainda não foi enviado.\nWHEN TO USE: o cliente quer receber em outro endereço ou corrigir o endereço de um pedido em preparação.\nDON'T USE FOR: mudar a data de entrega (use reschedule_delivery); se o pedido já foi enviado (use escalate_to_human); alterar o cadastro.\nPARAMETERS: só o endereço novo dito pelo cliente; nunca copie o atual. complement opcional; state = UF; postal_code = CEP de 8 dígitos.\nCONFIRMATION: não requer.\nRESULT: protocolo e endereço novo; repasse sem alterar.",
    "inputSchema": {
     "type": "object",
     "additionalProperties": false,

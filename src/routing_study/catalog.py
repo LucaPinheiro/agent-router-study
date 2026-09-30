@@ -41,6 +41,9 @@ DEFAULT_TTL_S = 300
 ROUTING_EXCLUDED_SECTIONS = ("DON'T USE FOR:", "CONFIRMATION:", "RESULT:")
 _AVOID = "DON'T USE FOR:"
 _USE = re.compile(r"\(use ([^)]*)\)")
+# A DON'T USE FOR clause opening with "se" is a precondition of the tool's own action
+# ("se o pedido já foi enviado"): true between tools, false as a skill-level rule.
+_CONDITION = re.compile(r"se\b", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -131,14 +134,19 @@ class Catalog:
         return out
 
     def _skill_avoid(self, skill_id: str) -> list[tuple[str, list[str]]]:
-        """The skill's tools' DON'T USE FOR clauses that point to ANOTHER skill, with each
-        `(use tool)` rewritten as `(use skill)`."""
+        """The skill's tools' DON'T USE FOR clauses whose subject is skill-level, with each
+        `(use tool)` rewritten as `(use skill)`. Kept only when EVERY target is in another
+        skill (a mixed clause is also served by this skill) and the clause names an intent,
+        not a precondition of the source tool's own action ("se o pedido já foi enviado":
+        that intent still belongs to this skill, only this tool refuses it)."""
         tools = self.tools_for(skill_id) if skill_id != GLOBAL_OPTION else self.global_tools
         out: list[tuple[str, list[str]]] = []
         for name in tools:
             for clause, targets in self.avoid_clauses(name):
-                skills = [s for s in dict.fromkeys(map(self.skill_of, targets)) if s != skill_id]
-                if not skills:
+                if _CONDITION.match(clause):
+                    continue
+                skills = list(dict.fromkeys(map(self.skill_of, targets)))
+                if skill_id in skills:
                     continue
 
                 def to_skill(m: re.Match[str], home: str = skill_id) -> str:

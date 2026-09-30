@@ -172,8 +172,8 @@ async def track_shipment(order_id: OrderId = None) -> ToolResult:
 Altera o endereço de entrega de um pedido que ainda não foi enviado.
 WHEN TO USE: o cliente quer receber em outro endereço ou corrigir o endereço de um pedido em \
 preparação.
-DON'T USE FOR: mudar a data de entrega (use reschedule_delivery); pedido já enviado (use \
-escalate_to_human); alterar o cadastro.
+DON'T USE FOR: mudar a data de entrega (use reschedule_delivery); se o pedido já foi enviado \
+(use escalate_to_human); alterar o cadastro.
 PARAMETERS: só o endereço novo dito pelo cliente; nunca copie o atual. complement opcional; \
 state = UF; postal_code = CEP de 8 dígitos.
 CONFIRMATION: não requer.
@@ -317,8 +317,9 @@ async def reschedule_delivery(
     description="""
 Cancela um pedido que ainda não foi enviado; o estorno do pagamento é automático. Irreversível.
 WHEN TO USE: "quero cancelar meu pedido", desistência antes do envio.
-DON'T USE FOR: pedido já entregue (use create_return_request); dinheiro de volta de pedido já \
-cancelado ou extraviado (use request_refund); cobrança não reconhecida (use dispute_charge).
+DON'T USE FOR: se o pedido já foi entregue (use create_return_request); dinheiro de volta de \
+pedido já cancelado ou extraviado (use request_refund); cobrança não reconhecida (use \
+dispute_charge).
 PARAMETERS: order_id opcional se o cliente tem um só pedido; reason opcional.
 CONFIRMATION: o servidor não pede confirmação; a ação é irreversível.
 RESULT: protocolo, valor e prazo do estorno; repasse sem alterar.

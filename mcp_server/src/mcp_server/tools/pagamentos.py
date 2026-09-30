@@ -159,9 +159,9 @@ async def generate_boleto_second_copy(order_id: OrderId = None) -> ToolResult:
 Solicita o reembolso de um pedido cancelado que não foi estornado ou extraviado na entrega.
 WHEN TO USE: "quero meu dinheiro de volta" de pedido cancelado sem estorno ou que nunca chegou \
 (extraviado).
-DON'T USE FOR: pedido ainda não enviado (use cancel_order); produto recebido a devolver (use \
-create_return_request); acompanhar reembolso já pedido (use get_refund_status); cobrança não \
-reconhecida (use dispute_charge).
+DON'T USE FOR: se o pedido ainda não foi enviado (use cancel_order); produto recebido a \
+devolver (use create_return_request); acompanhar reembolso já pedido (use get_refund_status); \
+cobrança não reconhecida (use dispute_charge).
 PARAMETERS: order_id opcional se o cliente tem um só pedido; reason = motivo curto.
 CONFIRMATION: não requer.
 RESULT: id do reembolso, valor e prazo; repasse sem alterar.

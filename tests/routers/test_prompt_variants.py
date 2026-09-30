@@ -84,9 +84,9 @@ async def test_avoid_clauses_come_verbatim_from_dont_use_for(catalog):
     assert clauses["dinheiro de volta (use create_return_request)"] == ["create_return_request"]
     opts = {o.id: o for o in catalog.skill_options()}
     # skill level: tool targets rewritten as skills, same-skill clauses dropped
-    assert ("pedido já entregue (use trocas_devolucoes)", ["trocas_devolucoes"]) in opts[
-        "pedidos_logistica"
-    ].avoid
+    assert ("cobrança não reconhecida (use pagamentos_reembolsos)", ["pagamentos_reembolsos"]) in (
+        opts["pedidos_logistica"].avoid
+    )
     assert all("pedidos_logistica" not in t for _, t in opts["pedidos_logistica"].avoid)
     assert opts[GLOBAL_OPTION].shots  # the global tools' catalog examples
 

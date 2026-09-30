@@ -187,9 +187,9 @@ async def check_return_eligibility(order_id: OrderId = None) -> ToolResult:
 Abre a devolução de produto entregue, com reembolso após a loja receber o item.
 WHEN TO USE: "quero devolver", arrependimento em até 7 dias; defeito, avaria ou produto errado \
 em até 30 dias da entrega.
-DON'T USE FOR: pedido não enviado (use cancel_order); trocar tamanho ou cor (use \
-create_exchange); defeito após 30 dias (use open_warranty_claim); pedido extraviado (use \
-request_refund).
+DON'T USE FOR: se o pedido ainda não foi enviado (use cancel_order); trocar tamanho ou cor \
+(use create_exchange); defeito após 30 dias (use open_warranty_claim); se o pedido foi \
+extraviado (use request_refund).
 PARAMETERS: reason = arrependimento | defeito | avariado | produto_errado | tamanho_errado; sku \
 opcional (omitido = pedido inteiro).
 CONFIRMATION: não requer.
@@ -326,7 +326,7 @@ Abre a troca de um item entregue por outro tamanho, cor ou variação do mesmo p
 WHEN TO USE: "veio no tamanho errado, quero trocar", "quero outra cor", em até 30 dias da \
 entrega.
 DON'T USE FOR: dinheiro de volta (use create_return_request); defeito após 30 dias (use \
-open_warranty_claim); pedido não entregue (use get_order_status).
+open_warranty_claim); se o pedido ainda não foi entregue (use get_order_status).
 PARAMETERS: new_variant = tamanho, cor ou variação dita pelo cliente; sku opcional se o pedido \
 tem um só item.
 CONFIRMATION: não requer.
@@ -393,7 +393,8 @@ Aciona a garantia de um produto com defeito que apareceu após 30 dias e em até
 entrega.
 WHEN TO USE: "parou de funcionar", "deu defeito depois de alguns meses".
 DON'T USE FOR: defeito em até 30 dias da entrega ou produto que chegou quebrado (use \
-create_return_request ou create_exchange); pedido não entregue (use track_shipment).
+create_return_request ou create_exchange); se o pedido ainda não foi entregue (use \
+track_shipment).
 PARAMETERS: defect_description = defeito nas palavras do cliente; sku opcional se o pedido tem \
 um só item.
 CONFIRMATION: não requer.
