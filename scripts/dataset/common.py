@@ -96,12 +96,15 @@ class Case(BaseModel):
     id: str
     category: Literal["direto", "parafrase", "ambiguo", "multiturno", "fora_escopo", "adversarial"]
     customer_id: str = Field(pattern=r"^C0(0[1-9]|1[0-9]|20)$")
-    source: Literal["seed", "synthetic"]
+    source: Literal["seed", "synthetic", "synthetic_v2"]
     reviewed: bool = False
     turns: list[Turn] = Field(min_length=1)
     expected: Expected
     # manual gold correction (see data/README.md "Label policy"); lives in the source file
     label_fix: str | None = None
+    # blind automated label audit outcome (test-v2, see docs/dataset-card.md); the original
+    # gold is kept in `label_audit.original` when a fix was applied
+    label_audit: dict[str, object] | None = None
 
     @model_validator(mode="after")
     def _turns(self) -> Case:
@@ -123,8 +126,9 @@ def case_text(c: Case) -> str:
 
 
 def case_dict(c: Case) -> dict[str, object]:
-    """JSON-ready case; `label_fix` only on corrected rows."""
+    """JSON-ready case; `label_fix` / `label_audit` only on rows that carry them."""
     d = c.model_dump()
-    if d["label_fix"] is None:
-        del d["label_fix"]
+    for key in ("label_fix", "label_audit"):
+        if d[key] is None:
+            del d[key]
     return d
