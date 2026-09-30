@@ -130,7 +130,7 @@ async def test_unknown_return_id_does_not_loop_to_create(client: Client) -> None
 async def test_label_by_order_without_return_explains_return_id(client: Client) -> None:
     cid, oid = _fresh
     r = await _call(client, "generate_return_label", cid, {"order_id": oid})
-    assert r.is_error and r.structured_content["code"] == "NOT_FOUND"
+    assert r.is_error and r.structured_content["code"] == "NOT_ELIGIBLE"
     assert "return_id" in r.structured_content["message"]
     # D3: the order_id path must not send the agent back to create_return_request either
     # (writes don't persist, so that pair loops forever)
@@ -206,3 +206,36 @@ async def test_error_suggestions_outside_order_scope_can_succeed(client: Client)
         follow_args = {"reason": "cliente pediu ajuda"} if nxt == "escalate_to_human" else {}
         follow = await _call(client, nxt, customer, follow_args)  # type: ignore[arg-type]
         assert not follow.is_error, (tool, nxt, follow.content)
+
+
+# ------------------------------------------------------------------ F5
+
+
+async def test_read_tools_never_suggest_an_irreversible_action(client: Client) -> None:
+    """A read tool's refusal points to another read or to escalation, never to a destructive
+    write (cancel_order, dispute_charge): the agent must not act on a lookup's hint."""
+    listed = {t.name: t.annotations for t in await client.list_tools()}
+    reads = sorted(n for n, a in listed.items() if a and a.read_only_hint)
+    destructive = {n for n, a in listed.items() if a and a.destructive_hint}
+    assert reads and destructive
+    bad: list[str] = []
+    for cid, oid in _ORDER_CASES:
+        for tool in reads:
+            for args in _variants(tool, oid):
+                r = await _call(client, tool, cid, args)
+                nxt = r.structured_content["suggested_tool"] if r.is_error else None
+                if nxt in destructive:
+                    bad.append(f"{tool}({oid}) -> {nxt}")
+    assert not bad, "\n".join(bad)
+
+
+async def test_missing_refund_or_return_is_not_eligible_but_foreign_order_is_not_found(
+    client: Client,
+) -> None:
+    cid, oid = find_order(lambda o: o["id"] not in REFUNDS_BY_ORDER)
+    r = await _call(client, "get_refund_status", cid, {"order_id": oid})
+    assert r.is_error and r.structured_content["code"] == "NOT_ELIGIBLE"
+    other = next(o["id"] for o in DB["orders"] if o["customer_id"] != cid)
+    for tool in ("get_refund_status", "generate_return_label"):
+        r = await _call(client, tool, cid, {"order_id": other})
+        assert r.is_error and r.structured_content["code"] == "NOT_FOUND", tool

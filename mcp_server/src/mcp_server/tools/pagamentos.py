@@ -246,11 +246,14 @@ async def get_refund_status(order_id: OrderId = None) -> ToolResult:
     o = resolve_order(order_id)
     r = REFUNDS_BY_ORDER.get(o["id"])
     if r is None:
+        # the order exists: no refund yet is a business precondition, not a missing entity.
+        # A read never hints an irreversible action: an unshipped order points to its status.
+        nxt = money_back_next_step(o)
         raise ToolFailure(
-            "NOT_FOUND",
+            "NOT_ELIGIBLE",
             f"Não há reembolso registrado para o pedido {o['id']}.",
             recoverable=False,
-            suggested_tool=money_back_next_step(o),
+            suggested_tool="get_order_status" if nxt == "cancel_order" else nxt,
         )
     result = RefundStatusResult(
         order_id=o["id"],

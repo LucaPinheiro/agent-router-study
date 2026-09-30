@@ -165,7 +165,7 @@ ERRORS: dict[str, tuple[str | None, dict[str, Any], str, str | None]] = {
     ),
     "get_refund_status": (
         *_case(lambda o: o["id"] not in REFUNDS_BY_ORDER and o["status"] == "cancelled"),
-        "NOT_FOUND",
+        "NOT_ELIGIBLE",  # the order exists: no refund yet is a business precondition
         "request_refund",
     ),
     "dispute_charge": (
@@ -193,7 +193,7 @@ ERRORS: dict[str, tuple[str | None, dict[str, Any], str, str | None]] = {
                 and not any(r["order_id"] == o["id"] for r in RETURNS.values())
             )
         ),
-        "NOT_FOUND",
+        "NOT_ELIGIBLE",  # the order exists: no return yet is a business precondition
         None,  # D3: never back to create_return_request (loop); the message asks return_id
     ),
     "create_exchange": (

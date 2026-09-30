@@ -293,7 +293,7 @@ async def generate_return_label(
             # opened in this conversation is only found by its return_id (else a loop)
             nxt = after_delivery_next_step(o)
             raise ToolFailure(
-                "NOT_FOUND",
+                "NOT_ELIGIBLE",  # the order exists: no return yet is a business precondition
                 f"Não há devolução registrada para o pedido {o['id']}; se ela acabou de ser "
                 "aberta, informe o return_id retornado por create_return_request.",
                 recoverable=True,
