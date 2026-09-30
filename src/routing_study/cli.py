@@ -1,18 +1,22 @@
-"""`study` CLI: run | simulate | estimate | report | graph."""
+"""`study` CLI: run | rescore | report | simulate | estimate | graph | trace."""
 
 from __future__ import annotations
 
 import asyncio
 import logging
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 import typer
 from dotenv import load_dotenv
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
-Config = Annotated[Path, typer.Option("--config", "-c", exists=True, dir_okay=False,
-                                      help="config/experiments/eN_*.yaml")]
+Config = Annotated[
+    Path,
+    typer.Option(
+        "--config", "-c", exists=True, dir_okay=False, help="config/experiments/eN_*.yaml"
+    ),
+]
 
 
 @app.callback()
@@ -29,49 +33,99 @@ def _setup() -> None:
 def run(
     config: Config,
     split: Annotated[str, typer.Option(help="dev | test")] = "dev",
-    mode: Annotated[str, typer.Option(help="e2e | routing-only")] = "e2e",
-    limit: Annotated[int | None, typer.Option(help="first N cases (interleaved by category)")]
-    = None,
+    mode: Annotated[Literal["e2e", "routing-only"], typer.Option()] = "e2e",
+    limit: Annotated[
+        int | None,
+        typer.Option(min=1, help="N cases, stratified by category (fixed seed); omit for all"),
+    ] = None,
     reps: Annotated[int, typer.Option(min=1)] = 1,
     concurrency: Annotated[int, typer.Option(min=1)] = 4,
     run_name: Annotated[str | None, typer.Option(help="Langfuse dataset run name")] = None,
-    routing_mode: Annotated[str | None, typer.Option(
-        help="override routing.mode (single|cascade|shadow)")] = None,
+    routing_mode: Annotated[
+        Literal["single", "cascade", "shadow"] | None, typer.Option(help="override routing.mode")
+    ] = None,
+    overwrite: Annotated[
+        bool, typer.Option(help="replace an existing results/<run_name>.jsonl")
+    ] = False,
 ) -> None:
-    """Run one experiment config over a split; writes results/<run_name>.jsonl."""
+    """Run one experiment config over a split; writes results/<run_name>.jsonl, then rescores it
+    into results/rescored/ (the only input of reports)."""
     from routing_study.eval.report import render
+    from routing_study.eval.rescore import rescore_file
     from routing_study.eval.runner import Runner, default_run_name, load_cases
     from routing_study.settings import load_settings
 
-    if mode not in ("e2e", "routing-only"):
-        raise typer.BadParameter("mode must be e2e or routing-only")
     settings = load_settings(config)
     if routing_mode:
-        settings.routing.mode = routing_mode  # type: ignore[assignment]
+        settings.routing.mode = routing_mode
     name = run_name or default_run_name(settings.experiment_id, split, mode)
     cases = load_cases(split, limit)
-    runner = Runner(settings, split=split, mode=mode, run_name=name,  # type: ignore[arg-type]
-                    reps=reps, concurrency=concurrency)
+    runner = Runner(
+        settings,
+        split=split,
+        mode=mode,
+        run_name=name,
+        reps=reps,
+        concurrency=concurrency,
+        overwrite=overwrite,
+    )
     out = asyncio.run(runner.run(cases))
     typer.echo(f"run {name}: {len(cases)} cases x {reps} reps -> {out}")
-    typer.echo(render([out]))
+    rescored, _ = rescore_file(out, RESCORED)
+    typer.echo(render([rescored]))
+
+
+RESCORED = Path("results/rescored")
+
+
+@app.command()
+def rescore(
+    files: Annotated[list[Path], typer.Argument(exists=True, help="raw results/*.jsonl")],
+    out: Annotated[Path, typer.Option(help="output directory")] = RESCORED,
+    data_dir: Annotated[Path, typer.Option(help="dir with dataset_<split>.jsonl")] = Path("data"),
+    tools: Annotated[Path, typer.Option(help="MCP tools/list snapshot")] = Path(
+        "mcp_server/tools_list.json"
+    ),
+    prices: Annotated[
+        Path | None,
+        typer.Option(help="saved OpenRouter GET /models JSON: adds the list-price column"),
+    ] = None,
+    run_git_sha: Annotated[
+        str | None, typer.Option(help="run code version when the rows do not record it")
+    ] = None,
+) -> None:
+    """Recompute every score offline from raw rows + dataset + tool schemas (with provenance)."""
+    from routing_study.eval.rescore import describe, rescore_file
+
+    for f in files:
+        path, prov = rescore_file(
+            f,
+            out,
+            data_dir=data_dir,
+            tools_path=tools,
+            prices_path=prices,
+            run_git_sha=run_git_sha,
+        )
+        typer.echo(describe(path, prov))
 
 
 @app.command()
 def report(
-    files: Annotated[list[Path] | None, typer.Argument(help="results/*.jsonl (default: all)")]
-    = None,
+    files: Annotated[
+        list[Path] | None,
+        typer.Argument(help="rescored results (default: results/rescored/*.jsonl)"),
+    ] = None,
 ) -> None:
-    """Accuracy / cost / latency per run from the local results files."""
+    """Accuracy / cost / latency per run, with 95% CIs, from RESCORED results files."""
     from routing_study.eval.report import render
 
-    paths = files or sorted(Path("results").glob("*.jsonl"))
+    paths = files or sorted(RESCORED.glob("*.jsonl"))
     typer.echo(render(paths))
 
 
 @app.command()
 def simulate(
-    results: Annotated[Path, typer.Argument(exists=True, help="results of a shadow run")],
+    results: Annotated[Path, typer.Argument(exists=True, help="rescored results of a shadow run")],
     config: Config,
 ) -> None:
     """Replay a config's cascade offline over the shadow decisions of a results file."""
@@ -107,8 +161,10 @@ def graph(out: Path = Path("docs/graph.md")) -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(
         "# Host graph\n\nGenerated by `uv run study graph`. Routing-only runs compile the same "
-        "graph with `interrupt_before=[\"agent\"]`; E0 (native) passes through `route_skill` "
-        "and `route_tool`.\n\n```mermaid\n" + mermaid + "```\n", encoding="utf-8")
+        'graph with `interrupt_before=["agent"]`; E0 (native) passes through `route_skill` '
+        "and `route_tool`.\n\n```mermaid\n" + mermaid + "```\n",
+        encoding="utf-8",
+    )
     typer.echo(f"wrote {out}")
 
 
@@ -120,8 +176,10 @@ def trace(trace_id: str) -> None:
     api = LangfuseAPI()
     obs, scores = api.wait(trace_id, timeout_s=10)
     typer.echo(format_tree(obs))
-    typer.echo("scores: " + ", ".join(f"{s['name']}={s.get('value', s.get('stringValue'))}"
-                                      for s in scores))
+    typer.echo(
+        "scores: "
+        + ", ".join(f"{s['name']}={s.get('value', s.get('stringValue'))}" for s in scores)
+    )
 
 
 if __name__ == "__main__":
