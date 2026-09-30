@@ -88,3 +88,106 @@ def test_multiturno_and_abstain_shape(total: list[Case]) -> None:
                 "__abstain__" in c.expected.acceptable_skills
                 or "escalate_to_human" in c.expected.acceptable_tools
             )
+
+
+def _generate():  # noqa: ANN202
+    import generate
+
+    return generate
+
+
+def test_a3_generator_asks_only_for_real_parameter_names() -> None:
+    gen = _generate()
+    prompt = gen.build_prompt("direto", "update_delivery_address", 1, [("C001", ["O0001"])])
+    assert "address, query" not in prompt
+    assert "update_delivery_address" in gen.TOOL_PARAMS
+    assert {"street", "number", "postal_code"} <= set(gen.TOOL_PARAMS["update_delivery_address"])
+    assert "street" in prompt and "postal_code" in prompt
+    slot = ("C001", ["O0001", "O0002", "O0003"])
+    item = {
+        "turns": [{"role": "user", "content": "muda o endereço do O0001"}],
+        "acceptable_tools": ["update_delivery_address"],
+        "args": {"order_id": "O0001", "address": "Rua A, 1"},
+    }
+    assert gen.to_case("direto", "update_delivery_address", item, slot, "x") is None
+    item["args"] = {"order_id": "O0001", "street": "Rua A", "number": "1"}
+    assert gen.to_case("direto", "update_delivery_address", item, slot, "x") is not None
+
+
+def test_a8_split_reproduces_dev_and_test_including_label_fixes(tmp_path: Path) -> None:
+    import json
+    import shutil
+
+    import split
+
+    for name in ("seed.jsonl", "synthetic.jsonl"):
+        shutil.copy(DATA / name, tmp_path / name)
+    split.main(data=tmp_path, out=tmp_path)
+    for name in ("dataset_dev.jsonl", "dataset_test.jsonl"):
+        built = [json.loads(x) for x in (tmp_path / name).read_text().splitlines()]
+        current = [json.loads(x) for x in (DATA / name).read_text().splitlines()]
+        assert [(r["id"], r["expected"], r.get("label_fix")) for r in built] == [
+            (r["id"], r["expected"], r.get("label_fix")) for r in current
+        ], name
+        assert (tmp_path / name).read_bytes() == (DATA / name).read_bytes(), name
+    fixed = [x for x in (tmp_path / "synthetic.jsonl").read_text().splitlines() if "label_fix" in x]
+    assert len(fixed) == 15
+
+
+def test_a8_split_refuses_to_drop_a_label_fix(tmp_path: Path) -> None:
+    import split
+
+    cases = split.load(DATA / "seed.jsonl") + split.load(DATA / "synthetic.jsonl")
+    assert sum(c.label_fix is not None for c in cases) == 15
+    broken = [c.model_copy(update={"label_fix": None}) if c.label_fix else c for c in cases]
+    with pytest.raises(AssertionError, match="label_fix"):
+        split.check_label_fixes(cases, *split.build(broken))
+
+
+def test_a9_env_var_wins_over_a_blank_dotenv_key(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    gen = _generate()
+    env = tmp_path / ".env"
+    env.write_text("OPENROUTER_API_KEY=\n")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-env")
+    assert gen.load_env(env) == "sk-env"
+    env.write_text("OPENROUTER_API_KEY='sk-file'\n")
+    assert gen.load_env(env) == "sk-env"
+    monkeypatch.delenv("OPENROUTER_API_KEY")
+    assert gen.load_env(env) == "sk-file"
+    env.write_text("OPENROUTER_API_KEY=\n")
+    with pytest.raises(SystemExit):
+        gen.load_env(env)
+    with pytest.raises(SystemExit):
+        gen.load_env(tmp_path / "missing.env")
+
+
+@pytest.mark.parametrize("status", [401, 402])
+def test_a9_auth_and_credit_errors_fail_fast(status: int) -> None:
+    import httpx
+
+    gen = _generate()
+    hits: list[int] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        hits.append(1)
+        return httpx.Response(status, json={"error": {"message": "no"}})
+
+    with (
+        httpx.Client(transport=httpx.MockTransport(handler)) as client,
+        pytest.raises(SystemExit, match=str(status)),
+    ):
+        gen.call(client, "k", "m", "p")
+    assert len(hits) == 1
+
+
+def test_a9_never_overwrites_with_fewer_rows_without_force(tmp_path: Path) -> None:
+    gen = _generate()
+    out = tmp_path / "synthetic.jsonl"
+    out.write_text('{"id": "a"}\n{"id": "b"}\n')
+    with pytest.raises(SystemExit, match="--force"):
+        gen.write_cases(out, [], force=False)
+    assert out.read_text() == '{"id": "a"}\n{"id": "b"}\n'
+    gen.write_cases(out, [], force=True)
+    assert out.read_text() == ""

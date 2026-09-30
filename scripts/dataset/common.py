@@ -100,6 +100,8 @@ class Case(BaseModel):
     reviewed: bool = False
     turns: list[Turn] = Field(min_length=1)
     expected: Expected
+    # manual gold correction (see data/README.md "Label policy"); lives in the source file
+    label_fix: str | None = None
 
     @model_validator(mode="after")
     def _turns(self) -> Case:
@@ -118,3 +120,11 @@ def normalize(text: str) -> str:
 
 def case_text(c: Case) -> str:
     return normalize(" | ".join(t.content for t in c.turns if t.role == "user"))
+
+
+def case_dict(c: Case) -> dict[str, object]:
+    """JSON-ready case; `label_fix` only on corrected rows."""
+    d = c.model_dump()
+    if d["label_fix"] is None:
+        del d["label_fix"]
+    return d
