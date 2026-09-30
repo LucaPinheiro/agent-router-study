@@ -57,7 +57,8 @@ from fastmcp import Client
 from routing_study.budget import BudgetExceededError
 from routing_study.catalog import Catalog, fetch_catalog
 from routing_study.eval.scorers import routing_failure, routing_scores
-from routing_study.routers.base import GLOBAL_OPTION, Message, RoutingInput
+from routing_study.graph.nodes import _routing_input as routing_input
+from routing_study.routers.base import RoutingInput
 from routing_study.routers.calibration import Calibration, ece, fit_isotonic
 from routing_study.routers.pipeline import build_pipeline, build_routers
 from routing_study.settings import (
@@ -153,13 +154,9 @@ async def dev_catalog(settings: Settings) -> Catalog:
 
 
 def _input(case: dict[str, Any], level: str, skill: str | None = None) -> RoutingInput:
-    turns = case["turns"]
-    return RoutingInput(
-        message=turns[-1]["content"],
-        level=level,  # type: ignore[arg-type]
-        loaded_skill=skill,
-        history=[Message(role=t["role"], content=t["content"]) for t in turns[:-1]],
-    )
+    """The graph's own RoutingInput builder (`graph.nodes._routing_input`): the tool stage
+    after a `__global__` skill gets loaded_skill='__global__', exactly as `route_tool` (F9)."""
+    return routing_input({"case": {"turns": case["turns"]}}, level, loaded_skill=skill)
 
 
 def _raw(decision: Any) -> float:
@@ -233,7 +230,7 @@ async def evaluate(
                 "tool_u": call_usage([]),
             }
             if skill is not None:
-                inp = _input(case, "tool", None if skill == GLOBAL_OPTION else skill)
+                inp = _input(case, "tool", skill)
                 tl, error = await run(tool_p, inp, catalog.tool_options(skill))
                 rec["tool"] = None if error else tl.decision.choice
                 rec["tool_conf"] = _raw(tl.decision) if rec["tool"] else None

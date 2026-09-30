@@ -216,3 +216,27 @@ def test_f2_point_metrics_count_errors_and_selection_penalizes_them():
     assert failing["errors"] == 1 and failing["error_rate"] == 0.25
     assert failing["joint_correct_mean"] == 0.5  # the error row counts as wrong (ITT)
     assert tune_router.selection_key(clean) > tune_router.selection_key(failing)
+
+
+async def test_f9_tool_stage_gets_loaded_skill_global_exactly_like_the_graph(monkeypatch):
+    """The graph's route_tool passes loaded_skill='__global__' after a __global__ skill;
+    the tuner must build the same RoutingInput (same helper)."""
+    from routing_study.graph import nodes
+
+    seen = []
+
+    class _Spy(_Pipe):
+        async def run(self, inp, options):
+            seen.append(inp)
+            return await super().run(inp, options)
+
+    pipes = iter([_Spy([_result("__global__")]), _Spy([_result("escalate_to_human")])])
+    monkeypatch.setattr(tune_router, "build_routers", lambda s, w: {})
+    monkeypatch.setattr(tune_router, "build_pipeline", lambda s, lv, r: next(pipes))
+    await tune_router.evaluate(Settings(_env_file=None), [OOS_CASE], _Catalog())
+    skill_inp, tool_inp = seen
+    assert skill_inp.loaded_skill is None and tool_inp.loaded_skill == "__global__"
+    graph_inp = nodes._routing_input(
+        {"case": {"turns": OOS_CASE["turns"]}}, "tool", loaded_skill="__global__"
+    )
+    assert tool_inp == graph_inp

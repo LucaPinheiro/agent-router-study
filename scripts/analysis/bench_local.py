@@ -25,8 +25,8 @@ from fastmcp import Client
 from routing_study.catalog import fetch_catalog
 from routing_study.eval.runner import load_cases
 from routing_study.eval.scorers import routing_scores
+from routing_study.graph.nodes import _routing_input as graph_routing_input
 from routing_study.llm import preload_ollama, unload_ollama
-from routing_study.routers.base import GLOBAL_OPTION, Message, RoutingInput
 from routing_study.routers.pipeline import build_routers
 from routing_study.settings import load_settings
 
@@ -54,12 +54,8 @@ async def sample_memory(base: str, model: str, peak: dict[str, int], stop: async
 
 
 def routing_input(turns: list[dict[str, str]], level: str, skill: str | None = None):
-    return RoutingInput(
-        message=turns[-1]["content"],
-        level=level,  # type: ignore[arg-type]
-        loaded_skill=skill,
-        history=[Message(role=t["role"], content=t["content"]) for t in turns[:-1]],
-    )
+    """The graph's RoutingInput builder: loaded_skill='__global__' after a global skill (F9)."""
+    return graph_routing_input({"case": {"turns": turns}}, level, loaded_skill=skill)
 
 
 async def main() -> None:
@@ -100,9 +96,7 @@ async def main() -> None:
         lat["skill"].append(sk.latency_ms)
         tool = None
         if sk.choice is not None:
-            inp = routing_input(
-                case.turns, "tool", None if sk.choice == GLOBAL_OPTION else sk.choice
-            )
+            inp = routing_input(case.turns, "tool", sk.choice)
             tl = await router.route(inp, catalog.tool_options(sk.choice))
             lat["tool"].append(tl.latency_ms)
             toks.append(int(tl.usage.get("completion_tokens") or 0))
