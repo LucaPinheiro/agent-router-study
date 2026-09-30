@@ -24,7 +24,13 @@ from routing_study.routers.base import (
     RoutingInput,
 )
 from routing_study.routers.calibration import Calibration
-from routing_study.routers.common import BaseRouter, ResponseCache, clamp01, history_text
+from routing_study.routers.common import (
+    BaseRouter,
+    ResponseCache,
+    attach_partial_usage,
+    clamp01,
+    history_text,
+)
 from routing_study.settings import Settings
 
 
@@ -320,25 +326,37 @@ class LLMRouter(BaseRouter):
             json_mode=self.confidence_mode == "logprob",
         )
         stats = RetryStats()
-        out: dict[str, Any] = await call_with_retry(
-            lambda: runnable.ainvoke(messages),
-            model=self._model,
-            settings=self.settings,
-            stats=stats,
-            provider=getattr(self.chat, "provider_name", None),
-        )
+        static_chars, dynamic_chars = prompt_chars(messages)
+
+        def _usage(u: dict[str, Any]) -> dict[str, Any]:
+            return {
+                **u,
+                "calls": 1,
+                "attempts": stats.attempts,
+                "call_ms": stats.call_ms,
+                "queue_ms": stats.queue_ms,
+                "retry_ms": stats.retry_ms,
+                "static_chars": static_chars,
+                "dynamic_chars": dynamic_chars,
+            }
+
+        try:
+            out: dict[str, Any] = await call_with_retry(
+                lambda: runnable.ainvoke(messages),
+                model=self._model,
+                settings=self.settings,
+                stats=stats,
+                provider=getattr(self.chat, "provider_name", None),
+            )
+        except Exception as exc:  # billed reply the client rejected: keep its usage
+            billed = dict(getattr(exc, "call_usage", None) or {"cost_usd": 0.0})
+            cost = float(billed.pop("cost_usd", 0.0) or 0.0)
+            attach_partial_usage(exc, cost, _usage(billed))
+            raise
         raw: AIMessage | None = out.get("raw")
         usage = extract_call_usage(raw)
         cost = usage.pop("cost_usd")
-        static_chars, dynamic_chars = prompt_chars(messages)
-        usage.update(
-            calls=1,
-            attempts=stats.attempts,
-            queue_ms=stats.queue_ms,
-            retry_ms=stats.retry_ms,
-            static_chars=static_chars,
-            dynamic_chars=dynamic_chars,
-        )
+        usage = _usage(usage)
         parsed, error = None, out.get("parsing_error")
         if error is None and out.get("parsed") is not None:
             try:

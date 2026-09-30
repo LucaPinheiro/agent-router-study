@@ -23,7 +23,8 @@ def test_isotonic_fit_is_monotone_with_beta_prior():
     assert len(cal.x) == 3
     # all-correct top block of 3 maps to (3 + 1) / (3 + 2), never to 1.0
     assert cal.y[-1] == pytest.approx(0.8)
-    assert cal(0.0) == pytest.approx(cal.y[0]) and cal(1.0) == pytest.approx(0.8)
+    assert cal(0.05) == pytest.approx(cal.y[0]) and cal(1.0) == pytest.approx(0.8)
+    assert cal(0.0) == 0.0  # the "do not trust" sentinel stays 0
 
 
 def test_isotonic_ties_share_a_block():
@@ -35,7 +36,7 @@ def test_isotonic_ties_share_a_block():
 def test_calibration_interpolates_between_knots():
     cal = Calibration(x=[0.2, 0.6], y=[0.4, 0.8])
     assert cal(0.4) == pytest.approx(0.6)
-    assert cal(0.0) == pytest.approx(0.4) and cal(0.9) == pytest.approx(0.8)
+    assert cal(0.1) == pytest.approx(0.4) and cal(0.9) == pytest.approx(0.8)  # flat outside
 
 
 @pytest.mark.parametrize(

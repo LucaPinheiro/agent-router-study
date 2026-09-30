@@ -705,8 +705,9 @@ def _is_retryable(exc: BaseException) -> bool:
 @dataclass
 class RetryStats:
     """Per `call_with_retry`: `call_ms` is the successful HTTP attempt only (the latency we
-    report); `queue_ms` = provider semaphore + RPM limiter waits; `retry_ms` = failed attempts
-    + backoff sleeps. RPM buckets are shared across roles on purpose: queueing is excluded."""
+    report; on a call that failed for good: its last attempt); `queue_ms` = provider semaphore
+    + RPM limiter waits; `retry_ms` = failed attempts + backoff sleeps. RPM buckets are
+    shared across roles on purpose: queueing is excluded."""
 
     attempts: int = 0
     errors: list[str] = field(default_factory=list)
@@ -777,21 +778,31 @@ async def call_with_retry[T](
         if provider == "ollama"
         else provider_semaphore(model, settings.max_concurrency_per_provider)
     )
+    t_call = t_start
+
+    def _split(t_end: float) -> None:
+        """call_ms = the last attempt; retry_ms = everything else that was not queueing."""
+        stats.call_ms = (t_end - t_call) * 1000
+        stats.retry_ms = max(0.0, (t_end - t_start) * 1000 - stats.queue_ms - stats.call_ms)
+
     async with sem:
         stats.queue_ms += (time.perf_counter() - t_start) * 1000
-        async for attempt in retrying:
-            with attempt:
-                if limiter is not None:
-                    t_q = time.perf_counter()
-                    await limiter.acquire()
-                    stats.queue_ms += (time.perf_counter() - t_q) * 1000
-                stats.attempts += 1
-                t_call = time.perf_counter()
-                result = await fn()
-                t_end = time.perf_counter()
-                stats.call_ms = (t_end - t_call) * 1000
-                stats.retry_ms = max(0.0, (t_end - t_start) * 1000 - stats.queue_ms - stats.call_ms)
-                return result
+        try:
+            async for attempt in retrying:
+                with attempt:
+                    if limiter is not None:
+                        t_q = time.perf_counter()
+                        await limiter.acquire()
+                        stats.queue_ms += (time.perf_counter() - t_q) * 1000
+                    stats.attempts += 1
+                    t_call = time.perf_counter()
+                    result = await fn()
+                    _split(time.perf_counter())
+                    return result
+        except BaseException:  # a failed call still reports its attempts and timing
+            if stats.attempts:
+                _split(time.perf_counter())
+            raise
     raise AssertionError("unreachable")  # pragma: no cover
 
 

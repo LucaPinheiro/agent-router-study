@@ -8,7 +8,9 @@
            the rest is only logged.
 Router spans are tagged while they are open: `decisive=true` on the strategy the pipeline acts
 on, `shadow=true` on every other one (plan §6.2); see `DECIDES`.
-A router exception becomes an abstaining decision with usage["error"] so a batch never dies.
+A router exception becomes an abstaining decision with usage["error"] so a batch never dies;
+the spend/usage of the step's billed calls before the failure (`attach_partial_usage`) is
+kept on that decision (cost, tokens, attempts, call/queue/retry ms).
 When no consulted step accepts and one of them failed, the failure is surfaced as
 `routing_error`, which the runner records as the row's error (excluded from accuracy) rather
 than scoring the outage as an abstention. A failure a later step recovered from is kept in
@@ -126,12 +128,16 @@ class RoutingPipeline:
             d = await self.routers[strategy].route(inp, options)
         except BudgetExceededError:
             raise  # a spend cap aborts the run, it is not a router failure
-        except Exception as exc:  # recorded, never fatal
+        except Exception as exc:  # recorded, never fatal; billed usage so far is kept
             d = RouteDecision(
                 choice=None,
                 confidence=0.0,
                 strategy=strategy,
-                usage={"error": f"{type(exc).__name__}: {exc}"[:500]},
+                cost_usd=float(getattr(exc, "partial_cost_usd", 0.0) or 0.0),
+                usage={
+                    **(getattr(exc, "partial_usage", None) or {}),
+                    "error": f"{type(exc).__name__}: {exc}"[:500],
+                },
             )
         decider.see(d)  # unblock later steps waiting in `decides` (errors, untraced runs)
         return d

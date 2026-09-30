@@ -18,7 +18,12 @@ from routing_study.llm import RetryStats, call_with_retry, extract_call_usage
 from routing_study.prompts.routers import parse_variant
 from routing_study.routers.base import ABSTAIN, RouteDecision, RouteOption, RoutingInput
 from routing_study.routers.calibration import Calibration
-from routing_study.routers.common import BaseRouter, ResponseCache, normalize
+from routing_study.routers.common import (
+    BaseRouter,
+    ResponseCache,
+    attach_partial_usage,
+    normalize,
+)
 from routing_study.routers.llm import (
     build_messages,
     chat_params,
@@ -227,11 +232,17 @@ class JevRouter(BaseRouter):
         messages = self._messages(inp, options)
         static_chars, dynamic_chars = prompt_chars(messages)
         cost = 0.0
-        tokens = {"prompt_tokens": 0, "completion_tokens": 0, "reasoning_tokens": 0}
+        tokens = {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "reasoning_tokens": 0,
+            "cache_read": 0,  # OpenRouter usage.prompt_tokens_details (cached / cache write)
+            "cache_write": 0,
+        }
         served: list[str | None] = []
         providers: list[str | None] = []
         attempts = 0
-        queue_ms = retry_ms = 0.0
+        call_ms = queue_ms = retry_ms = 0.0
         choice: str | None = None
         conf: float | None = None
         conf_raw: Any = None
@@ -240,14 +251,35 @@ class JevRouter(BaseRouter):
         ranked_reply = inp.level == "tool" and self.spec.output != "verbose"
         for call in range(self.parse_retries + 1):
             stats = RetryStats()
-            msg: AIMessage = await call_with_retry(
-                lambda msgs=list(messages): self.chat.ainvoke(msgs),
-                model=self._model,
-                settings=self.settings,
-                stats=stats,
-                provider=getattr(self.chat, "provider_name", None),
-            )
+            try:
+                msg: AIMessage = await call_with_retry(
+                    lambda msgs=list(messages): self.chat.ainvoke(msgs),
+                    model=self._model,
+                    settings=self.settings,
+                    stats=stats,
+                    provider=getattr(self.chat, "provider_name", None),
+                )
+            except Exception as exc:  # keep what the earlier (billed) calls cost
+                billed = getattr(exc, "call_usage", None) or {}
+                partial = {k: v + int(billed.get(k) or 0) for k, v in tokens.items()}
+                attach_partial_usage(
+                    exc,
+                    cost + float(billed.get("cost_usd") or 0.0),
+                    {
+                        "calls": len(served) + (1 if billed else 0),
+                        "attempts": attempts + stats.attempts,
+                        "call_ms": call_ms + stats.call_ms,
+                        "queue_ms": queue_ms + stats.queue_ms,
+                        "retry_ms": retry_ms + stats.retry_ms,
+                        **partial,
+                        "served_models": served,
+                        "static_chars": static_chars,
+                        "dynamic_chars": dynamic_chars,
+                    },
+                )
+                raise
             attempts += stats.attempts
+            call_ms += stats.call_ms
             queue_ms += stats.queue_ms
             retry_ms += stats.retry_ms
             u = extract_call_usage(msg)
@@ -273,6 +305,7 @@ class JevRouter(BaseRouter):
         usage: dict[str, Any] = {
             "calls": len(served),
             "attempts": attempts,
+            "call_ms": call_ms,
             "queue_ms": queue_ms,
             "retry_ms": retry_ms,
             **tokens,

@@ -367,6 +367,17 @@ class BaseRouter:
         )
 
 
+def attach_partial_usage(exc: BaseException, cost_usd: float, usage: dict[str, Any]) -> None:
+    """A router step that fails after billed calls: its spend and usage so far ride on the
+    exception (`partial_cost_usd`, `partial_usage`), which the pipeline keeps on the error
+    decision (F7: the cost of a failed step is not lost from the run's totals)."""
+    try:
+        exc.partial_cost_usd = cost_usd  # type: ignore[attr-defined]
+        exc.partial_usage = usage  # type: ignore[attr-defined]
+    except AttributeError:  # pragma: no cover - exceptions with __slots__
+        pass
+
+
 def abstain(strategy: str, **usage: Any) -> RouteDecision:
     return RouteDecision(choice=None, confidence=0.0, strategy=strategy, usage=usage)
 

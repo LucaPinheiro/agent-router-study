@@ -3,6 +3,7 @@
 `Calibration` is a monotone piecewise-linear map stored in the experiment config (so it is part
 of the config hash); `fit_isotonic` fits one with pool-adjacent-violators (PAV) and a Beta(1,1)
 prior per block, so a small all-correct block maps to (n+1)/(n+2), never to exactly 1.0.
+A raw confidence of 0 is a "do not trust" sentinel and stays 0 after calibration.
 """
 
 from __future__ import annotations
@@ -34,6 +35,11 @@ class Calibration(BaseModel):
         return self
 
     def __call__(self, raw: float) -> float:
+        """Sentinel rule: a raw confidence of 0 (or below) means "do not trust this choice"
+        (missing/invalid reported confidence, no logprobs) and maps to 0, never to the map's
+        floor; every other value is interpolated."""
+        if raw <= 0.0:
+            return 0.0
         return float(np.interp(raw, self.x, self.y))
 
 
