@@ -1,0 +1,14 @@
+# E0 — baseline: no router; the native agent calls load_skill by itself.
+routing:
+  mode: native
+  skill:
+    pipeline: []
+    on_abstain: escalate
+  tool:
+    expose_top_k: 2
+    pipeline: []
+
+executor:
+  model: anthropic/claude-sonnet-5   # sees globals + load_skill, then the loaded skill's tools
+  temperature: 0
+  max_tool_iterations: 3
