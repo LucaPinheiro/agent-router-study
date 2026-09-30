@@ -1,0 +1,8 @@
+{
+  "model": "google/gemini-2.5-flash",
+  "temperature": 0.9,
+  "n_synthetic": 396,
+  "rejected_invalid": 93,
+  "rejected_duplicate": 1,
+  "total_cost_usd": 0.6459
+}
