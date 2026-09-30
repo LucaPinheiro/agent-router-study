@@ -12,7 +12,9 @@ out-of-scope mapping, wrong-skill and error rules are the same everywhere (revie
 - joint % counts a wrong skill as 0 and a tool stage that cannot be replayed (`n_unavail`) as
   0 too (lower bound); `joint cov.` excludes the latter and the error rows;
 - cost / p50 latency are over the keys whose whole route every entry could simulate;
-- 95% CIs: paired cluster bootstrap over case ids (fixed seed, 10k); McNemar vs E5 on joint.
+- 95% CIs: cluster bootstrap over case ids (fixed seed, 10k);
+- contrasts (`--reference X` = every entry vs X; `--contrast run:ref[:family[:kind[:margin]]]`):
+  paired Δ CI, case-level McNemar / sign-flip, Holm within family (`eval/stats.py`, F4).
 `--single` adds real (non-shadow) runs, e.g. E6 Haiku, whose LLM differs from the shadow LLM.
 """
 
@@ -26,10 +28,11 @@ from typing import Any
 
 import numpy as np
 
+from routing_study.eval.report import render_contrasts
 from routing_study.eval.rescore import read_rescored
 from routing_study.eval.scorers import routing_failure
 from routing_study.eval.simulate import simulate_rows
-from routing_study.eval.stats import bootstrap_mean, bootstrap_stat, fmt_ci, mcnemar
+from routing_study.eval.stats import Contrast, bootstrap_mean, bootstrap_stat, fmt_ci
 from routing_study.routers.base import ABSTAIN
 from routing_study.settings import (
     PipelineStep,
@@ -51,7 +54,6 @@ CASCADES = (
     "e8_regex_llm",
     "e9_regex_jev_llm",
 )
-REFERENCE = "e5_llm_sonnet"
 
 
 def choice(d: dict[str, Any] | None) -> str:
@@ -125,7 +127,6 @@ def entry_stats(
     keys: set[Any],
     error_free: set[Any],
     costed: set[Any],
-    ref: dict[Any, float] | None,
 ) -> dict[str, Any]:
     """ITT over `keys` (an error row is wrong); `error_free` keys give the sensitivity CI."""
     rows = [x for x in res if x["key"] in keys]
@@ -150,7 +151,7 @@ def entry_stats(
         "ece": ece([(float(x.get("confidence") or 0), float(x["skill_correct"])) for x in ok]),
         "cost_ci": bootstrap_mean(by_case(cost_rows, "cost_usd")),
         "p50_ci": bootstrap_stat(by_case(cost_rows, "latency_ms"), np.median),
-        "mcnemar": mcnemar(joint, ref) if ref is not None and name != REFERENCE else None,
+        "joint_scores": joint,
         "resolved_by": dict(Counter(x["resolved_by"] for x in ok)),
         "by_cat": {c: pct(cats[c]) for c in CATEGORIES},
     }
@@ -172,14 +173,14 @@ def confusions(rows: list[dict[str, Any]], s: str, top: int = 5) -> list[tuple[s
     return c.most_common(top)
 
 
-def _mc(m: tuple[int, int, int, float] | None) -> str:
-    return "-" if m is None else f"{m[1]}/{m[2]} p={m[3]:.3g}"
-
-
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("shadow", type=Path)
     ap.add_argument("--single", type=Path, nargs="*", default=[])
+    ap.add_argument("--reference", help="entry every other entry is contrasted with")
+    ap.add_argument(
+        "--contrast", action="append", default=[], help="run:ref[:family[:kind[:margin]]]"
+    )
     args = ap.parse_args()
     prov, rows = read_rescored(args.shadow)
     rows = [r for r in rows if (r.get("skill") or {}).get("shadow")]
@@ -203,13 +204,7 @@ def main() -> None:
             for res in entries.values()
         )
     )
-    ref_rows = entries.get(REFERENCE) or []
-    ref = {
-        x["key"]: 0.0 if x["error"] else x.get("joint_correct") or 0.0
-        for x in ref_rows
-        if x["key"] in keys
-    }
-    stats = [entry_stats(n, res, keys, error_free, costed, ref) for n, res in entries.items()]
+    stats = [entry_stats(n, res, keys, error_free, costed) for n, res in entries.items()]
 
     print(f"# shadow run {args.shadow.name}: {len(rows)} rows\n")
     print(
@@ -221,18 +216,31 @@ def main() -> None:
     print(
         "| entry | n | err | err % | skill % | joint % 95% CI (ITT) | joint % error-free ∩ "
         "(sensitivity) | joint cov. % | n_unavail | ECE | US$/1k routing 95% CI "
-        "| p50 ms 95% CI | McNemar joint vs E5 (entry/E5 only) | resolved_by |"
+        "| p50 ms 95% CI | resolved_by |"
     )
-    print("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+    print("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
     for s in stats:
         print(
             f"| {s['name']} | {s['n']} | {s['errors']} | {s['err_pct']} | {s['skill']} "
             f"| {fmt_ci(s['joint_ci'])} | {fmt_ci(s['joint_ef_ci'])} "
             f"| {s['joint_cov']} | {s['n_unavail']} | {s['ece']:.3f} "
             f"| {fmt_ci(s['cost_ci'], scale=1000.0, digits=4)} "
-            f"| {fmt_ci(s['p50_ci'], scale=1.0, digits=0)} | {_mc(s['mcnemar'])} "
+            f"| {fmt_ci(s['p50_ci'], scale=1.0, digits=0)} "
             f"| {s['resolved_by']} |"
         )
+    pseudo = [
+        {"run": s["name"], "config": s["name"], "headline_scores": s["joint_scores"]} for s in stats
+    ]
+    contrasts = [Contrast.parse(c) for c in args.contrast]
+    if args.reference:
+        contrasts += [
+            Contrast(s["name"], args.reference, family=f"vs {args.reference}")
+            for s in stats
+            if s["name"] != args.reference
+        ]
+    if contrasts:
+        print()
+        print("\n".join(render_contrasts(pseudo, contrasts, "joint_correct (ITT)")))
     print("\n## skill accuracy by category\n")
     print("| entry | " + " | ".join(CATEGORIES) + " |")
     print("|---|" + "---|" * len(CATEGORIES))

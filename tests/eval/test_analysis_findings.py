@@ -158,10 +158,30 @@ def test_f2_report_is_itt_with_error_rate_and_an_error_free_sensitivity(tmp_path
     # sensitivity: c20 dropped for both runs
     assert by["e5"]["n_shared"] == by["e3"]["n_shared"] == 20
     assert by["e3"]["error_free_ci"][0] == pytest.approx(0.5)
-    assert by["e3"]["mcnemar"][:3] == (21, 0, 11)
     path = tmp_path / "r.jsonl"
     path.write_text(json.dumps({"_provenance": {}}) + "\n" + "\n".join(map(json.dumps, rows)))
     text = render([path])
     assert "tool_top1%" in text and "tool_first_call%" not in text  # L1 labels
     assert "intention to treat" in text and "err%" in text
     assert "SENSITIVITY: 20 case ids error-free in every run" in text
+
+
+def test_f4_report_contrasts_use_a_configurable_reference_at_case_level(tmp_path: Path) -> None:
+    from routing_study.eval.stats import Contrast
+
+    rows = []
+    for i in range(20):
+        for rep in (1, 2, 3):
+            rows.append(_rescored("e5", "e5_llm_sonnet_tuned", f"c{i}", 1.0) | {"rep": rep})
+            rows.append(_rescored("e9", "e9_regex_jev_llm", f"c{i}", float(i < 10)) | {"rep": rep})
+    path = tmp_path / "r.jsonl"
+    path.write_text(json.dumps({"_provenance": {}}) + "\n" + "\n".join(map(json.dumps, rows)))
+    text = render([path], reference="e5_llm_sonnet_tuned")
+    # case level: 10 discordant CASES (not 30 (case, rep) pairs)
+    assert "| vs e5_llm_sonnet_tuned | e9 | e5_llm_sonnet_tuned | two_sided | 20 " in text
+    assert "0/10 p=0.00195" in text
+    ni = Contrast("e9", "e5", family="H1", kind="non_inferiority", margin=0.03)
+    text = render([path], contrasts=[ni])
+    assert "| H1 | e9 | e5 | non_inferiority ±3pp | 20 | -50.0 [" in text
+    assert "not shown" in text
+    assert "contrasts" not in render([path])  # no implicit reference

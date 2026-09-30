@@ -7,8 +7,12 @@
 - Columns are labelled by what they measure (L1): routing-only `tool_top1` (router's top-1)
   vs e2e `tool_first_call` (executor's first business call, or clarification credit).
 - Headline: joint (skill and tool) accuracy for routing-only, e2e success (with and without
-  invented arguments, H3) for e2e, each with a paired cluster-bootstrap 95% CI, plus the
-  study cost / p50 latency CIs and an exact McNemar test against E5 on shared (case, rep).
+  invented arguments, H3) for e2e, each with a cluster-bootstrap 95% CI, plus the study cost
+  / p50 latency CIs.
+- Contrasts (F4): explicit `run - reference` pairs (never a hard-coded reference), each
+  with the paired cluster-bootstrap CI of Δ, case-level McNemar and sign-flip p-values (per-case
+  means over reps), Holm within its family and the NI / TOST verdict for margin kinds
+  (`eval/stats.py`). `--reference X` is sugar for "every run vs X" in one family.
 - Cost (B6): `$study/case` is the ORIGINAL cost of every decision (cache-independent, what
   a production run pays); `$paid` is what this run was billed (cache hits free);
   `$list/case` is list price without prompt-cache discount (L2; needs `rescore --prices`).
@@ -24,9 +28,14 @@ from typing import Any
 import numpy as np
 
 from routing_study.eval.rescore import read_rescored
-from routing_study.eval.stats import bootstrap_mean, bootstrap_stat, fmt_ci, mcnemar
+from routing_study.eval.stats import (
+    Contrast,
+    bootstrap_mean,
+    bootstrap_stat,
+    evaluate_contrasts,
+    fmt_ci,
+)
 
-REFERENCE = "e5_llm_sonnet"
 COLUMNS = {
     "routing-only": (
         ("skill%", "skill_correct"),
@@ -117,7 +126,7 @@ def _headline(rs: list[dict[str, Any]], keys: set[str] | None, head: str) -> dic
     }
 
 
-def summarize(rows: list[dict[str, Any]], reference: str = REFERENCE) -> list[dict[str, Any]]:
+def summarize(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     by_mode: dict[str, dict[str, list[dict[str, Any]]]] = {}
     for r in rows:
         by_mode.setdefault(r["mode"], {}).setdefault(r["run_name"], []).append(r)
@@ -125,8 +134,6 @@ def summarize(rows: list[dict[str, Any]], reference: str = REFERENCE) -> list[di
     for mode, groups in by_mode.items():
         shared = shared_cases(groups)
         head = HEADLINE[mode]
-        ref = next((rs for rs in groups.values() if rs[0]["config"] == reference), None)
-        ref_scores = _headline(ref, None, head) if ref else None
         for name, rs in groups.items():
             ok = [r for r in rs if not r.get("error")]
             errors = len(rs) - len(ok)
@@ -169,11 +176,7 @@ def summarize(rows: list[dict[str, Any]], reference: str = REFERENCE) -> list[di
                 key = r["scores"].get("resolved_by") or "-"
                 resolved[key] = resolved.get(key, 0) + 1
             row["resolved_by"] = resolved
-            row["mcnemar"] = (
-                mcnemar(_headline(rs, None, head), ref_scores)
-                if ref_scores is not None and rs is not ref
-                else None
-            )
+            row["headline_scores"] = _headline(rs, None, head)
             out.append(row)
     return out
 
@@ -190,8 +193,73 @@ def _mc(m: tuple[int, int, int, float] | None) -> str:
     return "-" if m is None else f"{m[1]}/{m[2]} p={m[3]:.3g}"
 
 
-def render(paths: Iterable[Path], reference: str = REFERENCE) -> str:
-    summary = summarize(load_results(paths), reference)
+def _pval(p: float | None) -> str:
+    return "-" if p is None else f"{p:.3g}"
+
+
+def contrast_scores(rows: list[dict[str, Any]]) -> dict[str, dict[Any, float]]:
+    """name -> (case, rep) -> ITT headline, by run name and, when unique, by config name."""
+    out: dict[str, dict[Any, float]] = {r["run"]: r["headline_scores"] for r in rows}
+    by_config: dict[str, list[dict[str, Any]]] = {}
+    for r in rows:
+        by_config.setdefault(r["config"], []).append(r)
+    for config, rs in by_config.items():
+        if len(rs) == 1:
+            out.setdefault(config, rs[0]["headline_scores"])
+    return out
+
+
+def render_contrasts(rows: list[dict[str, Any]], contrasts: list[Contrast], head: str) -> list[str]:
+    results = evaluate_contrasts(contrast_scores(rows), contrasts)
+    lines = [
+        f"### contrasts on {head} (case level: per-case means over reps; Holm within family)",
+        "",
+        "| family | run | reference | kind | n cases | Δ pp 95% CI (paired bootstrap) "
+        "| McNemar case-level (run-only/ref-only) | sign-flip p | Holm p | reject | verdict |",
+        "|---|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    for res in results:
+        c = res["contrast"]
+        kind = c.kind if c.kind in ("two_sided", "greater") else f"{c.kind} ±{100 * c.margin:g}pp"
+        if "missing" in res:
+            lines.append(
+                f"| {c.family} | {c.run} | {c.reference} | {kind} | - | missing run "
+                f"{res['missing']} | | | | | |"
+            )
+            continue
+        v = res.get("verdict") or {}
+        verdict = (
+            ("non-inferior" if v["non_inferior"] else "not shown")
+            if "non_inferior" in v
+            else v.get("conclusion") or "-"
+        )
+        lines.append(
+            f"| {c.family} | {c.run} | {c.reference} | {kind} | {res['n_cases']} "
+            f"| {fmt_ci(res['delta_ci'])} | {_mc(res['mcnemar'])} | {_pval(res['p'])} "
+            f"| {_pval(res.get('p_holm'))} | {'yes' if res.get('reject') else 'no'} | {verdict} |"
+        )
+    return lines + [""]
+
+
+def default_contrasts(rows: list[dict[str, Any]], reference: str) -> list[Contrast]:
+    """Every run vs `reference` (a run or config name), two-sided, in one family."""
+    names = contrast_scores(rows)
+    if reference not in names:
+        return []
+    ref = names[reference]
+    return [
+        Contrast(r["run"], reference, family=f"vs {reference}")
+        for r in rows
+        if r["headline_scores"] is not ref
+    ]
+
+
+def render(
+    paths: Iterable[Path],
+    reference: str | None = None,
+    contrasts: list[Contrast] | None = None,
+) -> str:
+    summary = summarize(load_results(paths))
     lines: list[str] = []
     for mode in ("routing-only", "e2e"):
         rows = [r for r in summary if r["mode"] == mode]
@@ -205,8 +273,7 @@ def render(paths: Iterable[Path], reference: str = REFERENCE) -> str:
             + [f"{head} 95% CI"]
             + (["e2e_strict 95% CI"] if mode == "e2e" else [])
             + ["$study/case 95% CI (x1000)", "$paid total", "$list/case", "p50 ms 95% CI"]
-            + ["rt_p95", "ex_p50", "ex_p95", f"McNemar vs {reference} (run-only/ref-only)"]
-            + ["resolved_by"]
+            + ["rt_p95", "ex_p50", "ex_p95", "resolved_by"]
         )
         lines += [
             f"## {mode}: intention to treat (an error row counts as wrong)",
@@ -228,7 +295,6 @@ def render(paths: Iterable[Path], reference: str = REFERENCE) -> str:
                 _ms(r["routing_p95"]),
                 _ms(r["executor_p50"]),
                 _ms(r["executor_p95"]),
-                _mc(r["mcnemar"]),
                 ",".join(f"{k}:{v}" for k, v in sorted(r["resolved_by"].items())),
             ]
             lines.append("| " + " | ".join(cells) + " |")
@@ -242,4 +308,11 @@ def render(paths: Iterable[Path], reference: str = REFERENCE) -> str:
         ]
         lines += [f"| {r['run']} | {r['n_shared']} | {fmt_ci(r['error_free_ci'])} |" for r in rows]
         lines.append("")
+        wanted = contrasts if contrasts is not None else []
+        if reference is not None:
+            wanted = wanted + default_contrasts(rows, reference)
+        names = contrast_scores(rows)
+        mine = [c for c in wanted if c.run in names or c.reference in names]
+        if mine:
+            lines += render_contrasts(rows, mine, head)
     return "\n".join(lines)

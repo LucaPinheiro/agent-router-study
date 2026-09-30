@@ -34,7 +34,7 @@ def test_f2_entry_stats_counts_errors_as_wrong_and_reports_the_error_free_sensit
     res[-1].pop("skill_correct")
     keys = {x["key"] for x in res}
     error_free = keys - {("c3", 1)}
-    s = study_report.entry_stats("e", res, keys, error_free, error_free, None)
+    s = study_report.entry_stats("e", res, keys, error_free, error_free)
     assert s["n"] == 4 and s["errors"] == 1 and s["err_pct"] == "25.0"
     assert s["joint_ci"][0] == pytest.approx(0.75) and s["skill"] == "75.0"
     assert s["joint_ef_ci"][0] == 1.0
