@@ -1,0 +1,5310 @@
+{
+ "_meta": {
+  "io.modelcontextprotocol/serverInfo": {
+   "name": "routing-study-pos-venda",
+   "version": "0.1.0"
+  }
+ },
+ "ttlMs": 300000,
+ "cacheScope": "public",
+ "tools": [
+  {
+   "name": "cancel_order",
+   "title": "Cancelar pedido",
+   "description": "Cancela um pedido que ainda não foi enviado; o estorno do pagamento é automático. Irreversível.\nWHEN TO USE: \"quero cancelar meu pedido\", desistência antes do envio.\nDON'T USE FOR: pedido já entregue (use create_return_request); dinheiro de volta de pedido já cancelado ou extraviado (use request_refund); cobrança não reconhecida (use dispute_charge).\nPARAMETERS: order_id opcional se o cliente tem um só pedido; reason opcional.\nCONFIRMATION: o servidor não pede confirmação; a ação é irreversível.\nRESULT: protocolo, valor e prazo do estorno; repasse sem alterar.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "order_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Número do pedido (ex.: O0001). Omita se o cliente tem um só pedido"
+     },
+     "reason": {
+      "anyOf": [
+       {
+        "maxLength": 300,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Motivo dito pelo cliente, se houver"
+     }
+    }
+   },
+   "outputSchema": {
+    "type": "object",
+    "$defs": {
+     "Money": {
+      "additionalProperties": false,
+      "properties": {
+       "amount": {
+        "description": "Valor com 2 casas decimais",
+        "title": "Amount",
+        "type": "number"
+       },
+       "currency": {
+        "const": "BRL",
+        "default": "BRL",
+        "title": "Currency",
+        "type": "string"
+       }
+      },
+      "required": [
+       "amount"
+      ],
+      "title": "Money",
+      "type": "object"
+     },
+     "Address": {
+      "additionalProperties": false,
+      "properties": {
+       "street": {
+        "title": "Street",
+        "type": "string"
+       },
+       "number": {
+        "title": "Number",
+        "type": "string"
+       },
+       "complement": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Complement"
+       },
+       "neighborhood": {
+        "title": "Neighborhood",
+        "type": "string"
+       },
+       "city": {
+        "title": "City",
+        "type": "string"
+       },
+       "state": {
+        "description": "UF, 2 letras",
+        "title": "State",
+        "type": "string"
+       },
+       "postal_code": {
+        "description": "CEP, 8 dígitos",
+        "title": "Postal Code",
+        "type": "string"
+       }
+      },
+      "required": [
+       "street",
+       "number",
+       "neighborhood",
+       "city",
+       "state",
+       "postal_code"
+      ],
+      "title": "Address",
+      "type": "object"
+     },
+     "OrderRef": {
+      "additionalProperties": false,
+      "properties": {
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "status": {
+        "title": "Status",
+        "type": "string"
+       },
+       "created_at": {
+        "description": "Data ISO 8601",
+        "title": "Created At",
+        "type": "string"
+       },
+       "total": {
+        "$ref": "#/$defs/Money"
+       }
+      },
+      "required": [
+       "order_id",
+       "status",
+       "created_at",
+       "total"
+      ],
+      "title": "OrderRef",
+      "type": "object"
+     },
+     "CancellationResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "completed",
+        "default": "completed",
+        "title": "Status",
+        "type": "string"
+       },
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "protocol": {
+        "title": "Protocol",
+        "type": "string"
+       },
+       "cancelled_at": {
+        "title": "Cancelled At",
+        "type": "string"
+       },
+       "refund_amount": {
+        "$ref": "#/$defs/Money"
+       },
+       "refund_method": {
+        "title": "Refund Method",
+        "type": "string"
+       },
+       "refund_deadline": {
+        "title": "Refund Deadline",
+        "type": "string"
+       }
+      },
+      "required": [
+       "order_id",
+       "protocol",
+       "cancelled_at",
+       "refund_amount",
+       "refund_method",
+       "refund_deadline"
+      ],
+      "title": "CancellationResult",
+      "type": "object"
+     },
+     "ErrorResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "error",
+        "default": "error",
+        "title": "Status",
+        "type": "string"
+       },
+       "code": {
+        "enum": [
+         "NOT_FOUND",
+         "NOT_ELIGIBLE",
+         "VALIDATION_ERROR"
+        ],
+        "title": "Code",
+        "type": "string"
+       },
+       "message": {
+        "title": "Message",
+        "type": "string"
+       },
+       "recoverable": {
+        "title": "Recoverable",
+        "type": "boolean"
+       },
+       "suggested_tool": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Suggested Tool"
+       },
+       "details": {
+        "anyOf": [
+         {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Details"
+       }
+      },
+      "required": [
+       "code",
+       "message",
+       "recoverable"
+      ],
+      "title": "ErrorResult",
+      "type": "object"
+     }
+    },
+    "discriminator": {
+     "mapping": {
+      "completed": "#/$defs/CancellationResult",
+      "error": "#/$defs/ErrorResult"
+     },
+     "propertyName": "status"
+    },
+    "oneOf": [
+     {
+      "$ref": "#/$defs/CancellationResult"
+     },
+     {
+      "$ref": "#/$defs/ErrorResult"
+     }
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "br.routingstudy/skill": "pedidos_logistica",
+    "br.routingstudy/examples": [
+     "Quero cancelar meu pedido",
+     "Desisti da compra, cancela o O0004 por favor",
+     "Comprei errado, dá para cancelar antes de enviar?",
+     "Cancela a compra que fiz ontem"
+    ],
+    "br.routingstudy/keywords": [
+     "cancelar",
+     "cancelamento",
+     "desistir",
+     "anular compra",
+     "nao quero mais"
+    ],
+    "br.routingstudy/confirmation": "none",
+    "br.routingstudy/scope": "orders:cancel",
+    "br.routingstudy/elicitation": []
+   }
+  },
+  {
+   "name": "check_return_eligibility",
+   "title": "Verificar elegibilidade de devolução",
+   "description": "Verifica se um pedido entregue ainda pode ser devolvido, trocado ou coberto pela garantia, com o prazo de cada opção.\nWHEN TO USE: \"ainda dá para devolver?\", \"posso trocar?\", prazo incerto antes de abrir devolução, troca ou garantia.\nDON'T USE FOR: abrir a devolução (use create_return_request), a troca (use create_exchange) ou a garantia (use open_warranty_claim); regra geral sem pedido (use search_help_center).\nPARAMETERS: order_id opcional se o cliente tem um só pedido.\nCONFIRMATION: não requer.\nRESULT: opções elegíveis e prazos; repasse sem alterar.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "order_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Número do pedido (ex.: O0001). Omita se o cliente tem um só pedido"
+     }
+    }
+   },
+   "outputSchema": {
+    "type": "object",
+    "$defs": {
+     "Money": {
+      "additionalProperties": false,
+      "properties": {
+       "amount": {
+        "description": "Valor com 2 casas decimais",
+        "title": "Amount",
+        "type": "number"
+       },
+       "currency": {
+        "const": "BRL",
+        "default": "BRL",
+        "title": "Currency",
+        "type": "string"
+       }
+      },
+      "required": [
+       "amount"
+      ],
+      "title": "Money",
+      "type": "object"
+     },
+     "Address": {
+      "additionalProperties": false,
+      "properties": {
+       "street": {
+        "title": "Street",
+        "type": "string"
+       },
+       "number": {
+        "title": "Number",
+        "type": "string"
+       },
+       "complement": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Complement"
+       },
+       "neighborhood": {
+        "title": "Neighborhood",
+        "type": "string"
+       },
+       "city": {
+        "title": "City",
+        "type": "string"
+       },
+       "state": {
+        "description": "UF, 2 letras",
+        "title": "State",
+        "type": "string"
+       },
+       "postal_code": {
+        "description": "CEP, 8 dígitos",
+        "title": "Postal Code",
+        "type": "string"
+       }
+      },
+      "required": [
+       "street",
+       "number",
+       "neighborhood",
+       "city",
+       "state",
+       "postal_code"
+      ],
+      "title": "Address",
+      "type": "object"
+     },
+     "OrderRef": {
+      "additionalProperties": false,
+      "properties": {
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "status": {
+        "title": "Status",
+        "type": "string"
+       },
+       "created_at": {
+        "description": "Data ISO 8601",
+        "title": "Created At",
+        "type": "string"
+       },
+       "total": {
+        "$ref": "#/$defs/Money"
+       }
+      },
+      "required": [
+       "order_id",
+       "status",
+       "created_at",
+       "total"
+      ],
+      "title": "OrderRef",
+      "type": "object"
+     },
+     "EligibilityOption": {
+      "additionalProperties": false,
+      "properties": {
+       "type": {
+        "enum": [
+         "arrependimento",
+         "devolucao_troca",
+         "garantia"
+        ],
+        "title": "Type",
+        "type": "string"
+       },
+       "eligible": {
+        "title": "Eligible",
+        "type": "boolean"
+       },
+       "deadline": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "description": "Último dia (ISO 8601)",
+        "title": "Deadline"
+       },
+       "tool": {
+        "description": "Tool que executa esta opção",
+        "title": "Tool",
+        "type": "string"
+       }
+      },
+      "required": [
+       "type",
+       "eligible",
+       "tool"
+      ],
+      "title": "EligibilityOption",
+      "type": "object"
+     },
+     "ErrorResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "error",
+        "default": "error",
+        "title": "Status",
+        "type": "string"
+       },
+       "code": {
+        "enum": [
+         "NOT_FOUND",
+         "NOT_ELIGIBLE",
+         "VALIDATION_ERROR"
+        ],
+        "title": "Code",
+        "type": "string"
+       },
+       "message": {
+        "title": "Message",
+        "type": "string"
+       },
+       "recoverable": {
+        "title": "Recoverable",
+        "type": "boolean"
+       },
+       "suggested_tool": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Suggested Tool"
+       },
+       "details": {
+        "anyOf": [
+         {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Details"
+       }
+      },
+      "required": [
+       "code",
+       "message",
+       "recoverable"
+      ],
+      "title": "ErrorResult",
+      "type": "object"
+     },
+     "ReturnEligibilityResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "completed",
+        "default": "completed",
+        "title": "Status",
+        "type": "string"
+       },
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "delivered_at": {
+        "title": "Delivered At",
+        "type": "string"
+       },
+       "eligible": {
+        "title": "Eligible",
+        "type": "boolean"
+       },
+       "options": {
+        "items": {
+         "$ref": "#/$defs/EligibilityOption"
+        },
+        "title": "Options",
+        "type": "array"
+       }
+      },
+      "required": [
+       "order_id",
+       "delivered_at",
+       "eligible",
+       "options"
+      ],
+      "title": "ReturnEligibilityResult",
+      "type": "object"
+     }
+    },
+    "discriminator": {
+     "mapping": {
+      "completed": "#/$defs/ReturnEligibilityResult",
+      "error": "#/$defs/ErrorResult"
+     },
+     "propertyName": "status"
+    },
+    "oneOf": [
+     {
+      "$ref": "#/$defs/ReturnEligibilityResult"
+     },
+     {
+      "$ref": "#/$defs/ErrorResult"
+     }
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "br.routingstudy/skill": "trocas_devolucoes",
+    "br.routingstudy/examples": [
+     "Ainda dá tempo de devolver o que comprei?",
+     "Posso trocar o produto do pedido O0010?",
+     "Recebi há duas semanas, ainda tenho direito à troca?",
+     "Meu produto ainda está na garantia?"
+    ],
+    "br.routingstudy/keywords": [
+     "elegivel",
+     "ainda da",
+     "prazo de devolucao",
+     "posso devolver",
+     "posso trocar"
+    ],
+    "br.routingstudy/confirmation": "none",
+    "br.routingstudy/scope": "returns:read"
+   }
+  },
+  {
+   "name": "create_exchange",
+   "title": "Abrir troca",
+   "description": "Abre a troca de um item entregue por outro tamanho, cor ou variação do mesmo produto.\nWHEN TO USE: \"veio no tamanho errado, quero trocar\", \"quero outra cor\", em até 30 dias da entrega.\nDON'T USE FOR: dinheiro de volta (use create_return_request); defeito após 30 dias (use open_warranty_claim); pedido não entregue (use get_order_status).\nPARAMETERS: new_variant = tamanho, cor ou variação dita pelo cliente; sku opcional se o pedido tem um só item.\nCONFIRMATION: não requer.\nRESULT: id da troca e prazo de postagem; repasse sem alterar.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "new_variant": {
+      "description": "Tamanho, cor ou variação desejada (ex.: 41, G, azul)",
+      "maxLength": 60,
+      "type": "string"
+     },
+     "order_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Número do pedido (ex.: O0001). Omita se o cliente tem um só pedido"
+     },
+     "sku": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "SKU do item. Omita se o pedido tem um só item"
+     }
+    },
+    "required": [
+     "new_variant"
+    ]
+   },
+   "outputSchema": {
+    "type": "object",
+    "$defs": {
+     "Money": {
+      "additionalProperties": false,
+      "properties": {
+       "amount": {
+        "description": "Valor com 2 casas decimais",
+        "title": "Amount",
+        "type": "number"
+       },
+       "currency": {
+        "const": "BRL",
+        "default": "BRL",
+        "title": "Currency",
+        "type": "string"
+       }
+      },
+      "required": [
+       "amount"
+      ],
+      "title": "Money",
+      "type": "object"
+     },
+     "Address": {
+      "additionalProperties": false,
+      "properties": {
+       "street": {
+        "title": "Street",
+        "type": "string"
+       },
+       "number": {
+        "title": "Number",
+        "type": "string"
+       },
+       "complement": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Complement"
+       },
+       "neighborhood": {
+        "title": "Neighborhood",
+        "type": "string"
+       },
+       "city": {
+        "title": "City",
+        "type": "string"
+       },
+       "state": {
+        "description": "UF, 2 letras",
+        "title": "State",
+        "type": "string"
+       },
+       "postal_code": {
+        "description": "CEP, 8 dígitos",
+        "title": "Postal Code",
+        "type": "string"
+       }
+      },
+      "required": [
+       "street",
+       "number",
+       "neighborhood",
+       "city",
+       "state",
+       "postal_code"
+      ],
+      "title": "Address",
+      "type": "object"
+     },
+     "OrderRef": {
+      "additionalProperties": false,
+      "properties": {
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "status": {
+        "title": "Status",
+        "type": "string"
+       },
+       "created_at": {
+        "description": "Data ISO 8601",
+        "title": "Created At",
+        "type": "string"
+       },
+       "total": {
+        "$ref": "#/$defs/Money"
+       }
+      },
+      "required": [
+       "order_id",
+       "status",
+       "created_at",
+       "total"
+      ],
+      "title": "OrderRef",
+      "type": "object"
+     },
+     "ErrorResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "error",
+        "default": "error",
+        "title": "Status",
+        "type": "string"
+       },
+       "code": {
+        "enum": [
+         "NOT_FOUND",
+         "NOT_ELIGIBLE",
+         "VALIDATION_ERROR"
+        ],
+        "title": "Code",
+        "type": "string"
+       },
+       "message": {
+        "title": "Message",
+        "type": "string"
+       },
+       "recoverable": {
+        "title": "Recoverable",
+        "type": "boolean"
+       },
+       "suggested_tool": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Suggested Tool"
+       },
+       "details": {
+        "anyOf": [
+         {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Details"
+       }
+      },
+      "required": [
+       "code",
+       "message",
+       "recoverable"
+      ],
+      "title": "ErrorResult",
+      "type": "object"
+     },
+     "ExchangeResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "completed",
+        "default": "completed",
+        "title": "Status",
+        "type": "string"
+       },
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "exchange_id": {
+        "title": "Exchange Id",
+        "type": "string"
+       },
+       "sku": {
+        "title": "Sku",
+        "type": "string"
+       },
+       "new_variant": {
+        "title": "New Variant",
+        "type": "string"
+       },
+       "post_by": {
+        "title": "Post By",
+        "type": "string"
+       }
+      },
+      "required": [
+       "order_id",
+       "exchange_id",
+       "sku",
+       "new_variant",
+       "post_by"
+      ],
+      "title": "ExchangeResult",
+      "type": "object"
+     }
+    },
+    "discriminator": {
+     "mapping": {
+      "completed": "#/$defs/ExchangeResult",
+      "error": "#/$defs/ErrorResult"
+     },
+     "propertyName": "status"
+    },
+    "oneOf": [
+     {
+      "$ref": "#/$defs/ExchangeResult"
+     },
+     {
+      "$ref": "#/$defs/ErrorResult"
+     }
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "br.routingstudy/skill": "trocas_devolucoes",
+    "br.routingstudy/examples": [
+     "O tênis veio no tamanho errado, quero trocar por 41",
+     "Quero trocar a camiseta por uma G",
+     "Dá para trocar a cor da jaqueta?",
+     "Ficou apertado, quero um número maior"
+    ],
+    "br.routingstudy/keywords": [
+     "trocar",
+     "troca",
+     "tamanho",
+     "cor",
+     "numero maior",
+     "outra variacao"
+    ],
+    "br.routingstudy/confirmation": "none",
+    "br.routingstudy/scope": "returns:write",
+    "br.routingstudy/elicitation": []
+   }
+  },
+  {
+   "name": "create_return_request",
+   "title": "Abrir devolução",
+   "description": "Abre a devolução de produto entregue, com reembolso após a loja receber o item.\nWHEN TO USE: \"quero devolver\", arrependimento em até 7 dias; defeito, avaria ou produto errado em até 30 dias da entrega.\nDON'T USE FOR: pedido não enviado (use cancel_order); trocar tamanho ou cor (use create_exchange); defeito após 30 dias (use open_warranty_claim); pedido extraviado (use request_refund).\nPARAMETERS: reason = arrependimento | defeito | avariado | produto_errado | tamanho_errado; sku opcional (omitido = pedido inteiro).\nCONFIRMATION: não requer.\nRESULT: id da devolução, valor e prazo de postagem; repasse sem alterar.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "reason": {
+      "description": "Motivo da devolução",
+      "enum": [
+       "arrependimento",
+       "defeito",
+       "avariado",
+       "produto_errado",
+       "tamanho_errado"
+      ],
+      "type": "string"
+     },
+     "order_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Número do pedido (ex.: O0001). Omita se o cliente tem um só pedido"
+     },
+     "sku": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "SKU do item. Omita se o pedido tem um só item"
+     }
+    },
+    "required": [
+     "reason"
+    ]
+   },
+   "outputSchema": {
+    "type": "object",
+    "$defs": {
+     "Money": {
+      "additionalProperties": false,
+      "properties": {
+       "amount": {
+        "description": "Valor com 2 casas decimais",
+        "title": "Amount",
+        "type": "number"
+       },
+       "currency": {
+        "const": "BRL",
+        "default": "BRL",
+        "title": "Currency",
+        "type": "string"
+       }
+      },
+      "required": [
+       "amount"
+      ],
+      "title": "Money",
+      "type": "object"
+     },
+     "Address": {
+      "additionalProperties": false,
+      "properties": {
+       "street": {
+        "title": "Street",
+        "type": "string"
+       },
+       "number": {
+        "title": "Number",
+        "type": "string"
+       },
+       "complement": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Complement"
+       },
+       "neighborhood": {
+        "title": "Neighborhood",
+        "type": "string"
+       },
+       "city": {
+        "title": "City",
+        "type": "string"
+       },
+       "state": {
+        "description": "UF, 2 letras",
+        "title": "State",
+        "type": "string"
+       },
+       "postal_code": {
+        "description": "CEP, 8 dígitos",
+        "title": "Postal Code",
+        "type": "string"
+       }
+      },
+      "required": [
+       "street",
+       "number",
+       "neighborhood",
+       "city",
+       "state",
+       "postal_code"
+      ],
+      "title": "Address",
+      "type": "object"
+     },
+     "OrderRef": {
+      "additionalProperties": false,
+      "properties": {
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "status": {
+        "title": "Status",
+        "type": "string"
+       },
+       "created_at": {
+        "description": "Data ISO 8601",
+        "title": "Created At",
+        "type": "string"
+       },
+       "total": {
+        "$ref": "#/$defs/Money"
+       }
+      },
+      "required": [
+       "order_id",
+       "status",
+       "created_at",
+       "total"
+      ],
+      "title": "OrderRef",
+      "type": "object"
+     },
+     "ErrorResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "error",
+        "default": "error",
+        "title": "Status",
+        "type": "string"
+       },
+       "code": {
+        "enum": [
+         "NOT_FOUND",
+         "NOT_ELIGIBLE",
+         "VALIDATION_ERROR"
+        ],
+        "title": "Code",
+        "type": "string"
+       },
+       "message": {
+        "title": "Message",
+        "type": "string"
+       },
+       "recoverable": {
+        "title": "Recoverable",
+        "type": "boolean"
+       },
+       "suggested_tool": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Suggested Tool"
+       },
+       "details": {
+        "anyOf": [
+         {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Details"
+       }
+      },
+      "required": [
+       "code",
+       "message",
+       "recoverable"
+      ],
+      "title": "ErrorResult",
+      "type": "object"
+     },
+     "ReturnRequestResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "completed",
+        "default": "completed",
+        "title": "Status",
+        "type": "string"
+       },
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "return_id": {
+        "title": "Return Id",
+        "type": "string"
+       },
+       "reason": {
+        "title": "Reason",
+        "type": "string"
+       },
+       "skus": {
+        "items": {
+         "type": "string"
+        },
+        "title": "Skus",
+        "type": "array"
+       },
+       "refund_amount": {
+        "$ref": "#/$defs/Money"
+       },
+       "post_by": {
+        "title": "Post By",
+        "type": "string"
+       }
+      },
+      "required": [
+       "order_id",
+       "return_id",
+       "reason",
+       "skus",
+       "refund_amount",
+       "post_by"
+      ],
+      "title": "ReturnRequestResult",
+      "type": "object"
+     }
+    },
+    "discriminator": {
+     "mapping": {
+      "completed": "#/$defs/ReturnRequestResult",
+      "error": "#/$defs/ErrorResult"
+     },
+     "propertyName": "status"
+    },
+    "oneOf": [
+     {
+      "$ref": "#/$defs/ReturnRequestResult"
+     },
+     {
+      "$ref": "#/$defs/ErrorResult"
+     }
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "br.routingstudy/skill": "trocas_devolucoes",
+    "br.routingstudy/examples": [
+     "Quero devolver o produto que recebi",
+     "Me arrependi da compra, quero devolver e receber o dinheiro",
+     "O produto chegou quebrado, quero devolver",
+     "Veio um item diferente do que eu pedi"
+    ],
+    "br.routingstudy/keywords": [
+     "devolver",
+     "devolucao",
+     "arrependimento",
+     "chegou quebrado",
+     "produto errado"
+    ],
+    "br.routingstudy/confirmation": "none",
+    "br.routingstudy/scope": "returns:write",
+    "br.routingstudy/elicitation": []
+   }
+  },
+  {
+   "name": "dispute_charge",
+   "title": "Contestar cobrança",
+   "description": "Abre contestação (chargeback) de cobrança no cartão de crédito: não reconhecida, duplicada ou com valor divergente. Irreversível.\nWHEN TO USE: \"não reconheço essa cobrança\", \"fui cobrado duas vezes\", valor cobrado diferente.\nDON'T USE FOR: desistência ou devolução (use cancel_order, request_refund ou create_return_request); pagamento por Pix ou boleto.\nPARAMETERS: reason = nao_reconhecida | duplicada | valor_divergente; details opcional.\nCONFIRMATION: o servidor não pede confirmação; a ação é irreversível.\nRESULT: id da contestação e prazo; repasse sem alterar.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "reason": {
+      "description": "Tipo de contestação",
+      "enum": [
+       "nao_reconhecida",
+       "duplicada",
+       "valor_divergente"
+      ],
+      "type": "string"
+     },
+     "order_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Número do pedido (ex.: O0001). Omita se o cliente tem um só pedido"
+     },
+     "details": {
+      "anyOf": [
+       {
+        "maxLength": 500,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Detalhes ditos pelo cliente, se houver"
+     }
+    },
+    "required": [
+     "reason"
+    ]
+   },
+   "outputSchema": {
+    "type": "object",
+    "$defs": {
+     "Money": {
+      "additionalProperties": false,
+      "properties": {
+       "amount": {
+        "description": "Valor com 2 casas decimais",
+        "title": "Amount",
+        "type": "number"
+       },
+       "currency": {
+        "const": "BRL",
+        "default": "BRL",
+        "title": "Currency",
+        "type": "string"
+       }
+      },
+      "required": [
+       "amount"
+      ],
+      "title": "Money",
+      "type": "object"
+     },
+     "Address": {
+      "additionalProperties": false,
+      "properties": {
+       "street": {
+        "title": "Street",
+        "type": "string"
+       },
+       "number": {
+        "title": "Number",
+        "type": "string"
+       },
+       "complement": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Complement"
+       },
+       "neighborhood": {
+        "title": "Neighborhood",
+        "type": "string"
+       },
+       "city": {
+        "title": "City",
+        "type": "string"
+       },
+       "state": {
+        "description": "UF, 2 letras",
+        "title": "State",
+        "type": "string"
+       },
+       "postal_code": {
+        "description": "CEP, 8 dígitos",
+        "title": "Postal Code",
+        "type": "string"
+       }
+      },
+      "required": [
+       "street",
+       "number",
+       "neighborhood",
+       "city",
+       "state",
+       "postal_code"
+      ],
+      "title": "Address",
+      "type": "object"
+     },
+     "OrderRef": {
+      "additionalProperties": false,
+      "properties": {
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "status": {
+        "title": "Status",
+        "type": "string"
+       },
+       "created_at": {
+        "description": "Data ISO 8601",
+        "title": "Created At",
+        "type": "string"
+       },
+       "total": {
+        "$ref": "#/$defs/Money"
+       }
+      },
+      "required": [
+       "order_id",
+       "status",
+       "created_at",
+       "total"
+      ],
+      "title": "OrderRef",
+      "type": "object"
+     },
+     "DisputeResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "completed",
+        "default": "completed",
+        "title": "Status",
+        "type": "string"
+       },
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "dispute_id": {
+        "title": "Dispute Id",
+        "type": "string"
+       },
+       "payment_id": {
+        "title": "Payment Id",
+        "type": "string"
+       },
+       "amount": {
+        "$ref": "#/$defs/Money"
+       },
+       "reason": {
+        "title": "Reason",
+        "type": "string"
+       },
+       "expected_resolution_by": {
+        "title": "Expected Resolution By",
+        "type": "string"
+       }
+      },
+      "required": [
+       "order_id",
+       "dispute_id",
+       "payment_id",
+       "amount",
+       "reason",
+       "expected_resolution_by"
+      ],
+      "title": "DisputeResult",
+      "type": "object"
+     },
+     "ErrorResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "error",
+        "default": "error",
+        "title": "Status",
+        "type": "string"
+       },
+       "code": {
+        "enum": [
+         "NOT_FOUND",
+         "NOT_ELIGIBLE",
+         "VALIDATION_ERROR"
+        ],
+        "title": "Code",
+        "type": "string"
+       },
+       "message": {
+        "title": "Message",
+        "type": "string"
+       },
+       "recoverable": {
+        "title": "Recoverable",
+        "type": "boolean"
+       },
+       "suggested_tool": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Suggested Tool"
+       },
+       "details": {
+        "anyOf": [
+         {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Details"
+       }
+      },
+      "required": [
+       "code",
+       "message",
+       "recoverable"
+      ],
+      "title": "ErrorResult",
+      "type": "object"
+     }
+    },
+    "discriminator": {
+     "mapping": {
+      "completed": "#/$defs/DisputeResult",
+      "error": "#/$defs/ErrorResult"
+     },
+     "propertyName": "status"
+    },
+    "oneOf": [
+     {
+      "$ref": "#/$defs/DisputeResult"
+     },
+     {
+      "$ref": "#/$defs/ErrorResult"
+     }
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "br.routingstudy/skill": "pagamentos_reembolsos",
+    "br.routingstudy/examples": [
+     "Não reconheço essa cobrança no meu cartão",
+     "Fui cobrado duas vezes pela mesma compra",
+     "O valor cobrado na fatura é maior que o do pedido",
+     "Quero contestar uma compra no cartão"
+    ],
+    "br.routingstudy/keywords": [
+     "contestar",
+     "chargeback",
+     "nao reconheco",
+     "cobrado duas vezes",
+     "fatura"
+    ],
+    "br.routingstudy/confirmation": "none",
+    "br.routingstudy/scope": "payments:dispute",
+    "br.routingstudy/elicitation": []
+   }
+  },
+  {
+   "name": "escalate_to_human",
+   "title": "Escalar para atendente humano",
+   "description": "Abre um chamado para atendimento humano e retorna o protocolo e o prazo de retorno.\nWHEN TO USE: o cliente pede um atendente; o assunto está fora do escopo das outras tools (vagas, produtos novos, preços, nota fiscal); uma tool retornou erro não recuperável.\nDON'T USE FOR: pedidos que uma tool resolve (cancelar, reembolsar, trocar, rastrear); dúvida de política (use search_help_center).\nPARAMETERS: reason = resumo curto do pedido do cliente; order_id só se o cliente citou um pedido.\nCONFIRMATION: não requer.\nRESULT: protocolo e prazo de retorno; repasse sem alterar.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "reason": {
+      "description": "Resumo curto do que o cliente precisa",
+      "maxLength": 500,
+      "minLength": 3,
+      "type": "string"
+     },
+     "order_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Pedido citado pelo cliente (ex.: O0001), se houver"
+     }
+    },
+    "required": [
+     "reason"
+    ]
+   },
+   "outputSchema": {
+    "type": "object",
+    "$defs": {
+     "Money": {
+      "additionalProperties": false,
+      "properties": {
+       "amount": {
+        "description": "Valor com 2 casas decimais",
+        "title": "Amount",
+        "type": "number"
+       },
+       "currency": {
+        "const": "BRL",
+        "default": "BRL",
+        "title": "Currency",
+        "type": "string"
+       }
+      },
+      "required": [
+       "amount"
+      ],
+      "title": "Money",
+      "type": "object"
+     },
+     "Address": {
+      "additionalProperties": false,
+      "properties": {
+       "street": {
+        "title": "Street",
+        "type": "string"
+       },
+       "number": {
+        "title": "Number",
+        "type": "string"
+       },
+       "complement": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Complement"
+       },
+       "neighborhood": {
+        "title": "Neighborhood",
+        "type": "string"
+       },
+       "city": {
+        "title": "City",
+        "type": "string"
+       },
+       "state": {
+        "description": "UF, 2 letras",
+        "title": "State",
+        "type": "string"
+       },
+       "postal_code": {
+        "description": "CEP, 8 dígitos",
+        "title": "Postal Code",
+        "type": "string"
+       }
+      },
+      "required": [
+       "street",
+       "number",
+       "neighborhood",
+       "city",
+       "state",
+       "postal_code"
+      ],
+      "title": "Address",
+      "type": "object"
+     },
+     "OrderRef": {
+      "additionalProperties": false,
+      "properties": {
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "status": {
+        "title": "Status",
+        "type": "string"
+       },
+       "created_at": {
+        "description": "Data ISO 8601",
+        "title": "Created At",
+        "type": "string"
+       },
+       "total": {
+        "$ref": "#/$defs/Money"
+       }
+      },
+      "required": [
+       "order_id",
+       "status",
+       "created_at",
+       "total"
+      ],
+      "title": "OrderRef",
+      "type": "object"
+     },
+     "ErrorResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "error",
+        "default": "error",
+        "title": "Status",
+        "type": "string"
+       },
+       "code": {
+        "enum": [
+         "NOT_FOUND",
+         "NOT_ELIGIBLE",
+         "VALIDATION_ERROR"
+        ],
+        "title": "Code",
+        "type": "string"
+       },
+       "message": {
+        "title": "Message",
+        "type": "string"
+       },
+       "recoverable": {
+        "title": "Recoverable",
+        "type": "boolean"
+       },
+       "suggested_tool": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Suggested Tool"
+       },
+       "details": {
+        "anyOf": [
+         {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Details"
+       }
+      },
+      "required": [
+       "code",
+       "message",
+       "recoverable"
+      ],
+      "title": "ErrorResult",
+      "type": "object"
+     },
+     "EscalationResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "completed",
+        "default": "completed",
+        "title": "Status",
+        "type": "string"
+       },
+       "ticket_id": {
+        "title": "Ticket Id",
+        "type": "string"
+       },
+       "order_id": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Order Id"
+       },
+       "queue": {
+        "title": "Queue",
+        "type": "string"
+       },
+       "response_within_hours": {
+        "title": "Response Within Hours",
+        "type": "integer"
+       }
+      },
+      "required": [
+       "ticket_id",
+       "queue",
+       "response_within_hours"
+      ],
+      "title": "EscalationResult",
+      "type": "object"
+     }
+    },
+    "discriminator": {
+     "mapping": {
+      "completed": "#/$defs/EscalationResult",
+      "error": "#/$defs/ErrorResult"
+     },
+     "propertyName": "status"
+    },
+    "oneOf": [
+     {
+      "$ref": "#/$defs/EscalationResult"
+     },
+     {
+      "$ref": "#/$defs/ErrorResult"
+     }
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "br.routingstudy/skill": "global",
+    "br.routingstudy/examples": [
+     "Quero falar com um atendente",
+     "Me passa para uma pessoa de verdade",
+     "Vocês têm vaga de emprego?",
+     "Preciso corrigir a nota fiscal da minha compra"
+    ],
+    "br.routingstudy/keywords": [
+     "atendente",
+     "humano",
+     "pessoa",
+     "reclamacao",
+     "falar com alguem"
+    ],
+    "br.routingstudy/confirmation": "none",
+    "br.routingstudy/scope": "support:write",
+    "br.routingstudy/elicitation": []
+   }
+  },
+  {
+   "name": "generate_boleto_second_copy",
+   "title": "2ª via do boleto",
+   "description": "Emite a 2ª via do boleto de um pedido com pagamento pendente, com novo vencimento.\nWHEN TO USE: \"preciso da 2ª via do boleto\", boleto vencido ou perdido.\nDON'T USE FOR: saber se o boleto já foi pago (use get_payment_status); pedidos pagos com cartão ou Pix.\nPARAMETERS: order_id opcional se o cliente tem um só pedido.\nCONFIRMATION: não requer.\nRESULT: linha digitável, valor e vencimento; repasse sem alterar nenhum dígito.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "order_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Número do pedido (ex.: O0001). Omita se o cliente tem um só pedido"
+     }
+    }
+   },
+   "outputSchema": {
+    "type": "object",
+    "$defs": {
+     "Money": {
+      "additionalProperties": false,
+      "properties": {
+       "amount": {
+        "description": "Valor com 2 casas decimais",
+        "title": "Amount",
+        "type": "number"
+       },
+       "currency": {
+        "const": "BRL",
+        "default": "BRL",
+        "title": "Currency",
+        "type": "string"
+       }
+      },
+      "required": [
+       "amount"
+      ],
+      "title": "Money",
+      "type": "object"
+     },
+     "Address": {
+      "additionalProperties": false,
+      "properties": {
+       "street": {
+        "title": "Street",
+        "type": "string"
+       },
+       "number": {
+        "title": "Number",
+        "type": "string"
+       },
+       "complement": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Complement"
+       },
+       "neighborhood": {
+        "title": "Neighborhood",
+        "type": "string"
+       },
+       "city": {
+        "title": "City",
+        "type": "string"
+       },
+       "state": {
+        "description": "UF, 2 letras",
+        "title": "State",
+        "type": "string"
+       },
+       "postal_code": {
+        "description": "CEP, 8 dígitos",
+        "title": "Postal Code",
+        "type": "string"
+       }
+      },
+      "required": [
+       "street",
+       "number",
+       "neighborhood",
+       "city",
+       "state",
+       "postal_code"
+      ],
+      "title": "Address",
+      "type": "object"
+     },
+     "OrderRef": {
+      "additionalProperties": false,
+      "properties": {
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "status": {
+        "title": "Status",
+        "type": "string"
+       },
+       "created_at": {
+        "description": "Data ISO 8601",
+        "title": "Created At",
+        "type": "string"
+       },
+       "total": {
+        "$ref": "#/$defs/Money"
+       }
+      },
+      "required": [
+       "order_id",
+       "status",
+       "created_at",
+       "total"
+      ],
+      "title": "OrderRef",
+      "type": "object"
+     },
+     "BoletoResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "completed",
+        "default": "completed",
+        "title": "Status",
+        "type": "string"
+       },
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "payment_id": {
+        "title": "Payment Id",
+        "type": "string"
+       },
+       "barcode": {
+        "title": "Barcode",
+        "type": "string"
+       },
+       "amount": {
+        "$ref": "#/$defs/Money"
+       },
+       "due_date": {
+        "title": "Due Date",
+        "type": "string"
+       }
+      },
+      "required": [
+       "order_id",
+       "payment_id",
+       "barcode",
+       "amount",
+       "due_date"
+      ],
+      "title": "BoletoResult",
+      "type": "object"
+     },
+     "ErrorResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "error",
+        "default": "error",
+        "title": "Status",
+        "type": "string"
+       },
+       "code": {
+        "enum": [
+         "NOT_FOUND",
+         "NOT_ELIGIBLE",
+         "VALIDATION_ERROR"
+        ],
+        "title": "Code",
+        "type": "string"
+       },
+       "message": {
+        "title": "Message",
+        "type": "string"
+       },
+       "recoverable": {
+        "title": "Recoverable",
+        "type": "boolean"
+       },
+       "suggested_tool": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Suggested Tool"
+       },
+       "details": {
+        "anyOf": [
+         {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Details"
+       }
+      },
+      "required": [
+       "code",
+       "message",
+       "recoverable"
+      ],
+      "title": "ErrorResult",
+      "type": "object"
+     }
+    },
+    "discriminator": {
+     "mapping": {
+      "completed": "#/$defs/BoletoResult",
+      "error": "#/$defs/ErrorResult"
+     },
+     "propertyName": "status"
+    },
+    "oneOf": [
+     {
+      "$ref": "#/$defs/BoletoResult"
+     },
+     {
+      "$ref": "#/$defs/ErrorResult"
+     }
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "br.routingstudy/skill": "pagamentos_reembolsos",
+    "br.routingstudy/examples": [
+     "Preciso da segunda via do boleto",
+     "Meu boleto venceu, como pago agora?",
+     "Perdi o boleto do pedido O0001",
+     "Gera um boleto novo para mim"
+    ],
+    "br.routingstudy/keywords": [
+     "boleto",
+     "segunda via",
+     "2a via",
+     "vencido",
+     "linha digitavel",
+     "codigo de barras"
+    ],
+    "br.routingstudy/confirmation": "none",
+    "br.routingstudy/scope": "payments:write",
+    "br.routingstudy/elicitation": []
+   }
+  },
+  {
+   "name": "generate_return_label",
+   "title": "Gerar etiqueta de devolução",
+   "description": "Gera a etiqueta de postagem de uma devolução já aberta.\nWHEN TO USE: \"preciso da etiqueta\", \"como envio o produto de volta?\" depois de abrir a devolução.\nDON'T USE FOR: abrir a devolução (use create_return_request); rastrear a entrega de um pedido (use track_shipment).\nPARAMETERS: return_id se o cliente informou; senão order_id (opcional se há um só pedido).\nCONFIRMATION: não requer.\nRESULT: código da etiqueta, transportadora e prazo de postagem; repasse sem alterar.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "return_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Id da devolução (ex.: DEV-1A2B3C4D), se informado"
+     },
+     "order_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Número do pedido (ex.: O0001). Omita se o cliente tem um só pedido"
+     }
+    }
+   },
+   "outputSchema": {
+    "type": "object",
+    "$defs": {
+     "Money": {
+      "additionalProperties": false,
+      "properties": {
+       "amount": {
+        "description": "Valor com 2 casas decimais",
+        "title": "Amount",
+        "type": "number"
+       },
+       "currency": {
+        "const": "BRL",
+        "default": "BRL",
+        "title": "Currency",
+        "type": "string"
+       }
+      },
+      "required": [
+       "amount"
+      ],
+      "title": "Money",
+      "type": "object"
+     },
+     "Address": {
+      "additionalProperties": false,
+      "properties": {
+       "street": {
+        "title": "Street",
+        "type": "string"
+       },
+       "number": {
+        "title": "Number",
+        "type": "string"
+       },
+       "complement": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Complement"
+       },
+       "neighborhood": {
+        "title": "Neighborhood",
+        "type": "string"
+       },
+       "city": {
+        "title": "City",
+        "type": "string"
+       },
+       "state": {
+        "description": "UF, 2 letras",
+        "title": "State",
+        "type": "string"
+       },
+       "postal_code": {
+        "description": "CEP, 8 dígitos",
+        "title": "Postal Code",
+        "type": "string"
+       }
+      },
+      "required": [
+       "street",
+       "number",
+       "neighborhood",
+       "city",
+       "state",
+       "postal_code"
+      ],
+      "title": "Address",
+      "type": "object"
+     },
+     "OrderRef": {
+      "additionalProperties": false,
+      "properties": {
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "status": {
+        "title": "Status",
+        "type": "string"
+       },
+       "created_at": {
+        "description": "Data ISO 8601",
+        "title": "Created At",
+        "type": "string"
+       },
+       "total": {
+        "$ref": "#/$defs/Money"
+       }
+      },
+      "required": [
+       "order_id",
+       "status",
+       "created_at",
+       "total"
+      ],
+      "title": "OrderRef",
+      "type": "object"
+     },
+     "ErrorResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "error",
+        "default": "error",
+        "title": "Status",
+        "type": "string"
+       },
+       "code": {
+        "enum": [
+         "NOT_FOUND",
+         "NOT_ELIGIBLE",
+         "VALIDATION_ERROR"
+        ],
+        "title": "Code",
+        "type": "string"
+       },
+       "message": {
+        "title": "Message",
+        "type": "string"
+       },
+       "recoverable": {
+        "title": "Recoverable",
+        "type": "boolean"
+       },
+       "suggested_tool": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Suggested Tool"
+       },
+       "details": {
+        "anyOf": [
+         {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Details"
+       }
+      },
+      "required": [
+       "code",
+       "message",
+       "recoverable"
+      ],
+      "title": "ErrorResult",
+      "type": "object"
+     },
+     "ReturnLabelResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "completed",
+        "default": "completed",
+        "title": "Status",
+        "type": "string"
+       },
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "return_id": {
+        "title": "Return Id",
+        "type": "string"
+       },
+       "label_code": {
+        "title": "Label Code",
+        "type": "string"
+       },
+       "carrier": {
+        "title": "Carrier",
+        "type": "string"
+       },
+       "post_by": {
+        "title": "Post By",
+        "type": "string"
+       }
+      },
+      "required": [
+       "order_id",
+       "return_id",
+       "label_code",
+       "carrier",
+       "post_by"
+      ],
+      "title": "ReturnLabelResult",
+      "type": "object"
+     }
+    },
+    "discriminator": {
+     "mapping": {
+      "completed": "#/$defs/ReturnLabelResult",
+      "error": "#/$defs/ErrorResult"
+     },
+     "propertyName": "status"
+    },
+    "oneOf": [
+     {
+      "$ref": "#/$defs/ReturnLabelResult"
+     },
+     {
+      "$ref": "#/$defs/ErrorResult"
+     }
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "br.routingstudy/skill": "trocas_devolucoes",
+    "br.routingstudy/examples": [
+     "Preciso da etiqueta para devolver o produto",
+     "Como faço para enviar o produto de volta?",
+     "Gera a etiqueta da devolução DEV-1A2B3C4D",
+     "Já abri a devolução, cadê o código de postagem?"
+    ],
+    "br.routingstudy/keywords": [
+     "etiqueta",
+     "postagem",
+     "codigo de postagem",
+     "enviar de volta",
+     "logistica reversa"
+    ],
+    "br.routingstudy/confirmation": "none",
+    "br.routingstudy/scope": "returns:write",
+    "br.routingstudy/elicitation": []
+   }
+  },
+  {
+   "name": "get_customer_profile",
+   "title": "Perfil do cliente",
+   "description": "Retorna o perfil do cliente autenticado: nome, e-mail mascarado, endereço padrão e a lista resumida dos pedidos (id, status, data, total).\nWHEN TO USE: o cliente pergunta pelos próprios dados ou pedidos, ou é preciso descobrir qual pedido ele quer quando não informou o número.\nDON'T USE FOR: detalhes de um pedido (use get_order_status); rastreio (use track_shipment); pagamento (use get_payment_status).\nPARAMETERS: nenhum; o cliente vem da requisição autenticada.\nCONFIRMATION: não requer.\nRESULT: dados do perfil; repasse IDs, datas e valores sem alterar.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+   },
+   "outputSchema": {
+    "type": "object",
+    "$defs": {
+     "Money": {
+      "additionalProperties": false,
+      "properties": {
+       "amount": {
+        "description": "Valor com 2 casas decimais",
+        "title": "Amount",
+        "type": "number"
+       },
+       "currency": {
+        "const": "BRL",
+        "default": "BRL",
+        "title": "Currency",
+        "type": "string"
+       }
+      },
+      "required": [
+       "amount"
+      ],
+      "title": "Money",
+      "type": "object"
+     },
+     "Address": {
+      "additionalProperties": false,
+      "properties": {
+       "street": {
+        "title": "Street",
+        "type": "string"
+       },
+       "number": {
+        "title": "Number",
+        "type": "string"
+       },
+       "complement": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Complement"
+       },
+       "neighborhood": {
+        "title": "Neighborhood",
+        "type": "string"
+       },
+       "city": {
+        "title": "City",
+        "type": "string"
+       },
+       "state": {
+        "description": "UF, 2 letras",
+        "title": "State",
+        "type": "string"
+       },
+       "postal_code": {
+        "description": "CEP, 8 dígitos",
+        "title": "Postal Code",
+        "type": "string"
+       }
+      },
+      "required": [
+       "street",
+       "number",
+       "neighborhood",
+       "city",
+       "state",
+       "postal_code"
+      ],
+      "title": "Address",
+      "type": "object"
+     },
+     "OrderRef": {
+      "additionalProperties": false,
+      "properties": {
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "status": {
+        "title": "Status",
+        "type": "string"
+       },
+       "created_at": {
+        "description": "Data ISO 8601",
+        "title": "Created At",
+        "type": "string"
+       },
+       "total": {
+        "$ref": "#/$defs/Money"
+       }
+      },
+      "required": [
+       "order_id",
+       "status",
+       "created_at",
+       "total"
+      ],
+      "title": "OrderRef",
+      "type": "object"
+     },
+     "CustomerProfileResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "completed",
+        "default": "completed",
+        "title": "Status",
+        "type": "string"
+       },
+       "customer_id": {
+        "title": "Customer Id",
+        "type": "string"
+       },
+       "name": {
+        "title": "Name",
+        "type": "string"
+       },
+       "email_masked": {
+        "title": "Email Masked",
+        "type": "string"
+       },
+       "tier": {
+        "title": "Tier",
+        "type": "string"
+       },
+       "member_since": {
+        "title": "Member Since",
+        "type": "string"
+       },
+       "default_address": {
+        "$ref": "#/$defs/Address"
+       },
+       "orders": {
+        "items": {
+         "$ref": "#/$defs/OrderRef"
+        },
+        "title": "Orders",
+        "type": "array"
+       }
+      },
+      "required": [
+       "customer_id",
+       "name",
+       "email_masked",
+       "tier",
+       "member_since",
+       "default_address",
+       "orders"
+      ],
+      "title": "CustomerProfileResult",
+      "type": "object"
+     },
+     "ErrorResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "error",
+        "default": "error",
+        "title": "Status",
+        "type": "string"
+       },
+       "code": {
+        "enum": [
+         "NOT_FOUND",
+         "NOT_ELIGIBLE",
+         "VALIDATION_ERROR"
+        ],
+        "title": "Code",
+        "type": "string"
+       },
+       "message": {
+        "title": "Message",
+        "type": "string"
+       },
+       "recoverable": {
+        "title": "Recoverable",
+        "type": "boolean"
+       },
+       "suggested_tool": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Suggested Tool"
+       },
+       "details": {
+        "anyOf": [
+         {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Details"
+       }
+      },
+      "required": [
+       "code",
+       "message",
+       "recoverable"
+      ],
+      "title": "ErrorResult",
+      "type": "object"
+     }
+    },
+    "discriminator": {
+     "mapping": {
+      "completed": "#/$defs/CustomerProfileResult",
+      "error": "#/$defs/ErrorResult"
+     },
+     "propertyName": "status"
+    },
+    "oneOf": [
+     {
+      "$ref": "#/$defs/CustomerProfileResult"
+     },
+     {
+      "$ref": "#/$defs/ErrorResult"
+     }
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "br.routingstudy/skill": "global",
+    "br.routingstudy/examples": [
+     "Quais pedidos eu tenho com vocês?",
+     "Qual endereço está no meu cadastro?",
+     "Não lembro o número do meu pedido",
+     "Me mostra meus dados de cliente"
+    ],
+    "br.routingstudy/keywords": [
+     "perfil",
+     "cadastro",
+     "meus pedidos",
+     "meus dados",
+     "numero do pedido"
+    ],
+    "br.routingstudy/confirmation": "none",
+    "br.routingstudy/scope": "customer:read"
+   }
+  },
+  {
+   "name": "get_order_status",
+   "title": "Status do pedido",
+   "description": "Consulta a situação de um pedido: status, itens, valor, forma de pagamento, previsão ou data de entrega e endereço.\nWHEN TO USE: \"como está meu pedido?\", \"meu pedido foi enviado?\", ver itens ou valor de um pedido.\nDON'T USE FOR: onde está o pacote e eventos de rastreio (use track_shipment); situação do pagamento (use get_payment_status) ou do reembolso (use get_refund_status).\nPARAMETERS: order_id opcional se o cliente tem um só pedido; nunca invente o número.\nCONFIRMATION: não requer.\nRESULT: dados do pedido; repasse datas, valores e IDs sem alterar.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "order_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Número do pedido (ex.: O0001). Omita se o cliente tem um só pedido"
+     }
+    }
+   },
+   "outputSchema": {
+    "type": "object",
+    "$defs": {
+     "Money": {
+      "additionalProperties": false,
+      "properties": {
+       "amount": {
+        "description": "Valor com 2 casas decimais",
+        "title": "Amount",
+        "type": "number"
+       },
+       "currency": {
+        "const": "BRL",
+        "default": "BRL",
+        "title": "Currency",
+        "type": "string"
+       }
+      },
+      "required": [
+       "amount"
+      ],
+      "title": "Money",
+      "type": "object"
+     },
+     "Address": {
+      "additionalProperties": false,
+      "properties": {
+       "street": {
+        "title": "Street",
+        "type": "string"
+       },
+       "number": {
+        "title": "Number",
+        "type": "string"
+       },
+       "complement": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Complement"
+       },
+       "neighborhood": {
+        "title": "Neighborhood",
+        "type": "string"
+       },
+       "city": {
+        "title": "City",
+        "type": "string"
+       },
+       "state": {
+        "description": "UF, 2 letras",
+        "title": "State",
+        "type": "string"
+       },
+       "postal_code": {
+        "description": "CEP, 8 dígitos",
+        "title": "Postal Code",
+        "type": "string"
+       }
+      },
+      "required": [
+       "street",
+       "number",
+       "neighborhood",
+       "city",
+       "state",
+       "postal_code"
+      ],
+      "title": "Address",
+      "type": "object"
+     },
+     "OrderRef": {
+      "additionalProperties": false,
+      "properties": {
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "status": {
+        "title": "Status",
+        "type": "string"
+       },
+       "created_at": {
+        "description": "Data ISO 8601",
+        "title": "Created At",
+        "type": "string"
+       },
+       "total": {
+        "$ref": "#/$defs/Money"
+       }
+      },
+      "required": [
+       "order_id",
+       "status",
+       "created_at",
+       "total"
+      ],
+      "title": "OrderRef",
+      "type": "object"
+     },
+     "ErrorResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "error",
+        "default": "error",
+        "title": "Status",
+        "type": "string"
+       },
+       "code": {
+        "enum": [
+         "NOT_FOUND",
+         "NOT_ELIGIBLE",
+         "VALIDATION_ERROR"
+        ],
+        "title": "Code",
+        "type": "string"
+       },
+       "message": {
+        "title": "Message",
+        "type": "string"
+       },
+       "recoverable": {
+        "title": "Recoverable",
+        "type": "boolean"
+       },
+       "suggested_tool": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Suggested Tool"
+       },
+       "details": {
+        "anyOf": [
+         {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Details"
+       }
+      },
+      "required": [
+       "code",
+       "message",
+       "recoverable"
+      ],
+      "title": "ErrorResult",
+      "type": "object"
+     },
+     "OrderItem": {
+      "additionalProperties": false,
+      "properties": {
+       "sku": {
+        "title": "Sku",
+        "type": "string"
+       },
+       "name": {
+        "title": "Name",
+        "type": "string"
+       },
+       "quantity": {
+        "title": "Quantity",
+        "type": "integer"
+       },
+       "unit_price": {
+        "$ref": "#/$defs/Money"
+       }
+      },
+      "required": [
+       "sku",
+       "name",
+       "quantity",
+       "unit_price"
+      ],
+      "title": "OrderItem",
+      "type": "object"
+     },
+     "OrderStatusResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "completed",
+        "default": "completed",
+        "title": "Status",
+        "type": "string"
+       },
+       "order": {
+        "$ref": "#/$defs/OrderRef"
+       },
+       "items": {
+        "items": {
+         "$ref": "#/$defs/OrderItem"
+        },
+        "title": "Items",
+        "type": "array"
+       },
+       "payment_method": {
+        "title": "Payment Method",
+        "type": "string"
+       },
+       "estimated_delivery": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Estimated Delivery"
+       },
+       "delivered_at": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Delivered At"
+       },
+       "cancelled_at": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Cancelled At"
+       },
+       "delivery_address": {
+        "$ref": "#/$defs/Address"
+       },
+       "shipment_id": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Shipment Id"
+       }
+      },
+      "required": [
+       "order",
+       "items",
+       "payment_method",
+       "delivery_address"
+      ],
+      "title": "OrderStatusResult",
+      "type": "object"
+     }
+    },
+    "discriminator": {
+     "mapping": {
+      "completed": "#/$defs/OrderStatusResult",
+      "error": "#/$defs/ErrorResult"
+     },
+     "propertyName": "status"
+    },
+    "oneOf": [
+     {
+      "$ref": "#/$defs/OrderStatusResult"
+     },
+     {
+      "$ref": "#/$defs/ErrorResult"
+     }
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "br.routingstudy/skill": "pedidos_logistica",
+    "br.routingstudy/examples": [
+     "Como está meu pedido O0002?",
+     "Meu pedido já foi enviado?",
+     "Quais itens vieram no meu último pedido?",
+     "Qual a previsão de entrega da minha compra?"
+    ],
+    "br.routingstudy/keywords": [
+     "status",
+     "situacao",
+     "pedido",
+     "andamento",
+     "previsao",
+     "itens"
+    ],
+    "br.routingstudy/confirmation": "none",
+    "br.routingstudy/scope": "orders:read"
+   }
+  },
+  {
+   "name": "get_payment_status",
+   "title": "Status do pagamento",
+   "description": "Consulta o pagamento de um pedido: forma, status (pendente, aprovado, estornado, contestado), valor, parcelas e vencimento do boleto.\nWHEN TO USE: \"meu pagamento foi aprovado?\", \"o boleto já compensou?\", \"em quantas parcelas ficou?\".\nDON'T USE FOR: dinheiro que deve voltar ao cliente (use get_refund_status); emitir boleto novo (use generate_boleto_second_copy); status do pedido (use get_order_status).\nPARAMETERS: order_id opcional se o cliente tem um só pedido.\nCONFIRMATION: não requer.\nRESULT: dados do pagamento; repasse valores e datas sem alterar.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "order_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Número do pedido (ex.: O0001). Omita se o cliente tem um só pedido"
+     }
+    }
+   },
+   "outputSchema": {
+    "type": "object",
+    "$defs": {
+     "Money": {
+      "additionalProperties": false,
+      "properties": {
+       "amount": {
+        "description": "Valor com 2 casas decimais",
+        "title": "Amount",
+        "type": "number"
+       },
+       "currency": {
+        "const": "BRL",
+        "default": "BRL",
+        "title": "Currency",
+        "type": "string"
+       }
+      },
+      "required": [
+       "amount"
+      ],
+      "title": "Money",
+      "type": "object"
+     },
+     "Address": {
+      "additionalProperties": false,
+      "properties": {
+       "street": {
+        "title": "Street",
+        "type": "string"
+       },
+       "number": {
+        "title": "Number",
+        "type": "string"
+       },
+       "complement": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Complement"
+       },
+       "neighborhood": {
+        "title": "Neighborhood",
+        "type": "string"
+       },
+       "city": {
+        "title": "City",
+        "type": "string"
+       },
+       "state": {
+        "description": "UF, 2 letras",
+        "title": "State",
+        "type": "string"
+       },
+       "postal_code": {
+        "description": "CEP, 8 dígitos",
+        "title": "Postal Code",
+        "type": "string"
+       }
+      },
+      "required": [
+       "street",
+       "number",
+       "neighborhood",
+       "city",
+       "state",
+       "postal_code"
+      ],
+      "title": "Address",
+      "type": "object"
+     },
+     "OrderRef": {
+      "additionalProperties": false,
+      "properties": {
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "status": {
+        "title": "Status",
+        "type": "string"
+       },
+       "created_at": {
+        "description": "Data ISO 8601",
+        "title": "Created At",
+        "type": "string"
+       },
+       "total": {
+        "$ref": "#/$defs/Money"
+       }
+      },
+      "required": [
+       "order_id",
+       "status",
+       "created_at",
+       "total"
+      ],
+      "title": "OrderRef",
+      "type": "object"
+     },
+     "ErrorResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "error",
+        "default": "error",
+        "title": "Status",
+        "type": "string"
+       },
+       "code": {
+        "enum": [
+         "NOT_FOUND",
+         "NOT_ELIGIBLE",
+         "VALIDATION_ERROR"
+        ],
+        "title": "Code",
+        "type": "string"
+       },
+       "message": {
+        "title": "Message",
+        "type": "string"
+       },
+       "recoverable": {
+        "title": "Recoverable",
+        "type": "boolean"
+       },
+       "suggested_tool": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Suggested Tool"
+       },
+       "details": {
+        "anyOf": [
+         {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Details"
+       }
+      },
+      "required": [
+       "code",
+       "message",
+       "recoverable"
+      ],
+      "title": "ErrorResult",
+      "type": "object"
+     },
+     "PaymentStatusResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "completed",
+        "default": "completed",
+        "title": "Status",
+        "type": "string"
+       },
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "payment_id": {
+        "title": "Payment Id",
+        "type": "string"
+       },
+       "method": {
+        "title": "Method",
+        "type": "string"
+       },
+       "payment_status": {
+        "title": "Payment Status",
+        "type": "string"
+       },
+       "amount": {
+        "$ref": "#/$defs/Money"
+       },
+       "installments": {
+        "title": "Installments",
+        "type": "integer"
+       },
+       "paid_at": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Paid At"
+       },
+       "boleto_due_date": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Boleto Due Date"
+       }
+      },
+      "required": [
+       "order_id",
+       "payment_id",
+       "method",
+       "payment_status",
+       "amount",
+       "installments"
+      ],
+      "title": "PaymentStatusResult",
+      "type": "object"
+     }
+    },
+    "discriminator": {
+     "mapping": {
+      "completed": "#/$defs/PaymentStatusResult",
+      "error": "#/$defs/ErrorResult"
+     },
+     "propertyName": "status"
+    },
+    "oneOf": [
+     {
+      "$ref": "#/$defs/PaymentStatusResult"
+     },
+     {
+      "$ref": "#/$defs/ErrorResult"
+     }
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "br.routingstudy/skill": "pagamentos_reembolsos",
+    "br.routingstudy/examples": [
+     "Meu pagamento foi aprovado?",
+     "O boleto que paguei já compensou?",
+     "Em quantas parcelas ficou minha compra?",
+     "Por que meu pedido ainda está aguardando pagamento?"
+    ],
+    "br.routingstudy/keywords": [
+     "pagamento",
+     "aprovado",
+     "compensou",
+     "parcelas",
+     "cobranca",
+     "pago"
+    ],
+    "br.routingstudy/confirmation": "none",
+    "br.routingstudy/scope": "payments:read"
+   }
+  },
+  {
+   "name": "get_refund_status",
+   "title": "Status do reembolso",
+   "description": "Consulta um reembolso já solicitado: status, valor, forma de devolução e prazo previsto.\nWHEN TO USE: \"meu reembolso já caiu?\", \"quando recebo o estorno?\".\nDON'T USE FOR: situação do pagamento original (use get_payment_status); pedir um reembolso novo (use request_refund).\nPARAMETERS: order_id opcional se o cliente tem um só pedido.\nCONFIRMATION: não requer.\nRESULT: status e prazo do reembolso; repasse sem alterar.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "order_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Número do pedido (ex.: O0001). Omita se o cliente tem um só pedido"
+     }
+    }
+   },
+   "outputSchema": {
+    "type": "object",
+    "$defs": {
+     "Money": {
+      "additionalProperties": false,
+      "properties": {
+       "amount": {
+        "description": "Valor com 2 casas decimais",
+        "title": "Amount",
+        "type": "number"
+       },
+       "currency": {
+        "const": "BRL",
+        "default": "BRL",
+        "title": "Currency",
+        "type": "string"
+       }
+      },
+      "required": [
+       "amount"
+      ],
+      "title": "Money",
+      "type": "object"
+     },
+     "Address": {
+      "additionalProperties": false,
+      "properties": {
+       "street": {
+        "title": "Street",
+        "type": "string"
+       },
+       "number": {
+        "title": "Number",
+        "type": "string"
+       },
+       "complement": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Complement"
+       },
+       "neighborhood": {
+        "title": "Neighborhood",
+        "type": "string"
+       },
+       "city": {
+        "title": "City",
+        "type": "string"
+       },
+       "state": {
+        "description": "UF, 2 letras",
+        "title": "State",
+        "type": "string"
+       },
+       "postal_code": {
+        "description": "CEP, 8 dígitos",
+        "title": "Postal Code",
+        "type": "string"
+       }
+      },
+      "required": [
+       "street",
+       "number",
+       "neighborhood",
+       "city",
+       "state",
+       "postal_code"
+      ],
+      "title": "Address",
+      "type": "object"
+     },
+     "OrderRef": {
+      "additionalProperties": false,
+      "properties": {
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "status": {
+        "title": "Status",
+        "type": "string"
+       },
+       "created_at": {
+        "description": "Data ISO 8601",
+        "title": "Created At",
+        "type": "string"
+       },
+       "total": {
+        "$ref": "#/$defs/Money"
+       }
+      },
+      "required": [
+       "order_id",
+       "status",
+       "created_at",
+       "total"
+      ],
+      "title": "OrderRef",
+      "type": "object"
+     },
+     "ErrorResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "error",
+        "default": "error",
+        "title": "Status",
+        "type": "string"
+       },
+       "code": {
+        "enum": [
+         "NOT_FOUND",
+         "NOT_ELIGIBLE",
+         "VALIDATION_ERROR"
+        ],
+        "title": "Code",
+        "type": "string"
+       },
+       "message": {
+        "title": "Message",
+        "type": "string"
+       },
+       "recoverable": {
+        "title": "Recoverable",
+        "type": "boolean"
+       },
+       "suggested_tool": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Suggested Tool"
+       },
+       "details": {
+        "anyOf": [
+         {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Details"
+       }
+      },
+      "required": [
+       "code",
+       "message",
+       "recoverable"
+      ],
+      "title": "ErrorResult",
+      "type": "object"
+     },
+     "RefundStatusResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "completed",
+        "default": "completed",
+        "title": "Status",
+        "type": "string"
+       },
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "refund_id": {
+        "title": "Refund Id",
+        "type": "string"
+       },
+       "refund_status": {
+        "title": "Refund Status",
+        "type": "string"
+       },
+       "amount": {
+        "$ref": "#/$defs/Money"
+       },
+       "method": {
+        "title": "Method",
+        "type": "string"
+       },
+       "requested_at": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Requested At"
+       },
+       "expected_by": {
+        "title": "Expected By",
+        "type": "string"
+       }
+      },
+      "required": [
+       "order_id",
+       "refund_id",
+       "refund_status",
+       "amount",
+       "method",
+       "expected_by"
+      ],
+      "title": "RefundStatusResult",
+      "type": "object"
+     }
+    },
+    "discriminator": {
+     "mapping": {
+      "completed": "#/$defs/RefundStatusResult",
+      "error": "#/$defs/ErrorResult"
+     },
+     "propertyName": "status"
+    },
+    "oneOf": [
+     {
+      "$ref": "#/$defs/RefundStatusResult"
+     },
+     {
+      "$ref": "#/$defs/ErrorResult"
+     }
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "br.routingstudy/skill": "pagamentos_reembolsos",
+    "br.routingstudy/examples": [
+     "Meu reembolso já caiu?",
+     "Quando o estorno vai aparecer na fatura?",
+     "Cadê o dinheiro do pedido que cancelei?",
+     "Qual o prazo do meu reembolso?"
+    ],
+    "br.routingstudy/keywords": [
+     "reembolso",
+     "estorno",
+     "caiu",
+     "prazo do reembolso",
+     "devolucao do dinheiro"
+    ],
+    "br.routingstudy/confirmation": "none",
+    "br.routingstudy/scope": "payments:read"
+   }
+  },
+  {
+   "name": "open_warranty_claim",
+   "title": "Acionar garantia",
+   "description": "Aciona a garantia de um produto com defeito que apareceu após 30 dias e em até 12 meses da entrega.\nWHEN TO USE: \"parou de funcionar\", \"deu defeito depois de alguns meses\".\nDON'T USE FOR: defeito em até 30 dias da entrega ou produto que chegou quebrado (use create_return_request ou create_exchange); pedido não entregue (use track_shipment).\nPARAMETERS: defect_description = defeito nas palavras do cliente; sku opcional se o pedido tem um só item.\nCONFIRMATION: não requer.\nRESULT: id do chamado de garantia e prazo de resposta; repasse sem alterar.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "defect_description": {
+      "description": "Defeito nas palavras do cliente",
+      "maxLength": 500,
+      "type": "string"
+     },
+     "order_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Número do pedido (ex.: O0001). Omita se o cliente tem um só pedido"
+     },
+     "sku": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "SKU do item. Omita se o pedido tem um só item"
+     }
+    },
+    "required": [
+     "defect_description"
+    ]
+   },
+   "outputSchema": {
+    "type": "object",
+    "$defs": {
+     "Money": {
+      "additionalProperties": false,
+      "properties": {
+       "amount": {
+        "description": "Valor com 2 casas decimais",
+        "title": "Amount",
+        "type": "number"
+       },
+       "currency": {
+        "const": "BRL",
+        "default": "BRL",
+        "title": "Currency",
+        "type": "string"
+       }
+      },
+      "required": [
+       "amount"
+      ],
+      "title": "Money",
+      "type": "object"
+     },
+     "Address": {
+      "additionalProperties": false,
+      "properties": {
+       "street": {
+        "title": "Street",
+        "type": "string"
+       },
+       "number": {
+        "title": "Number",
+        "type": "string"
+       },
+       "complement": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Complement"
+       },
+       "neighborhood": {
+        "title": "Neighborhood",
+        "type": "string"
+       },
+       "city": {
+        "title": "City",
+        "type": "string"
+       },
+       "state": {
+        "description": "UF, 2 letras",
+        "title": "State",
+        "type": "string"
+       },
+       "postal_code": {
+        "description": "CEP, 8 dígitos",
+        "title": "Postal Code",
+        "type": "string"
+       }
+      },
+      "required": [
+       "street",
+       "number",
+       "neighborhood",
+       "city",
+       "state",
+       "postal_code"
+      ],
+      "title": "Address",
+      "type": "object"
+     },
+     "OrderRef": {
+      "additionalProperties": false,
+      "properties": {
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "status": {
+        "title": "Status",
+        "type": "string"
+       },
+       "created_at": {
+        "description": "Data ISO 8601",
+        "title": "Created At",
+        "type": "string"
+       },
+       "total": {
+        "$ref": "#/$defs/Money"
+       }
+      },
+      "required": [
+       "order_id",
+       "status",
+       "created_at",
+       "total"
+      ],
+      "title": "OrderRef",
+      "type": "object"
+     },
+     "ErrorResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "error",
+        "default": "error",
+        "title": "Status",
+        "type": "string"
+       },
+       "code": {
+        "enum": [
+         "NOT_FOUND",
+         "NOT_ELIGIBLE",
+         "VALIDATION_ERROR"
+        ],
+        "title": "Code",
+        "type": "string"
+       },
+       "message": {
+        "title": "Message",
+        "type": "string"
+       },
+       "recoverable": {
+        "title": "Recoverable",
+        "type": "boolean"
+       },
+       "suggested_tool": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Suggested Tool"
+       },
+       "details": {
+        "anyOf": [
+         {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Details"
+       }
+      },
+      "required": [
+       "code",
+       "message",
+       "recoverable"
+      ],
+      "title": "ErrorResult",
+      "type": "object"
+     },
+     "WarrantyClaimResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "completed",
+        "default": "completed",
+        "title": "Status",
+        "type": "string"
+       },
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "claim_id": {
+        "title": "Claim Id",
+        "type": "string"
+       },
+       "sku": {
+        "title": "Sku",
+        "type": "string"
+       },
+       "warranty_until": {
+        "title": "Warranty Until",
+        "type": "string"
+       },
+       "expected_response_by": {
+        "title": "Expected Response By",
+        "type": "string"
+       }
+      },
+      "required": [
+       "order_id",
+       "claim_id",
+       "sku",
+       "warranty_until",
+       "expected_response_by"
+      ],
+      "title": "WarrantyClaimResult",
+      "type": "object"
+     }
+    },
+    "discriminator": {
+     "mapping": {
+      "completed": "#/$defs/WarrantyClaimResult",
+      "error": "#/$defs/ErrorResult"
+     },
+     "propertyName": "status"
+    },
+    "oneOf": [
+     {
+      "$ref": "#/$defs/WarrantyClaimResult"
+     },
+     {
+      "$ref": "#/$defs/ErrorResult"
+     }
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "br.routingstudy/skill": "trocas_devolucoes",
+    "br.routingstudy/examples": [
+     "Meu fone parou de funcionar depois de 3 meses",
+     "A cafeteira deu defeito, quero acionar a garantia",
+     "O relógio comprado há meio ano não liga mais",
+     "Produto com defeito de fábrica depois de alguns meses de uso"
+    ],
+    "br.routingstudy/keywords": [
+     "garantia",
+     "parou de funcionar",
+     "defeito",
+     "nao liga",
+     "conserto",
+     "assistencia"
+    ],
+    "br.routingstudy/confirmation": "none",
+    "br.routingstudy/scope": "returns:write",
+    "br.routingstudy/elicitation": []
+   }
+  },
+  {
+   "name": "request_refund",
+   "title": "Solicitar reembolso",
+   "description": "Solicita o reembolso de um pedido cancelado que não foi estornado ou extraviado na entrega.\nWHEN TO USE: \"quero meu dinheiro de volta\" de pedido cancelado sem estorno ou que nunca chegou (extraviado).\nDON'T USE FOR: pedido ainda não enviado (use cancel_order); produto recebido a devolver (use create_return_request); acompanhar reembolso já pedido (use get_refund_status); cobrança não reconhecida (use dispute_charge).\nPARAMETERS: order_id opcional se o cliente tem um só pedido; reason = motivo curto.\nCONFIRMATION: não requer.\nRESULT: id do reembolso, valor e prazo; repasse sem alterar.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "reason": {
+      "description": "Motivo curto dito pelo cliente",
+      "maxLength": 300,
+      "type": "string"
+     },
+     "order_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Número do pedido (ex.: O0001). Omita se o cliente tem um só pedido"
+     }
+    },
+    "required": [
+     "reason"
+    ]
+   },
+   "outputSchema": {
+    "type": "object",
+    "$defs": {
+     "Money": {
+      "additionalProperties": false,
+      "properties": {
+       "amount": {
+        "description": "Valor com 2 casas decimais",
+        "title": "Amount",
+        "type": "number"
+       },
+       "currency": {
+        "const": "BRL",
+        "default": "BRL",
+        "title": "Currency",
+        "type": "string"
+       }
+      },
+      "required": [
+       "amount"
+      ],
+      "title": "Money",
+      "type": "object"
+     },
+     "Address": {
+      "additionalProperties": false,
+      "properties": {
+       "street": {
+        "title": "Street",
+        "type": "string"
+       },
+       "number": {
+        "title": "Number",
+        "type": "string"
+       },
+       "complement": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Complement"
+       },
+       "neighborhood": {
+        "title": "Neighborhood",
+        "type": "string"
+       },
+       "city": {
+        "title": "City",
+        "type": "string"
+       },
+       "state": {
+        "description": "UF, 2 letras",
+        "title": "State",
+        "type": "string"
+       },
+       "postal_code": {
+        "description": "CEP, 8 dígitos",
+        "title": "Postal Code",
+        "type": "string"
+       }
+      },
+      "required": [
+       "street",
+       "number",
+       "neighborhood",
+       "city",
+       "state",
+       "postal_code"
+      ],
+      "title": "Address",
+      "type": "object"
+     },
+     "OrderRef": {
+      "additionalProperties": false,
+      "properties": {
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "status": {
+        "title": "Status",
+        "type": "string"
+       },
+       "created_at": {
+        "description": "Data ISO 8601",
+        "title": "Created At",
+        "type": "string"
+       },
+       "total": {
+        "$ref": "#/$defs/Money"
+       }
+      },
+      "required": [
+       "order_id",
+       "status",
+       "created_at",
+       "total"
+      ],
+      "title": "OrderRef",
+      "type": "object"
+     },
+     "ErrorResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "error",
+        "default": "error",
+        "title": "Status",
+        "type": "string"
+       },
+       "code": {
+        "enum": [
+         "NOT_FOUND",
+         "NOT_ELIGIBLE",
+         "VALIDATION_ERROR"
+        ],
+        "title": "Code",
+        "type": "string"
+       },
+       "message": {
+        "title": "Message",
+        "type": "string"
+       },
+       "recoverable": {
+        "title": "Recoverable",
+        "type": "boolean"
+       },
+       "suggested_tool": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Suggested Tool"
+       },
+       "details": {
+        "anyOf": [
+         {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Details"
+       }
+      },
+      "required": [
+       "code",
+       "message",
+       "recoverable"
+      ],
+      "title": "ErrorResult",
+      "type": "object"
+     },
+     "RefundRequestResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "completed",
+        "default": "completed",
+        "title": "Status",
+        "type": "string"
+       },
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "refund_id": {
+        "title": "Refund Id",
+        "type": "string"
+       },
+       "amount": {
+        "$ref": "#/$defs/Money"
+       },
+       "method": {
+        "title": "Method",
+        "type": "string"
+       },
+       "expected_by": {
+        "title": "Expected By",
+        "type": "string"
+       }
+      },
+      "required": [
+       "order_id",
+       "refund_id",
+       "amount",
+       "method",
+       "expected_by"
+      ],
+      "title": "RefundRequestResult",
+      "type": "object"
+     }
+    },
+    "discriminator": {
+     "mapping": {
+      "completed": "#/$defs/RefundRequestResult",
+      "error": "#/$defs/ErrorResult"
+     },
+     "propertyName": "status"
+    },
+    "oneOf": [
+     {
+      "$ref": "#/$defs/RefundRequestResult"
+     },
+     {
+      "$ref": "#/$defs/ErrorResult"
+     }
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "br.routingstudy/skill": "pagamentos_reembolsos",
+    "br.routingstudy/examples": [
+     "Quero meu dinheiro de volta, o pedido foi cancelado e não estornaram",
+     "Meu pedido foi extraviado, quero o reembolso",
+     "O pedido nunca chegou, quero ser reembolsado",
+     "Cancelaram minha compra e o valor não voltou"
+    ],
+    "br.routingstudy/keywords": [
+     "reembolso",
+     "dinheiro de volta",
+     "estorno",
+     "extraviado",
+     "ressarcimento"
+    ],
+    "br.routingstudy/confirmation": "none",
+    "br.routingstudy/scope": "payments:refund",
+    "br.routingstudy/elicitation": []
+   }
+  },
+  {
+   "name": "reschedule_delivery",
+   "title": "Reagendar entrega",
+   "description": "Reagenda a entrega de um pedido já enviado e ainda não entregue para uma nova data e período.\nWHEN TO USE: o cliente não estará em casa, quer receber em outro dia ou perdeu a tentativa de entrega.\nDON'T USE FOR: trocar o endereço (use update_delivery_address); saber onde está o pacote (use track_shipment); desistir do pedido (use cancel_order).\nPARAMETERS: new_date em AAAA-MM-DD, de 1 a 15 dias à frente; period = manha | tarde | comercial.\nCONFIRMATION: não requer.\nRESULT: protocolo e nova janela de entrega; repasse sem alterar.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "new_date": {
+      "description": "Nova data de entrega, AAAA-MM-DD",
+      "type": "string"
+     },
+     "order_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Número do pedido (ex.: O0001). Omita se o cliente tem um só pedido"
+     },
+     "period": {
+      "default": "comercial",
+      "description": "Janela: manha (8-12h), tarde (13-18h) ou comercial (8-18h)",
+      "enum": [
+       "manha",
+       "tarde",
+       "comercial"
+      ],
+      "type": "string"
+     }
+    },
+    "required": [
+     "new_date"
+    ]
+   },
+   "outputSchema": {
+    "type": "object",
+    "$defs": {
+     "Money": {
+      "additionalProperties": false,
+      "properties": {
+       "amount": {
+        "description": "Valor com 2 casas decimais",
+        "title": "Amount",
+        "type": "number"
+       },
+       "currency": {
+        "const": "BRL",
+        "default": "BRL",
+        "title": "Currency",
+        "type": "string"
+       }
+      },
+      "required": [
+       "amount"
+      ],
+      "title": "Money",
+      "type": "object"
+     },
+     "Address": {
+      "additionalProperties": false,
+      "properties": {
+       "street": {
+        "title": "Street",
+        "type": "string"
+       },
+       "number": {
+        "title": "Number",
+        "type": "string"
+       },
+       "complement": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Complement"
+       },
+       "neighborhood": {
+        "title": "Neighborhood",
+        "type": "string"
+       },
+       "city": {
+        "title": "City",
+        "type": "string"
+       },
+       "state": {
+        "description": "UF, 2 letras",
+        "title": "State",
+        "type": "string"
+       },
+       "postal_code": {
+        "description": "CEP, 8 dígitos",
+        "title": "Postal Code",
+        "type": "string"
+       }
+      },
+      "required": [
+       "street",
+       "number",
+       "neighborhood",
+       "city",
+       "state",
+       "postal_code"
+      ],
+      "title": "Address",
+      "type": "object"
+     },
+     "OrderRef": {
+      "additionalProperties": false,
+      "properties": {
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "status": {
+        "title": "Status",
+        "type": "string"
+       },
+       "created_at": {
+        "description": "Data ISO 8601",
+        "title": "Created At",
+        "type": "string"
+       },
+       "total": {
+        "$ref": "#/$defs/Money"
+       }
+      },
+      "required": [
+       "order_id",
+       "status",
+       "created_at",
+       "total"
+      ],
+      "title": "OrderRef",
+      "type": "object"
+     },
+     "ErrorResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "error",
+        "default": "error",
+        "title": "Status",
+        "type": "string"
+       },
+       "code": {
+        "enum": [
+         "NOT_FOUND",
+         "NOT_ELIGIBLE",
+         "VALIDATION_ERROR"
+        ],
+        "title": "Code",
+        "type": "string"
+       },
+       "message": {
+        "title": "Message",
+        "type": "string"
+       },
+       "recoverable": {
+        "title": "Recoverable",
+        "type": "boolean"
+       },
+       "suggested_tool": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Suggested Tool"
+       },
+       "details": {
+        "anyOf": [
+         {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Details"
+       }
+      },
+      "required": [
+       "code",
+       "message",
+       "recoverable"
+      ],
+      "title": "ErrorResult",
+      "type": "object"
+     },
+     "RescheduleResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "completed",
+        "default": "completed",
+        "title": "Status",
+        "type": "string"
+       },
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "protocol": {
+        "title": "Protocol",
+        "type": "string"
+       },
+       "shipment_id": {
+        "title": "Shipment Id",
+        "type": "string"
+       },
+       "new_date": {
+        "title": "New Date",
+        "type": "string"
+       },
+       "period": {
+        "title": "Period",
+        "type": "string"
+       }
+      },
+      "required": [
+       "order_id",
+       "protocol",
+       "shipment_id",
+       "new_date",
+       "period"
+      ],
+      "title": "RescheduleResult",
+      "type": "object"
+     }
+    },
+    "discriminator": {
+     "mapping": {
+      "completed": "#/$defs/RescheduleResult",
+      "error": "#/$defs/ErrorResult"
+     },
+     "propertyName": "status"
+    },
+    "oneOf": [
+     {
+      "$ref": "#/$defs/RescheduleResult"
+     },
+     {
+      "$ref": "#/$defs/ErrorResult"
+     }
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "br.routingstudy/skill": "pedidos_logistica",
+    "br.routingstudy/examples": [
+     "Não vou estar em casa amanhã, dá para entregar outro dia?",
+     "O entregador veio e eu não estava, quero reagendar",
+     "Pode entregar o pedido na sexta à tarde?",
+     "Quero remarcar a entrega para semana que vem"
+    ],
+    "br.routingstudy/keywords": [
+     "reagendar",
+     "remarcar",
+     "outro dia",
+     "nao estarei em casa",
+     "tentativa de entrega"
+    ],
+    "br.routingstudy/confirmation": "none",
+    "br.routingstudy/scope": "orders:write",
+    "br.routingstudy/elicitation": []
+   }
+  },
+  {
+   "name": "search_help_center",
+   "title": "Buscar na central de ajuda",
+   "description": "Busca artigos da central de ajuda com as políticas da loja: prazos de troca, devolução, reembolso, entrega, garantia e formas de pagamento.\nWHEN TO USE: dúvida genérica sobre regra ou prazo, sem ação sobre um pedido concreto (\"qual o prazo para devolver?\").\nDON'T USE FOR: situação de um pedido, pagamento, entrega ou reembolso concreto (use get_order_status, get_payment_status, track_shipment ou get_refund_status); executar uma ação.\nPARAMETERS: query = a dúvida em poucas palavras.\nCONFIRMATION: não requer.\nRESULT: até 3 artigos com título e resumo; cite prazos sem alterar.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "query": {
+      "description": "Dúvida do cliente em poucas palavras",
+      "maxLength": 300,
+      "type": "string"
+     }
+    },
+    "required": [
+     "query"
+    ]
+   },
+   "outputSchema": {
+    "type": "object",
+    "$defs": {
+     "Money": {
+      "additionalProperties": false,
+      "properties": {
+       "amount": {
+        "description": "Valor com 2 casas decimais",
+        "title": "Amount",
+        "type": "number"
+       },
+       "currency": {
+        "const": "BRL",
+        "default": "BRL",
+        "title": "Currency",
+        "type": "string"
+       }
+      },
+      "required": [
+       "amount"
+      ],
+      "title": "Money",
+      "type": "object"
+     },
+     "Address": {
+      "additionalProperties": false,
+      "properties": {
+       "street": {
+        "title": "Street",
+        "type": "string"
+       },
+       "number": {
+        "title": "Number",
+        "type": "string"
+       },
+       "complement": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Complement"
+       },
+       "neighborhood": {
+        "title": "Neighborhood",
+        "type": "string"
+       },
+       "city": {
+        "title": "City",
+        "type": "string"
+       },
+       "state": {
+        "description": "UF, 2 letras",
+        "title": "State",
+        "type": "string"
+       },
+       "postal_code": {
+        "description": "CEP, 8 dígitos",
+        "title": "Postal Code",
+        "type": "string"
+       }
+      },
+      "required": [
+       "street",
+       "number",
+       "neighborhood",
+       "city",
+       "state",
+       "postal_code"
+      ],
+      "title": "Address",
+      "type": "object"
+     },
+     "OrderRef": {
+      "additionalProperties": false,
+      "properties": {
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "status": {
+        "title": "Status",
+        "type": "string"
+       },
+       "created_at": {
+        "description": "Data ISO 8601",
+        "title": "Created At",
+        "type": "string"
+       },
+       "total": {
+        "$ref": "#/$defs/Money"
+       }
+      },
+      "required": [
+       "order_id",
+       "status",
+       "created_at",
+       "total"
+      ],
+      "title": "OrderRef",
+      "type": "object"
+     },
+     "Article": {
+      "additionalProperties": false,
+      "properties": {
+       "id": {
+        "title": "Id",
+        "type": "string"
+       },
+       "title": {
+        "title": "Title",
+        "type": "string"
+       },
+       "summary": {
+        "title": "Summary",
+        "type": "string"
+       }
+      },
+      "required": [
+       "id",
+       "title",
+       "summary"
+      ],
+      "title": "Article",
+      "type": "object"
+     },
+     "ErrorResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "error",
+        "default": "error",
+        "title": "Status",
+        "type": "string"
+       },
+       "code": {
+        "enum": [
+         "NOT_FOUND",
+         "NOT_ELIGIBLE",
+         "VALIDATION_ERROR"
+        ],
+        "title": "Code",
+        "type": "string"
+       },
+       "message": {
+        "title": "Message",
+        "type": "string"
+       },
+       "recoverable": {
+        "title": "Recoverable",
+        "type": "boolean"
+       },
+       "suggested_tool": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Suggested Tool"
+       },
+       "details": {
+        "anyOf": [
+         {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Details"
+       }
+      },
+      "required": [
+       "code",
+       "message",
+       "recoverable"
+      ],
+      "title": "ErrorResult",
+      "type": "object"
+     },
+     "HelpCenterResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "completed",
+        "default": "completed",
+        "title": "Status",
+        "type": "string"
+       },
+       "query": {
+        "title": "Query",
+        "type": "string"
+       },
+       "articles": {
+        "items": {
+         "$ref": "#/$defs/Article"
+        },
+        "title": "Articles",
+        "type": "array"
+       }
+      },
+      "required": [
+       "query",
+       "articles"
+      ],
+      "title": "HelpCenterResult",
+      "type": "object"
+     }
+    },
+    "discriminator": {
+     "mapping": {
+      "completed": "#/$defs/HelpCenterResult",
+      "error": "#/$defs/ErrorResult"
+     },
+     "propertyName": "status"
+    },
+    "oneOf": [
+     {
+      "$ref": "#/$defs/HelpCenterResult"
+     },
+     {
+      "$ref": "#/$defs/ErrorResult"
+     }
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "br.routingstudy/skill": "global",
+    "br.routingstudy/examples": [
+     "Qual o prazo para devolver um produto?",
+     "Vocês parcelam no cartão?",
+     "Quanto tempo demora o estorno no Pix?",
+     "Como funciona a garantia?"
+    ],
+    "br.routingstudy/keywords": [
+     "politica",
+     "prazo",
+     "regra",
+     "como funciona",
+     "duvida",
+     "central de ajuda"
+    ],
+    "br.routingstudy/confirmation": "none",
+    "br.routingstudy/scope": "public:read"
+   }
+  },
+  {
+   "name": "track_shipment",
+   "title": "Rastrear entrega",
+   "description": "Rastreia a entrega de um pedido já enviado: transportadora, código de rastreio, previsão e eventos de movimentação.\nWHEN TO USE: \"cadê minha encomenda?\", \"onde está o pacote?\", \"qual o código de rastreio?\", atraso na entrega.\nDON'T USE FOR: status geral ou itens do pedido (use get_order_status); mudar endereço (use update_delivery_address) ou data de entrega (use reschedule_delivery).\nPARAMETERS: order_id opcional se o cliente tem um só pedido.\nCONFIRMATION: não requer.\nRESULT: eventos em ordem cronológica; repasse códigos e datas sem alterar.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "order_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Número do pedido (ex.: O0001). Omita se o cliente tem um só pedido"
+     }
+    }
+   },
+   "outputSchema": {
+    "type": "object",
+    "$defs": {
+     "Money": {
+      "additionalProperties": false,
+      "properties": {
+       "amount": {
+        "description": "Valor com 2 casas decimais",
+        "title": "Amount",
+        "type": "number"
+       },
+       "currency": {
+        "const": "BRL",
+        "default": "BRL",
+        "title": "Currency",
+        "type": "string"
+       }
+      },
+      "required": [
+       "amount"
+      ],
+      "title": "Money",
+      "type": "object"
+     },
+     "Address": {
+      "additionalProperties": false,
+      "properties": {
+       "street": {
+        "title": "Street",
+        "type": "string"
+       },
+       "number": {
+        "title": "Number",
+        "type": "string"
+       },
+       "complement": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Complement"
+       },
+       "neighborhood": {
+        "title": "Neighborhood",
+        "type": "string"
+       },
+       "city": {
+        "title": "City",
+        "type": "string"
+       },
+       "state": {
+        "description": "UF, 2 letras",
+        "title": "State",
+        "type": "string"
+       },
+       "postal_code": {
+        "description": "CEP, 8 dígitos",
+        "title": "Postal Code",
+        "type": "string"
+       }
+      },
+      "required": [
+       "street",
+       "number",
+       "neighborhood",
+       "city",
+       "state",
+       "postal_code"
+      ],
+      "title": "Address",
+      "type": "object"
+     },
+     "OrderRef": {
+      "additionalProperties": false,
+      "properties": {
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "status": {
+        "title": "Status",
+        "type": "string"
+       },
+       "created_at": {
+        "description": "Data ISO 8601",
+        "title": "Created At",
+        "type": "string"
+       },
+       "total": {
+        "$ref": "#/$defs/Money"
+       }
+      },
+      "required": [
+       "order_id",
+       "status",
+       "created_at",
+       "total"
+      ],
+      "title": "OrderRef",
+      "type": "object"
+     },
+     "ErrorResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "error",
+        "default": "error",
+        "title": "Status",
+        "type": "string"
+       },
+       "code": {
+        "enum": [
+         "NOT_FOUND",
+         "NOT_ELIGIBLE",
+         "VALIDATION_ERROR"
+        ],
+        "title": "Code",
+        "type": "string"
+       },
+       "message": {
+        "title": "Message",
+        "type": "string"
+       },
+       "recoverable": {
+        "title": "Recoverable",
+        "type": "boolean"
+       },
+       "suggested_tool": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Suggested Tool"
+       },
+       "details": {
+        "anyOf": [
+         {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Details"
+       }
+      },
+      "required": [
+       "code",
+       "message",
+       "recoverable"
+      ],
+      "title": "ErrorResult",
+      "type": "object"
+     },
+     "ShipmentEvent": {
+      "additionalProperties": false,
+      "properties": {
+       "at": {
+        "description": "Data e hora ISO 8601",
+        "title": "At",
+        "type": "string"
+       },
+       "location": {
+        "title": "Location",
+        "type": "string"
+       },
+       "description": {
+        "title": "Description",
+        "type": "string"
+       }
+      },
+      "required": [
+       "at",
+       "location",
+       "description"
+      ],
+      "title": "ShipmentEvent",
+      "type": "object"
+     },
+     "ShipmentResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "completed",
+        "default": "completed",
+        "title": "Status",
+        "type": "string"
+       },
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "shipment_id": {
+        "title": "Shipment Id",
+        "type": "string"
+       },
+       "carrier": {
+        "title": "Carrier",
+        "type": "string"
+       },
+       "tracking_code": {
+        "title": "Tracking Code",
+        "type": "string"
+       },
+       "shipment_status": {
+        "title": "Shipment Status",
+        "type": "string"
+       },
+       "eta": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Eta"
+       },
+       "events": {
+        "items": {
+         "$ref": "#/$defs/ShipmentEvent"
+        },
+        "title": "Events",
+        "type": "array"
+       }
+      },
+      "required": [
+       "order_id",
+       "shipment_id",
+       "carrier",
+       "tracking_code",
+       "shipment_status",
+       "events"
+      ],
+      "title": "ShipmentResult",
+      "type": "object"
+     }
+    },
+    "discriminator": {
+     "mapping": {
+      "completed": "#/$defs/ShipmentResult",
+      "error": "#/$defs/ErrorResult"
+     },
+     "propertyName": "status"
+    },
+    "oneOf": [
+     {
+      "$ref": "#/$defs/ShipmentResult"
+     },
+     {
+      "$ref": "#/$defs/ErrorResult"
+     }
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "br.routingstudy/skill": "pedidos_logistica",
+    "br.routingstudy/examples": [
+     "Cadê minha encomenda?",
+     "Qual o código de rastreio do pedido O0005?",
+     "Meu pacote está parado na transportadora",
+     "Onde está minha entrega agora?"
+    ],
+    "br.routingstudy/keywords": [
+     "rastreio",
+     "rastrear",
+     "encomenda",
+     "pacote",
+     "transportadora",
+     "cade",
+     "correios"
+    ],
+    "br.routingstudy/confirmation": "none",
+    "br.routingstudy/scope": "orders:read"
+   }
+  },
+  {
+   "name": "update_delivery_address",
+   "title": "Alterar endereço de entrega",
+   "description": "Altera o endereço de entrega de um pedido que ainda não foi enviado.\nWHEN TO USE: o cliente quer receber em outro endereço ou corrigir o endereço de um pedido em preparação.\nDON'T USE FOR: mudar a data de entrega (use reschedule_delivery); pedido já enviado (use escalate_to_human); alterar o cadastro.\nPARAMETERS: só o endereço novo dito pelo cliente; nunca copie o atual. complement opcional; state = UF; postal_code = CEP de 8 dígitos.\nCONFIRMATION: não requer.\nRESULT: protocolo e endereço novo; repasse sem alterar.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "street": {
+      "description": "Logradouro (rua, avenida)",
+      "maxLength": 120,
+      "type": "string"
+     },
+     "number": {
+      "description": "Número do imóvel",
+      "maxLength": 10,
+      "type": "string"
+     },
+     "neighborhood": {
+      "description": "Bairro",
+      "maxLength": 80,
+      "type": "string"
+     },
+     "city": {
+      "description": "Cidade",
+      "maxLength": 80,
+      "type": "string"
+     },
+     "state": {
+      "description": "UF com 2 letras (ex.: SP)",
+      "maxLength": 2,
+      "type": "string"
+     },
+     "postal_code": {
+      "description": "CEP com 8 dígitos",
+      "maxLength": 9,
+      "type": "string"
+     },
+     "order_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Número do pedido (ex.: O0001). Omita se o cliente tem um só pedido"
+     },
+     "complement": {
+      "anyOf": [
+       {
+        "maxLength": 60,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "description": "Complemento (apto, bloco), se dito"
+     }
+    },
+    "required": [
+     "street",
+     "number",
+     "neighborhood",
+     "city",
+     "state",
+     "postal_code"
+    ]
+   },
+   "outputSchema": {
+    "type": "object",
+    "$defs": {
+     "Money": {
+      "additionalProperties": false,
+      "properties": {
+       "amount": {
+        "description": "Valor com 2 casas decimais",
+        "title": "Amount",
+        "type": "number"
+       },
+       "currency": {
+        "const": "BRL",
+        "default": "BRL",
+        "title": "Currency",
+        "type": "string"
+       }
+      },
+      "required": [
+       "amount"
+      ],
+      "title": "Money",
+      "type": "object"
+     },
+     "Address": {
+      "additionalProperties": false,
+      "properties": {
+       "street": {
+        "title": "Street",
+        "type": "string"
+       },
+       "number": {
+        "title": "Number",
+        "type": "string"
+       },
+       "complement": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Complement"
+       },
+       "neighborhood": {
+        "title": "Neighborhood",
+        "type": "string"
+       },
+       "city": {
+        "title": "City",
+        "type": "string"
+       },
+       "state": {
+        "description": "UF, 2 letras",
+        "title": "State",
+        "type": "string"
+       },
+       "postal_code": {
+        "description": "CEP, 8 dígitos",
+        "title": "Postal Code",
+        "type": "string"
+       }
+      },
+      "required": [
+       "street",
+       "number",
+       "neighborhood",
+       "city",
+       "state",
+       "postal_code"
+      ],
+      "title": "Address",
+      "type": "object"
+     },
+     "OrderRef": {
+      "additionalProperties": false,
+      "properties": {
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "status": {
+        "title": "Status",
+        "type": "string"
+       },
+       "created_at": {
+        "description": "Data ISO 8601",
+        "title": "Created At",
+        "type": "string"
+       },
+       "total": {
+        "$ref": "#/$defs/Money"
+       }
+      },
+      "required": [
+       "order_id",
+       "status",
+       "created_at",
+       "total"
+      ],
+      "title": "OrderRef",
+      "type": "object"
+     },
+     "AddressUpdateResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "completed",
+        "default": "completed",
+        "title": "Status",
+        "type": "string"
+       },
+       "order_id": {
+        "title": "Order Id",
+        "type": "string"
+       },
+       "protocol": {
+        "title": "Protocol",
+        "type": "string"
+       },
+       "previous_address": {
+        "$ref": "#/$defs/Address"
+       },
+       "new_address": {
+        "$ref": "#/$defs/Address"
+       }
+      },
+      "required": [
+       "order_id",
+       "protocol",
+       "previous_address",
+       "new_address"
+      ],
+      "title": "AddressUpdateResult",
+      "type": "object"
+     },
+     "ErrorResult": {
+      "additionalProperties": false,
+      "properties": {
+       "status": {
+        "const": "error",
+        "default": "error",
+        "title": "Status",
+        "type": "string"
+       },
+       "code": {
+        "enum": [
+         "NOT_FOUND",
+         "NOT_ELIGIBLE",
+         "VALIDATION_ERROR"
+        ],
+        "title": "Code",
+        "type": "string"
+       },
+       "message": {
+        "title": "Message",
+        "type": "string"
+       },
+       "recoverable": {
+        "title": "Recoverable",
+        "type": "boolean"
+       },
+       "suggested_tool": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Suggested Tool"
+       },
+       "details": {
+        "anyOf": [
+         {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "title": "Details"
+       }
+      },
+      "required": [
+       "code",
+       "message",
+       "recoverable"
+      ],
+      "title": "ErrorResult",
+      "type": "object"
+     }
+    },
+    "discriminator": {
+     "mapping": {
+      "completed": "#/$defs/AddressUpdateResult",
+      "error": "#/$defs/ErrorResult"
+     },
+     "propertyName": "status"
+    },
+    "oneOf": [
+     {
+      "$ref": "#/$defs/AddressUpdateResult"
+     },
+     {
+      "$ref": "#/$defs/ErrorResult"
+     }
+    ]
+   },
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "_meta": {
+    "br.routingstudy/skill": "pedidos_logistica",
+    "br.routingstudy/examples": [
+     "Quero mudar o endereço de entrega do meu pedido",
+     "Errei o número da casa no pedido, é 250",
+     "Posso receber no meu trabalho em vez de em casa?",
+     "Troca o endereço do pedido O0003 para Rua Bahia, 90"
+    ],
+    "br.routingstudy/keywords": [
+     "endereco",
+     "mudar endereco",
+     "alterar endereco",
+     "entregar em outro lugar",
+     "cep"
+    ],
+    "br.routingstudy/confirmation": "none",
+    "br.routingstudy/scope": "orders:write",
+    "br.routingstudy/elicitation": []
+   }
+  }
+ ],
+ "resultType": "complete"
+}
