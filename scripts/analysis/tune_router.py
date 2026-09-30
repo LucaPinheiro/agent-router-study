@@ -4,6 +4,19 @@ Usage:
   uv run python scripts/analysis/tune_router.py config/experiments/e2_bm25.yaml \\
       [--set strategies.bm25.k1=1.2] [--grid strategies.bm25.b=0.3,0.5,0.75] \\
       [--folds 5] [--seed 0] [--calibrate] [--errors]
+  uv run python scripts/analysis/tune_router.py config/experiments/e6b_llm_qwen3_local.yaml \
+      --prompt-variant P0,P0+P1,P0+P6c --subset 60 --concurrency 1 --preload \
+      --out results/prompt_apex/e6b_round1.json
+
+`--prompt-variant` is sugar for `--grid strategies.<router>.prompt_variant=...` (the router of
+the skill pipeline's first step, or `--strategy`). `--subset N` scores a stratified, seeded
+N-case subset of dev (early pruning); the full dev pass reuses its cached decisions. Per grid
+point the report adds the context economics of the routing calls: CV joint mean ± std of the
+FIXED point over the folds, raw ECE per level, prompt tokens split into static prefix and
+dynamic part (estimated from the rendered characters), cache read/write tokens, output
+tokens, cost per 1k cases (skill + tool call, original cost even when served from cache) and
+case latency p50/p95. `--out` writes all of it (plus per-case records) as JSON after each
+point, so an interrupted search keeps what it paid for.
 
 Runs the config's skill + tool pipelines exactly like `study run --mode routing-only` (same
 `RoutingPipeline`, same shared scorer `routing_scores`) over data/dataset_dev.jsonl. The
@@ -32,12 +45,13 @@ import random
 import sys
 from collections import defaultdict
 from pathlib import Path
-from statistics import mean, pstdev
+from statistics import mean, median, pstdev
 from typing import Any
 
 import yaml
 from fastmcp import Client
 
+from routing_study.budget import BudgetExceededError
 from routing_study.catalog import Catalog, fetch_catalog
 from routing_study.eval.scorers import routing_scores
 from routing_study.routers.base import GLOBAL_OPTION, Message, RoutingInput
@@ -80,6 +94,26 @@ def folds_of(rows: list[dict[str, Any]], k: int, seed: int) -> dict[str, int]:
             out[cid] = (offset + i) % k
         offset += len(ids)  # spreads category remainders over different folds
     return out
+
+
+def subset_of(rows: list[dict[str, Any]], n: int, seed: int) -> list[dict[str, Any]]:
+    """Stratified (by category, proportional, largest remainders), seeded n-case subset."""
+    if n >= len(rows):
+        return rows
+    by_cat: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for r in rows:
+        by_cat[r["category"]].append(r)
+    quota = {c: n * len(v) / len(rows) for c, v in by_cat.items()}
+    take = {c: int(q) for c, q in quota.items()}
+    for c in sorted(quota, key=lambda c: (-(quota[c] - take[c]), c))[: n - sum(take.values())]:
+        take[c] += 1
+    rng = random.Random(seed)
+    keep: set[str] = set()
+    for cat in sorted(by_cat):
+        ids = sorted(r["id"] for r in by_cat[cat])
+        rng.shuffle(ids)
+        keep.update(ids[: take[cat]])
+    return [r for r in rows if r["id"] in keep]
 
 
 def parse_assign(raw: str) -> tuple[list[str], list[Any]]:
@@ -128,6 +162,32 @@ def _raw(decision: Any) -> float:
     return float(decision.usage.get("raw_confidence", decision.confidence))
 
 
+def call_usage(steps: list[Any]) -> dict[str, Any]:
+    """Context economics of the consulted routing calls of one stage. Static/dynamic tokens
+    split the provider's prompt tokens by the rendered characters of the system prefix vs
+    the user message (an estimate; providers report one prompt total)."""
+    out: dict[str, Any] = dict.fromkeys(
+        ("cost", "ms", "prompt", "completion", "cache_read", "cache_write", "static", "dynamic"),
+        0.0,
+    )
+    out["parse_fail"] = False
+    for d in steps:
+        u = d.usage
+        prompt = float(u.get("prompt_tokens") or 0)
+        sc, dc = float(u.get("static_chars") or 0), float(u.get("dynamic_chars") or 0)
+        share = sc / (sc + dc) if sc + dc else 0.0
+        out["cost"] += d.cost_usd
+        out["ms"] += d.latency_ms
+        out["prompt"] += prompt
+        out["completion"] += float(u.get("completion_tokens") or 0)
+        out["cache_read"] += float(u.get("cache_read") or 0)
+        out["cache_write"] += float(u.get("cache_write") or 0)
+        out["static"] += prompt * share
+        out["dynamic"] += prompt * (1 - share)
+        out["parse_fail"] |= bool(u.get("parse_fail") or u.get("error"))
+    return out
+
+
 async def evaluate(
     settings: Settings, rows: list[dict[str, Any]], catalog: Catalog, concurrency: int = 4
 ) -> dict[str, dict[str, Any]]:
@@ -150,12 +210,15 @@ async def evaluate(
                 "skill_conf": _raw(sk.decision) if skill else None,
                 "tool": None,
                 "tool_conf": None,
+                "skill_u": call_usage(sk.steps),
+                "tool_u": call_usage([]),
             }
             if skill is not None:
                 inp = _input(case, "tool", None if skill == GLOBAL_OPTION else skill)
                 tl = await tool_p.run(inp, catalog.tool_options(skill))
                 rec["tool"] = tl.decision.choice
                 rec["tool_conf"] = _raw(tl.decision) if tl.decision.choice else None
+                rec["tool_u"] = call_usage(tl.steps)
             return case["id"], rec | routing_scores(skill, rec["tool"], case["expected"])
 
     return dict(await asyncio.gather(*(one(c) for c in rows)))
@@ -169,6 +232,52 @@ def pairs(recs: list[dict[str, Any]], level: str) -> tuple[list[float], list[flo
     """(raw confidence, correct) of the decisions a level actually made (abstentions out)."""
     got = [r for r in recs if r[f"{level}_conf"] is not None]
     return [r[f"{level}_conf"] for r in got], [r[f"{level}_correct"] for r in got]
+
+
+def pct(xs: list[float], q: float) -> float:
+    """Nearest-rank percentile (q in 0..100); nan for no data."""
+    if not xs:
+        return float("nan")
+    xs = sorted(xs)
+    return xs[min(len(xs) - 1, max(0, round(q / 100 * len(xs) + 0.5) - 1))]
+
+
+def point_metrics(
+    recs: dict[str, dict[str, Any]], fold: dict[str, int], folds: int
+) -> dict[str, Any]:
+    """One FIXED grid point: accuracy per fold (mean ± std), raw ECE per level and the
+    context economics of its routing calls (per call means, per case cost and latency)."""
+    rows = list(recs.values())
+    per_fold = {
+        m: [
+            acc(fr, m) for f in range(folds) if (fr := [r for c, r in recs.items() if fold[c] == f])
+        ]
+        for m in METRICS
+    }
+    calls = [r[f"{lv}_u"] for r in rows for lv in LEVELS if r[f"{lv}_u"]["prompt"]]
+    case_ms = [r["skill_u"]["ms"] + r["tool_u"]["ms"] for r in rows]
+    out: dict[str, Any] = {
+        "n": len(rows),
+        **{f"{m}_mean": mean(v) for m, v in per_fold.items()},
+        **{f"{m}_std": pstdev(v) for m, v in per_fold.items()},
+        **{f"{m}_all": acc(rows, m) for m in METRICS},
+        "cost_per_1k": 1000 * mean(r["skill_u"]["cost"] + r["tool_u"]["cost"] for r in rows),
+        "p50_ms": median(case_ms),
+        "p95_ms": pct(case_ms, 95),
+        "tool_p50_ms": median([r["tool_u"]["ms"] for r in rows if r["tool_u"]["ms"]] or [0.0]),
+        "parse_fail": sum(r[f"{lv}_u"]["parse_fail"] for r in rows for lv in LEVELS),
+    }
+    for key in ("prompt", "static", "dynamic", "cache_read", "cache_write", "completion"):
+        out[f"{key}_tokens"] = mean(c[key] for c in calls) if calls else 0.0
+    for lv in LEVELS:
+        conf, ok = pairs(rows, lv)
+        out[f"ece_{lv}"] = ece(conf, ok) if conf else float("nan")
+    return out
+
+
+def selection_key(m: dict[str, Any]) -> tuple[float, float, float]:
+    """Best joint accuracy; ties -> lower cost, then lower latency (docs/prompt-apex.md)."""
+    return (m["joint_correct_mean"], -m["cost_per_1k"], -m["p50_ms"])
 
 
 # ---------------------------------------------------------------- report
@@ -193,23 +302,51 @@ def main() -> None:
     ap.add_argument("--errors", action="store_true", help="print wrong cases of the best point")
     ap.add_argument("--top", type=int, default=10, help="grid points shown in the full-dev table")
     ap.add_argument("--concurrency", type=int, default=4)
+    ap.add_argument("--prompt-variant", help="v1,v2 = --grid strategies.<router>.prompt_variant")
+    ap.add_argument("--strategy", help="router of --prompt-variant (default: skill pipeline[0])")
+    ap.add_argument("--subset", type=int, default=0, help="stratified n-case dev subset")
+    ap.add_argument("--preload", action="store_true", help="load the local models first")
+    ap.add_argument("--out", help="write per-point metrics + records as JSON")
     args = ap.parse_args()
 
     base = load_settings(args.config)
     fixed = [(p, v[0]) for p, v in map(parse_assign, args.set)]
+    if args.prompt_variant:
+        router = args.strategy or base.routing.skill.pipeline[0].strategy
+        args.grid.append(f"strategies.{router}.prompt_variant={args.prompt_variant}")
     grid_axes = [(".".join(p), vs) for p, vs in map(parse_assign, args.grid)]
     points = [
         tuple(zip([k for k, _ in grid_axes], combo, strict=True))
         for combo in itertools.product(*(vs for _, vs in grid_axes))
     ]
     rows = load_dev()
+    if args.subset:
+        rows = subset_of(rows, args.subset, args.seed)
     fold = folds_of(rows, args.folds, args.seed)
     catalog = asyncio.run(dev_catalog(base))
+    if args.preload:
+        from routing_study.llm import preload_ollama
+
+        stages = (base.routing.skill, base.routing.tool)
+        wanted = {st.strategy for stg in stages for st in stg.pipeline}
+        print("# preloaded:", asyncio.run(preload_ollama(base, wanted)))
 
     results: list[dict[str, dict[str, Any]]] = []
+    metrics: list[dict[str, Any]] = []
     for pt in points:
         s = patched(base, fixed + [(k.split("."), v) for k, v in pt])
-        results.append(asyncio.run(evaluate(s, rows, catalog, args.concurrency)))
+        try:
+            results.append(asyncio.run(evaluate(s, rows, catalog, args.concurrency)))
+        except BudgetExceededError as exc:
+            print(f"# BUDGET GUARD at {label(pt)}: {exc}; stopping the grid", file=sys.stderr)
+            points = points[: len(results)]
+            break
+        metrics.append(point_metrics(results[-1], fold, args.folds))
+        print(f"# done {label(pt)}: {json.dumps(metrics[-1], default=float)}", flush=True)
+        if args.out:
+            write_out(args, points, results, metrics)
+    if not results:
+        return
 
     # ---- full-dev table per grid point (optimistic: chosen on the same data)
     order = sorted(
@@ -225,6 +362,24 @@ def main() -> None:
             recs = list(results[i].values())
             print(" ".join(f"{100 * acc(recs, m):6.1f}" for m in METRICS) + f"  {label(points[i])}")
 
+    print(f"\n## per point ({args.folds}-fold CV of the fixed point; economics per call / case)")
+    print(
+        f"{'joint':>13} {'skill':>6} {'tool':>6} {'ECEs':>5} {'ECEt':>5} {'prompt':>6} "
+        f"{'static':>6} {'dyn':>5} {'c.rd':>5} {'c.wr':>5} {'out':>5} {'$/1k':>7} "
+        f"{'p50':>6} {'p95':>6} {'tl50':>6} {'pf':>3}  point"
+    )
+    for i in sorted(range(len(points)), key=lambda i: selection_key(metrics[i]), reverse=True):
+        m = metrics[i]
+        print(
+            f"{100 * m['joint_correct_mean']:5.1f} ± {100 * m['joint_correct_std']:4.1f} "
+            f"{100 * m['skill_correct_all']:6.1f} {100 * m['tool_correct_all']:6.1f} "
+            f"{m['ece_skill']:5.3f} {m['ece_tool']:5.3f} {m['prompt_tokens']:6.0f} "
+            f"{m['static_tokens']:6.0f} {m['dynamic_tokens']:5.0f} {m['cache_read_tokens']:5.0f} "
+            f"{m['cache_write_tokens']:5.0f} {m['completion_tokens']:5.0f} "
+            f"{m['cost_per_1k']:7.3f} {m['p50_ms']:6.0f} {m['p95_ms']:6.0f} "
+            f"{m['tool_p50_ms']:6.0f} {m['parse_fail']:3d}  {label(points[i])}"
+        )
+
     # ---- nested CV
     per_fold: dict[str, list[float]] = defaultdict(list)
     held: list[dict[str, Any]] = []  # pooled held-out records (with calibrated confidences)
@@ -232,9 +387,16 @@ def main() -> None:
     for f in range(args.folds):
         train_ids = [cid for cid, fo in fold.items() if fo != f]
         test_ids = [cid for cid, fo in fold.items() if fo == f]
+        if not test_ids:  # tiny --subset: fewer cases than folds
+            continue
         best = max(
             range(len(points)),
-            key=lambda i: (acc([results[i][c] for c in train_ids], "joint_correct"), -i),
+            key=lambda i: (
+                acc([results[i][c] for c in train_ids], "joint_correct"),
+                -metrics[i]["cost_per_1k"],
+                -metrics[i]["p50_ms"],
+                -i,
+            ),
         )
         chosen.append(best)
         test = [dict(results[best][c]) for c in test_ids]
@@ -311,6 +473,28 @@ def main() -> None:
                     f" want {exp['acceptable_skills']}\n"
                     f"    tool  {r['tool']} (conf {r['tool_conf']}) want {exp['acceptable_tools']}"
                 )
+
+
+def write_out(
+    args: argparse.Namespace,
+    points: list[tuple[tuple[str, Any], ...]],
+    results: list[dict[str, dict[str, Any]]],
+    metrics: list[dict[str, Any]],
+) -> None:
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    data = {
+        "config": args.config,
+        "subset": args.subset,
+        "folds": args.folds,
+        "seed": args.seed,
+        "fixed": args.set,
+        "points": [
+            {"point": dict(pt), "label": label(pt), "metrics": m, "records": r}
+            for pt, m, r in zip(points, metrics, results, strict=False)
+        ],
+    }
+    out.write_text(json.dumps(data, ensure_ascii=False, indent=1, default=float), "utf-8")
 
 
 if __name__ == "__main__":
