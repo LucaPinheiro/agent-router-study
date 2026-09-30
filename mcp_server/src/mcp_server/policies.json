@@ -1,0 +1,94 @@
+{
+ "version": "2026-09-29",
+ "currency": "BRL",
+ "windows": {
+  "arrependimento_days_after_delivery": 7,
+  "return_or_exchange_days_after_delivery": 30,
+  "warranty_days_after_delivery": 365,
+  "return_post_by_days": 10,
+  "boleto_second_copy_due_days": 3,
+  "reschedule_min_days_ahead": 1,
+  "reschedule_max_days_ahead": 15,
+  "dispute_max_days_after_payment": 90
+ },
+ "sla": {
+  "delivery_capitals_business_days": "3 a 7",
+  "delivery_other_cities_business_days": "5 a 12",
+  "refund_credit_card": "estorno em até 2 faturas",
+  "refund_pix_business_days": 5,
+  "refund_boleto_business_days": 10,
+  "human_support_hours": 24,
+  "warranty_response_business_days": 15,
+  "dispute_resolution_days": 60
+ },
+ "out_of_scope": [
+  "vagas de emprego e trabalhe conosco",
+  "lançamentos, estoque e recomendação de produtos",
+  "preços, promoções e cupons",
+  "emissão ou correção de nota fiscal",
+  "alteração de cadastro, senha ou e-mail",
+  "vendas para empresas (atacado)"
+ ],
+ "articles": [
+  {
+   "id": "HC-001",
+   "title": "Prazo para desistir da compra (direito de arrependimento)",
+   "summary": "Compras online podem ser devolvidas por arrependimento em até 7 dias corridos após a entrega, com reembolso integral, inclusive do frete.",
+   "keywords": ["arrependimento", "desistir", "devolver", "devolucao", "prazo", "7 dias", "reembolso"]
+  },
+  {
+   "id": "HC-002",
+   "title": "Trocas e devoluções por defeito, avaria ou produto errado",
+   "summary": "Produto com defeito, avariado, errado ou em tamanho diferente pode ser trocado ou devolvido em até 30 dias após a entrega. A postagem deve ocorrer em até 10 dias após a abertura.",
+   "keywords": ["troca", "trocar", "devolucao", "devolver", "defeito", "tamanho", "errado", "avariado", "30 dias", "prazo"]
+  },
+  {
+   "id": "HC-003",
+   "title": "Garantia de produtos",
+   "summary": "Defeitos que aparecem após 30 dias e em até 12 meses da entrega são atendidos pela garantia. A análise leva até 15 dias úteis.",
+   "keywords": ["garantia", "defeito", "parou", "funcionar", "conserto", "assistencia", "12 meses"]
+  },
+  {
+   "id": "HC-004",
+   "title": "Prazos de reembolso por forma de pagamento",
+   "summary": "Cartão de crédito: estorno em até 2 faturas. Pix: até 5 dias úteis. Boleto: até 10 dias úteis na conta bancária informada.",
+   "keywords": ["reembolso", "estorno", "dinheiro", "volta", "prazo", "cartao", "pix", "boleto"]
+  },
+  {
+   "id": "HC-005",
+   "title": "Prazos de entrega",
+   "summary": "Capitais: 3 a 7 dias úteis após a aprovação do pagamento. Demais cidades: 5 a 12 dias úteis. O prazo começa a contar após a confirmação do pagamento.",
+   "keywords": ["entrega", "prazo", "frete", "demora", "chega", "dias uteis"]
+  },
+  {
+   "id": "HC-006",
+   "title": "Cancelamento de pedidos",
+   "summary": "Pedidos podem ser cancelados até o envio, com estorno automático. Depois do envio, recuse a entrega ou abra uma devolução após o recebimento.",
+   "keywords": ["cancelar", "cancelamento", "desistir", "pedido", "envio"]
+  },
+  {
+   "id": "HC-007",
+   "title": "Formas de pagamento e parcelamento",
+   "summary": "Aceitamos cartão de crédito em até 10 vezes sem juros, Pix com aprovação imediata e boleto com compensação em até 3 dias úteis.",
+   "keywords": ["pagamento", "parcelamento", "parcelas", "cartao", "pix", "boleto", "compensacao"]
+  },
+  {
+   "id": "HC-008",
+   "title": "Boleto: vencimento e 2ª via",
+   "summary": "O boleto vence 3 dias após a compra. Se vencer ou for perdido, é possível emitir a 2ª via com novo vencimento de 3 dias.",
+   "keywords": ["boleto", "vencimento", "vencido", "segunda", "via", "2 via"]
+  },
+  {
+   "id": "HC-009",
+   "title": "Alteração de endereço e reagendamento de entrega",
+   "summary": "O endereço pode ser alterado até o envio. Pedidos em trânsito podem ter a entrega reagendada para 1 a 15 dias à frente.",
+   "keywords": ["endereco", "alterar", "mudar", "reagendar", "entrega", "data"]
+  },
+  {
+   "id": "HC-010",
+   "title": "Contestação de cobrança no cartão",
+   "summary": "Cobranças não reconhecidas, duplicadas ou com valor divergente no cartão podem ser contestadas em até 90 dias. A análise leva até 60 dias.",
+   "keywords": ["contestar", "contestacao", "cobranca", "nao reconheco", "duplicada", "chargeback", "cartao"]
+  }
+ ]
+}
