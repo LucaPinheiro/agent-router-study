@@ -198,7 +198,7 @@ RESULT: id da devolução, valor e prazo de postagem; repasse sem alterar.
     examples=[
         "Quero devolver o produto que recebi",
         "Mudei de ideia sobre o produto e vou mandar de volta",
-        "O produto chegou quebrado, quero devolver",
+        "Recebi o item avariado e vou mandar para vocês",
         "Veio um item diferente do que eu pedi",
     ],
     keywords=["devolver", "devolucao", "arrependimento", "chegou quebrado", "produto errado"],
@@ -258,7 +258,7 @@ CONFIRMATION: não requer.
 RESULT: código da etiqueta, transportadora e prazo de postagem; repasse sem alterar.
 """,
     examples=[
-        "Preciso da etiqueta para devolver o produto",
+        "Qual código levo aos Correios para despachar o retorno?",
         "Como faço para enviar o produto de volta?",
         "Gera a etiqueta da devolução DEV-1A2B3C4D",
         "Já abri a devolução, cadê o código de postagem?",

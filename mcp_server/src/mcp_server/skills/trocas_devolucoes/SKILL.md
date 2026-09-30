@@ -8,9 +8,9 @@ allowed-tools:
   - create_exchange
   - open_warranty_claim
 examples:
-  - "O tênis veio no tamanho errado"
+  - "A numeração do sapato não serviu"
   - "Quero devolver o produto que recebi"
-  - "Preciso da etiqueta para devolver"
+  - "Cadê o código para postar o retorno?"
   - "Ainda dá tempo de trocar?"
   - "Meu fone parou de funcionar depois de 3 meses"
 ---
@@ -28,14 +28,14 @@ examples:
 | O cliente quer... | Tool |
 |---|---|
 | saber se ainda pode devolver/trocar | check_return_eligibility |
-| devolver e receber o dinheiro | create_return_request |
-| etiqueta para postar a devolução | generate_return_label |
+| devolver o item e ser reembolsado | create_return_request |
+| código de postagem do retorno | generate_return_label |
 | outro tamanho, cor ou variação | create_exchange |
 | conserto ou análise de defeito tardio | open_warranty_claim |
 
 ## Heurística de desambiguação
 
-- Troca × devolução: "quero outro número/cor" é create_exchange; "quero meu dinheiro de volta" é create_return_request.
+- Troca × devolução: "quero outro número/cor" é create_exchange; "quero ser reembolsado" é create_return_request.
 - Devolução × cancelamento: produto já entregue é devolução; pedido não enviado é cancel_order (skill pedidos_logistica).
 - Devolução × reembolso: se o produto nunca chegou (extraviado), não há o que devolver → request_refund (skill pagamentos_reembolsos).
 - Defeito: até 30 dias é devolução ou troca; depois, garantia. Prazo incerto → check_return_eligibility primeiro.

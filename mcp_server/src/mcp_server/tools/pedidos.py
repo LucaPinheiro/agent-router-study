@@ -60,7 +60,8 @@ UFS = set(
     description="""
 Consulta a situação de um pedido: status, itens, valor, forma de pagamento, previsão ou data \
 de entrega e endereço.
-WHEN TO USE: "como está meu pedido?", "meu pedido foi enviado?", ver itens ou valor de um pedido.
+WHEN TO USE: "qual a situação da minha compra?", "meu pedido foi enviado?", ver itens ou valor \
+de um pedido.
 DON'T USE FOR: onde está o pacote e eventos de rastreio (use track_shipment); situação do \
 pagamento (use get_payment_status) ou do reembolso (use get_refund_status).
 PARAMETERS: order_id opcional se o cliente tem um só pedido; nunca invente o número.
@@ -68,10 +69,10 @@ CONFIRMATION: não requer.
 RESULT: dados do pedido; repasse datas, valores e IDs sem alterar.
 """,
     examples=[
-        "Como está meu pedido O0002?",
+        "Em que etapa está a compra que fiz semana passada?",
         "Meu pedido já foi enviado?",
         "Quais itens vieram no meu último pedido?",
-        "Qual a previsão de entrega da minha compra?",
+        "Até quando devo receber o que comprei?",
     ],
     keywords=["status", "situacao", "pedido", "andamento", "previsao", "itens"],
 )
@@ -135,7 +136,7 @@ RESULT: eventos em ordem cronológica; repasse códigos e datas sem alterar.
 """,
     examples=[
         "Cadê minha encomenda?",
-        "Qual o código de rastreio do pedido O0005?",
+        "Em que cidade a encomenda está neste momento?",
         "Meu pacote está parado na transportadora",
         "Onde está minha entrega agora?",
     ],
@@ -172,7 +173,7 @@ async def track_shipment(order_id: OrderId = None) -> ToolResult:
 Altera o endereço de entrega de um pedido que ainda não foi enviado.
 WHEN TO USE: o cliente quer receber em outro endereço ou corrigir o endereço de um pedido em \
 preparação.
-DON'T USE FOR: mudar a data de entrega (use reschedule_delivery); se o pedido já foi enviado \
+DON'T USE FOR: reagendar o dia (use reschedule_delivery); se o pedido já foi enviado \
 (use escalate_to_human); alterar o cadastro.
 PARAMETERS: só o endereço novo dito pelo cliente; nunca copie o atual. complement opcional; \
 state = UF; postal_code = CEP de 8 dígitos.
@@ -183,7 +184,7 @@ RESULT: protocolo e endereço novo; repasse sem alterar.
         "Quero mudar o endereço de entrega do meu pedido",
         "Errei o número da casa no pedido, é 250",
         "Posso receber no meu trabalho em vez de em casa?",
-        "Troca o endereço do pedido O0003 para Rua Bahia, 90",
+        "Manda para a Rua Bahia, 90 em vez do endereço antigo",
     ],
     keywords=["endereco", "mudar endereco", "alterar endereco", "entregar em outro lugar", "cep"],
 )
@@ -243,7 +244,7 @@ async def update_delivery_address(
     annotations=WRITE,
     result=RescheduleResult,
     description="""
-Reagenda a entrega de um pedido já enviado e ainda não entregue para uma nova data e período.
+Marca nova data e período de entrega para um pedido em trânsito (enviado, ainda não entregue).
 WHEN TO USE: o cliente não estará em casa, quer receber em outro dia ou perdeu a tentativa de \
 entrega.
 DON'T USE FOR: trocar o endereço (use update_delivery_address); saber onde está o pacote (use \
@@ -253,7 +254,7 @@ CONFIRMATION: não requer.
 RESULT: protocolo e nova janela de entrega; repasse sem alterar.
 """,
     examples=[
-        "Não vou estar em casa amanhã, dá para entregar outro dia?",
+        "Na quinta não tem ninguém no apartamento, dá para vir em outra data?",
         "O entregador veio e eu não estava, quero reagendar",
         "Pode entregar o pedido na sexta à tarde?",
         "Quero remarcar a entrega para semana que vem",
@@ -316,7 +317,7 @@ async def reschedule_delivery(
     result=CancellationResult,
     description="""
 Cancela um pedido que ainda não foi enviado; o estorno do pagamento é automático. Irreversível.
-WHEN TO USE: "quero cancelar meu pedido", desistência antes do envio.
+WHEN TO USE: "não quero mais, anula antes de despachar", desistência antes do envio.
 DON'T USE FOR: se o pedido já foi entregue (use create_return_request); dinheiro de volta de \
 pedido já cancelado ou extraviado (use request_refund); cobrança não reconhecida (use \
 dispute_charge).
@@ -326,7 +327,7 @@ RESULT: protocolo, valor e prazo do estorno; repasse sem alterar.
 """,
     examples=[
         "Não quero mais a compra, podem cancelar?",
-        "Desisti da compra, cancela o O0004 por favor",
+        "Pode anular a encomenda que ainda não saiu do estoque?",
         "Comprei errado, dá para cancelar antes de enviar?",
         "Cancela a compra que fiz ontem",
     ],

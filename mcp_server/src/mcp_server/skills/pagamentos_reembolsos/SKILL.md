@@ -8,9 +8,9 @@ allowed-tools:
   - get_refund_status
   - dispute_charge
 examples:
-  - "Meu pagamento foi aprovado?"
-  - "Preciso da 2ª via do boleto"
-  - "Quero meu dinheiro de volta do pedido cancelado"
+  - "O pagamento já foi confirmado?"
+  - "Meu boleto venceu, pode gerar outro?"
+  - "A compra foi cancelada e o estorno não apareceu"
   - "Meu reembolso já caiu?"
   - "Não reconheço essa cobrança no cartão"
 ---
@@ -22,7 +22,7 @@ examples:
 | O cliente quer... | Tool |
 |---|---|
 | saber se o pagamento foi aprovado, parcelas, vencimento | get_payment_status |
-| novo boleto (vencido ou perdido) | generate_boleto_second_copy |
+| emitir outro boleto (data expirada ou documento extraviado) | generate_boleto_second_copy |
 | dinheiro de volta de pedido cancelado sem estorno ou extraviado | request_refund |
 | acompanhar um reembolso já pedido | get_refund_status |
 | contestar cobrança no cartão (não reconhecida, duplicada, valor errado) | dispute_charge |
@@ -30,7 +30,7 @@ examples:
 ## Heurística de desambiguação
 
 - Pagamento × reembolso: dinheiro **saindo** do cliente é get_payment_status; dinheiro **voltando** é get_refund_status.
-- "Quero meu dinheiro de volta":
+- "Quero ser ressarcido":
   - pedido ainda não enviado → cancel_order (estorno automático);
   - pedido entregue → create_return_request (o produto volta primeiro);
   - pedido cancelado sem estorno ou extraviado → request_refund.

@@ -54,7 +54,8 @@ OrderId = Annotated[
     description="""
 Consulta o pagamento de um pedido: forma, status (pendente, aprovado, estornado, contestado), \
 valor, parcelas e vencimento do boleto.
-WHEN TO USE: "meu pagamento foi aprovado?", "o boleto já compensou?", "em quantas parcelas ficou?".
+WHEN TO USE: "o banco já liberou o pagamento?", "o boleto já compensou?", "em quantas parcelas \
+ficou?".
 DON'T USE FOR: dinheiro que deve voltar ao cliente (use get_refund_status); emitir boleto novo \
 (use generate_boleto_second_copy); status do pedido (use get_order_status).
 PARAMETERS: order_id opcional se o cliente tem um só pedido.
@@ -62,7 +63,7 @@ CONFIRMATION: não requer.
 RESULT: dados do pagamento; repasse valores e datas sem alterar.
 """,
     examples=[
-        "Meu pagamento foi aprovado?",
+        "O banco já liberou o pagamento?",
         "O boleto que paguei já compensou?",
         "Em quantas parcelas ficou minha compra?",
         "Por que meu pedido ainda está aguardando pagamento?",
@@ -99,8 +100,8 @@ async def get_payment_status(order_id: OrderId = None) -> ToolResult:
     annotations=WRITE,
     result=BoletoResult,
     description="""
-Emite a 2ª via do boleto de um pedido com pagamento pendente, com novo vencimento.
-WHEN TO USE: "preciso da 2ª via do boleto", boleto vencido ou perdido.
+Emite uma segunda via de boleto para um pedido com pagamento pendente, com novo vencimento.
+WHEN TO USE: "o código de barras expirou", boleto com vencimento passado ou extraviado.
 DON'T USE FOR: saber se o boleto já foi pago (use get_payment_status); pedidos pagos com \
 cartão ou Pix.
 PARAMETERS: order_id opcional se o cliente tem um só pedido.
@@ -110,8 +111,8 @@ RESULT: linha digitável, valor e vencimento; repasse sem alterar nenhum dígito
     examples=[
         "Pode reemitir o boleto da minha compra?",
         "Meu boleto venceu, como pago agora?",
-        "Perdi o boleto do pedido O0001",
-        "Gera um boleto novo para mim",
+        "Não acho mais o documento de pagamento, preciso de outro",
+        "Dá para emitir outro código de barras com data nova?",
     ],
     keywords=["boleto", "segunda via", "2a via", "vencido", "linha digitavel", "codigo de barras"],
 )
@@ -157,7 +158,7 @@ async def generate_boleto_second_copy(order_id: OrderId = None) -> ToolResult:
     result=RefundRequestResult,
     description="""
 Solicita o reembolso de um pedido cancelado que não foi estornado ou extraviado na entrega.
-WHEN TO USE: "quero meu dinheiro de volta" de pedido cancelado sem estorno ou que nunca chegou \
+WHEN TO USE: "quero ser ressarcido" de pedido cancelado sem estorno ou que nunca chegou \
 (extraviado).
 DON'T USE FOR: se o pedido ainda não foi enviado (use cancel_order); produto recebido a \
 devolver (use create_return_request); acompanhar reembolso já pedido (use get_refund_status); \
@@ -169,7 +170,7 @@ RESULT: id do reembolso, valor e prazo; repasse sem alterar.
     examples=[
         "Quero meu dinheiro de volta, o pedido foi cancelado e não estornaram",
         "Meu pedido foi extraviado, quero o reembolso",
-        "O pedido nunca chegou, quero ser reembolsado",
+        "A encomenda sumiu no caminho, quero o valor ressarcido",
         "Cancelaram minha compra e o valor não voltou",
     ],
     keywords=["reembolso", "dinheiro de volta", "estorno", "extraviado", "ressarcimento"],
@@ -237,7 +238,7 @@ RESULT: status e prazo do reembolso; repasse sem alterar.
     examples=[
         "Meu reembolso já caiu?",
         "Quando o estorno vai aparecer na fatura?",
-        "Cadê o dinheiro do pedido que cancelei?",
+        "Cancelei há dias e o estorno ainda não apareceu",
         "Qual o prazo do meu reembolso?",
     ],
     keywords=["reembolso", "estorno", "caiu", "prazo do reembolso", "devolucao do dinheiro"],
@@ -280,7 +281,8 @@ async def get_refund_status(order_id: OrderId = None) -> ToolResult:
     description="""
 Abre contestação (chargeback) de cobrança no cartão de crédito: não reconhecida, duplicada ou \
 com valor divergente. Irreversível.
-WHEN TO USE: "não reconheço essa cobrança", "fui cobrado duas vezes", valor cobrado diferente.
+WHEN TO USE: "não reconheço essa cobrança", "a mesma compra caiu em dobro na fatura", valor \
+cobrado diferente.
 DON'T USE FOR: desistência ou devolução (use cancel_order, request_refund ou \
 create_return_request); pagamento por Pix ou boleto.
 PARAMETERS: reason = nao_reconhecida | duplicada | valor_divergente; details opcional.
@@ -289,7 +291,7 @@ RESULT: id da contestação e prazo; repasse sem alterar.
 """,
     examples=[
         "Não reconheço essa cobrança no meu cartão",
-        "Fui cobrado duas vezes pela mesma compra",
+        "A fatura mostra a mesma transação repetida",
         "O valor cobrado na fatura é maior que o do pedido",
         "Quero contestar uma compra no cartão",
     ],
