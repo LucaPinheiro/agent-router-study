@@ -1,0 +1,62 @@
+[project]
+name = "routing-study"
+version = "0.1.0"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "diskcache>=5.6.3",
+    "fastmcp>=4.0.10",
+    "httpx>=0.28.1",
+    "langchain>=1.4.3",
+    "langchain-mcp-adapters>=0.3.1",
+    "langchain-openai>=1.6.6",
+    "langfuse>=4.15.6",
+    "langgraph>=1.2.12",
+    "langgraph-checkpoint-redis>=0.5.2",
+    "mcp-server",
+    "numpy>=2.5.3",
+    "opentelemetry-exporter-otlp-proto-http>=1.45.0",
+    "opentelemetry-sdk>=1.45.0",
+    "pydantic-settings>=2.15.0",
+    "pyyaml>=6.0.3",
+    "rank-bm25>=0.2.2",
+    "redis>=8.1.0",
+    "tenacity>=9.1.4",
+    "typer>=0.27.2",
+]
+
+[project.scripts]
+study = "routing_study.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/routing_study"]
+
+[tool.uv.workspace]
+members = ["mcp_server"]
+
+[tool.uv.sources]
+mcp-server = { workspace = true }
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = [".claude", ".omc", "spikes"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests", "mcp_server/tests"]
+markers = ["integration: needs docker stack + network"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "respx>=0.23.1",
+    "ruff>=0.16.9",
+]
