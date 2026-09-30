@@ -152,13 +152,15 @@ uv run study run -c config/experiments/e9_regex_jev_llm.yaml --split dev --mode 
 # every strategy in one pass, then replay any cascade offline for free
 uv run study run -c config/experiments/e9_regex_jev_llm.yaml --split dev \
   --mode routing-only --routing-mode shadow --run-name shadow-dev
-uv run study simulate results/shadow-dev.jsonl -c config/experiments/e7_regex_jev.yaml
+uv run study rescore results/shadow-dev.jsonl             # -> results/rescored/ (+ provenance)
+uv run study simulate results/rescored/shadow-dev.jsonl -c config/experiments/e7_regex_jev.yaml
 
 # full agent with tools (executor fills args and answers)
 uv run study run -c config/experiments/e0_native.yaml --split dev --mode e2e --limit 10
 
-uv run study report                        # table over results/*.jsonl
-uv run python scripts/analysis/study_report.py results/shadow-dev.jsonl   # per-strategy study
+uv run study rescore results/*.jsonl       # offline, deterministic: the ONLY source of numbers
+uv run study report                        # tables + 95% CIs over results/rescored/*.jsonl
+uv run python scripts/analysis/study_report.py results/rescored/shadow-dev.jsonl   # per strategy
 uv run study trace <trace_id>              # print a trace tree from Langfuse
 ```
 
