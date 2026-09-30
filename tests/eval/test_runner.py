@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from pathlib import Path
 
 import pytest
@@ -252,3 +253,67 @@ def test_dataset_sha256_is_na_for_in_memory_splits(tmp_path) -> None:
     assert dataset_sha256("integration", tmp_path) == "n/a"
     (tmp_path / "dataset_dev.jsonl").write_text("{}\n")
     assert len(dataset_sha256("dev", tmp_path)) == 64
+
+
+# ---------------------------------------------------------------- Langfuse experiments
+
+
+def test_experiment_item_sets_the_v4_experiment_span_attributes() -> None:
+    """events_only Langfuse builds Experiments from these span attributes (not from
+    dataset-run-item rows): the root and its children must carry them."""
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+    from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
+
+    from routing_study.eval.runner import experiment_item
+
+    exporter = InMemorySpanExporter()
+    provider = TracerProvider()
+    provider.add_span_processor(SimpleSpanProcessor(exporter))
+    tracer = provider.get_tracer("t")
+    attrs = {
+        "experiment_id": "run123",
+        "experiment_name": "e1-dev",
+        "experiment_metadata": {"config_hash": "abc", "split": "dev"},
+        "experiment_dataset_id": "ds1",
+        "experiment_item_id": "case-1",
+        "experiment_item_metadata": {"rep": "1"},
+        "experiment_item_root_observation_id": "root1",
+    }
+    with tracer.start_as_current_span("turn") as span:
+        root = type("Root", (), {"_otel_span": span})()
+        with experiment_item(root, attrs), tracer.start_as_current_span("child"):
+            pass
+    spans = {s.name: dict(s.attributes or {}) for s in exporter.get_finished_spans()}
+    # the root span carries them (children get them from Langfuse's span processor)
+    a = spans["turn"]
+    assert a["langfuse.experiment.id"] == "run123"
+    assert a["langfuse.experiment.name"] == "e1-dev"
+    assert a["langfuse.experiment.item.id"] == "case-1"
+    assert a["langfuse.experiment.dataset.id"] == "ds1"
+    assert a["langfuse.experiment.item.root_observation_id"] == "root1"
+
+
+def test_run_scores_are_itt_means_on_the_dataset_run(tmp_path: Path, monkeypatch) -> None:
+    from routing_study.eval import runner as runner_mod
+
+    calls: list[dict] = []
+
+    class _LF:
+        def create_score(self, **kw):
+            calls.append(kw)
+
+    monkeypatch.setattr(runner_mod.tracing, "enabled", lambda: True)
+    monkeypatch.setattr(runner_mod.tracing, "client", lambda: _LF())
+    out = tmp_path / "run.jsonl"
+    rows = [
+        {"error": None, "scores": {"joint_correct": 1.0, "resolved_by": "regex"}},
+        {"error": "llm: Timeout", "scores": {"joint_correct": 1.0}},
+    ]
+    out.write_text("\n".join(json.dumps(r) for r in rows) + "\n")
+    r = runner_mod.Runner(Settings(_env_file=None), split="dev", mode="routing-only", run_name="x")
+    r.dataset_run_id = "run123"
+    r._run_scores(out)
+    got = {c["name"]: c["value"] for c in calls}
+    assert got == {"error_rate": 0.5, "joint_correct": 0.5}  # the error row counts 0
+    assert all(c["dataset_run_id"] == "run123" for c in calls)

@@ -14,7 +14,7 @@ import subprocess
 import time
 import uuid
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
 from itertools import zip_longest
@@ -222,6 +222,36 @@ def models_used(settings: Settings, roles: set[str] | None = None) -> dict[str, 
     return out
 
 
+def prompt_tracks(settings: Settings, roles: set[str] | None = None) -> dict[str, str]:
+    """strategy -> prompt track of the LLM / Jev routers a run calls."""
+    return {
+        name: str(cfg.prompt_track)
+        for name, cfg in model_configs(settings, roles)
+        if name != "executor" and getattr(cfg, "prompt_track", None)
+    }
+
+
+@contextmanager
+def experiment_item(root: Any, attrs: dict[str, Any]) -> Iterator[None]:
+    """Mark the turn as one item of a Langfuse EXPERIMENT (the run). A v4 server in
+    events_only mode builds its Experiments page from these span attributes (what the SDK's
+    `run_experiment` sets on its `experiment-item-run` span), not from the dataset-run-item
+    rows `dataset_run_items.create` writes: without them the dataset shows "Experiments: 0".
+    The attributes go on the root span and propagate to every child. Uses the SDK's
+    propagation internals (langfuse is pinned in uv.lock)."""
+    from langfuse._client.propagation import (
+        _get_propagated_attributes_from_context,
+        _propagate_attributes,
+    )
+    from opentelemetry import context as otel_context
+
+    with _propagate_attributes(experiment=attrs):  # type: ignore[arg-type]
+        root._otel_span.set_attributes(
+            _get_propagated_attributes_from_context(otel_context.get_current())
+        )
+        yield
+
+
 class ExecutorTimer(BaseCallbackHandler):
     """Executor latency of a turn: summed duration of the completed chat-model calls only
     (failed attempts and retry backoff excluded; routers do not use these callbacks)."""
@@ -364,7 +394,13 @@ class Runner:
             "config": self.config_name,
             "dataset_sha256": dataset_sha256(self.split),
             "scorer_hash": scorer_hash(),
+            "split": self.split,
+            "mode": self.mode,
+            "reps": str(self.reps),
+            "prompt_tracks": json.dumps(prompt_tracks(self.settings, self.model_roles())),
         }
+        self.dataset_id: str | None = None
+        self.dataset_run_id: str | None = None
         uploaded = self.upload_dataset and self._upload(cases)
         self.prompt_versions = tracing.register_prompts(
             {"host_rules": HOST_RULES, "available_skills": AVAILABLE_SKILLS}
@@ -396,6 +432,7 @@ class Runner:
                         raise
         finally:
             await redis.aclose()
+            self._run_scores(out)
             tracing.flush()
             if any(
                 c.provider == "ollama" for _, c in model_configs(self.settings, self.model_roles())
@@ -455,7 +492,8 @@ class Runner:
             return False
         lf = tracing.client()
         name = f"routing-study-{self.split}"
-        lf.create_dataset(name=name, description=f"routing study, split {self.split}")
+        ds = lf.create_dataset(name=name, description=f"routing study, split {self.split}")
+        self.dataset_id = getattr(ds, "id", None)
         for c in cases:
             lf.create_dataset_item(
                 dataset_name=name,
@@ -483,17 +521,37 @@ class Runner:
             metadata=self.meta,
             input={"turns": case.turns, "customer_id": case.customer_id},
         ) as (root, trace_id):
+            item_ctx = ExitStack()
             if item_id and trace_id:
                 try:
-                    await tracing.client().async_api.dataset_run_items.create(
+                    link = await tracing.client().async_api.dataset_run_items.create(
                         run_name=self.run_name,
+                        run_description=f"{self.config_name} {self.mode} on {self.split}",
+                        metadata=self.meta,
                         dataset_item_id=item_id,
                         trace_id=trace_id,
                         observation_id=root.id,
-                        metadata={"config": self.config_name, "rep": rep},
+                    )
+                    self.dataset_run_id = link.dataset_run_id
+                    item_ctx.enter_context(
+                        experiment_item(
+                            root,
+                            {
+                                "experiment_id": link.dataset_run_id,
+                                "experiment_name": self.run_name,
+                                "experiment_metadata": {k: str(v) for k, v in self.meta.items()},
+                                "experiment_dataset_id": self.dataset_id,
+                                "experiment_item_id": item_id,
+                                "experiment_item_metadata": {
+                                    "category": case.category,
+                                    "rep": str(rep),
+                                },
+                                "experiment_item_root_observation_id": root.id,
+                            },
+                        )
                     )
                 except Exception:
-                    log.warning("dataset_run_items.create failed", exc_info=True)
+                    log.warning("linking the turn to the Langfuse experiment failed", exc_info=True)
             try:
                 async with McpTools(self.settings, case.customer_id) as mcp:
                     ctx = RunContext(
@@ -524,6 +582,7 @@ class Runner:
                         },
                         context=ctx,
                     )
+                item_ctx.close()
                 catalog, _ = await self.catalog.get()
                 rec = turn_record(state, catalog, native=self.native, mode=self.mode)
                 scores = score_turn(
@@ -543,6 +602,8 @@ class Runner:
             except Exception as exc:  # one broken case never kills the batch
                 log.exception("case %s rep %s failed", case.id, rep)
                 rec, scores, error = {}, {}, f"{type(exc).__name__}: {exc}"[:500]
+            finally:
+                item_ctx.close()
             latency = (time.perf_counter() - t0) * 1000
             root.update(
                 output={
@@ -588,21 +649,57 @@ class Runner:
             },
         }
         if trace_id:
-            self._score(trace_id, scores)
+            # on the experiment item's root observation, like the SDK's item evaluators, so
+            # the Experiments compare view shows them as columns; plus the ITT error flag
+            self._score(trace_id, scores | {"error": float(bool(error))}, root.id)
         return rec
 
     @staticmethod
-    def _score(trace_id: str, scores: dict[str, Any]) -> None:
+    def _score(trace_id: str, scores: dict[str, Any], observation_id: str | None = None) -> None:
         lf = tracing.client()
         for name, value in scores.items():
             if value is None:
                 continue
-            if isinstance(value, str):
-                lf.create_score(trace_id=trace_id, name=name, value=value, data_type="CATEGORICAL")
-            else:
-                lf.create_score(
-                    trace_id=trace_id, name=name, value=float(value), data_type="NUMERIC"
-                )
+            kind = "CATEGORICAL" if isinstance(value, str) else "NUMERIC"
+            lf.create_score(
+                trace_id=trace_id,
+                observation_id=observation_id,
+                name=name,
+                value=value if isinstance(value, str) else float(value),
+                data_type=kind,
+            )
+
+    def _run_scores(self, out: Path) -> None:
+        """Run-level (experiment) scores: the ITT mean of every numeric score over the rows
+        written so far (an error row counts 0 for correctness scores) and the error rate."""
+        if not (tracing.enabled() and self.dataset_run_id):
+            return
+        from routing_study.eval.report import itt
+
+        partial = out.with_name(out.name + ".partial")
+        path = out if out.exists() else partial
+        if not path.exists():
+            return
+        rows = [json.loads(x) for x in path.read_text(encoding="utf-8").splitlines() if x.strip()]
+        if not rows:
+            return
+        names = {
+            k for r in rows for k, v in (r.get("scores") or {}).items() if not isinstance(v, str)
+        }
+        values = {"error_rate": sum(1 for r in rows if r.get("error")) / len(rows)}
+        for name in sorted(names):
+            xs = [v for r in rows if (v := itt(r, name)) is not None]
+            if xs:
+                values[name] = sum(xs) / len(xs)
+        lf = tracing.client()
+        for name, value in values.items():
+            lf.create_score(
+                dataset_run_id=self.dataset_run_id,
+                name=name,
+                value=float(value),
+                data_type="NUMERIC",
+                comment="run mean, intention to treat",
+            )
 
 
 def default_run_name(config_name: str, split: str, mode: str) -> str:
