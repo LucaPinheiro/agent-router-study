@@ -17,6 +17,12 @@ scored on the held-out folds, with 95% cluster-bootstrap CIs (`eval/stats.py`). 
 everything is replayed from the recorded decisions and scored by the shared scorer; the fast
 grid evaluator is cross-checked against `eval/simulate.simulate_rows` at every reported point.
 
+References (D5, dev, all rows, no fit): always-last (every non-last step passes on: the
+cascade's final router alone), always-first (every step accepts any choice), oracle (per row the
+best stopping step per stage, cheapest among ties: an upper bound for any deferral rule), and
+random deferral at each method's per-step acceptance rates (mean of --random-draws draws): a
+threshold rule is worth something only when it beats random deferral at the same coverage.
+
 Writes <out-dir>/calibration.md (report), thresholds.yaml (snippet per experiment, NOT applied
 to config/experiments) and pareto.csv (front per experiment, for plotting).
 """
@@ -141,7 +147,7 @@ def calibrate_config(
     ]
     for p in points:
         cal.simulator_check(rows, settings, t, *p)
-    return {
+    out = {
         "name": name,
         "settings": settings,
         "sk_names": sk_names,
@@ -154,6 +160,104 @@ def calibrate_config(
         "front": front,
         "checked": checked + len(points),
     }
+    out["references"] = references(t, out, args)
+    return out
+
+
+def _ref_rows(t: Any, i: np.ndarray, j: np.ndarray) -> list[dict[str, Any]]:
+    out = []
+    for x in range(len(t.keys)):
+        a, b = i[x], j[x]
+        cost = t.cost[x, a, b]
+        out.append(
+            {
+                "case_id": t.case_ids[x],
+                "error": bool(t.err[x, a, b]),
+                "joint": float(t.joint[x, a, b]),
+                "cost": None if np.isnan(cost) else float(cost),
+            }
+        )
+    return out
+
+
+def oracle_rows(t: Any) -> list[dict[str, Any]]:
+    """Per row the (skill, tool) stopping cell with the highest joint, cheapest among ties;
+    only cells a cascade can reach (a step with a choice, or the last step's outcome)."""
+    n, S, T = t.err.shape
+    i, j = np.zeros(n, int), np.zeros(n, int)
+    for x in range(n):
+        sk = [k for k in range(S - 1) if t.skill_ok[x, k]] + [S - 1]
+        tl = [k for k in range(T - 1) if t.tool_ok[x, k]] + [T - 1]
+        best = None
+        for a in sk:
+            for b in tl:
+                c = t.cost[x, a, b]
+                key = (
+                    0.0 if t.err[x, a, b] else float(t.joint[x, a, b]),
+                    -(float(c) if not np.isnan(c) else np.inf),
+                )
+                if best is None or key > best[0]:
+                    best = (key, a, b)
+        i[x], j[x] = best[1], best[2]
+    return _ref_rows(t, i, j)
+
+
+def random_deferral(t: Any, pick: Any, draws: int, seed: int) -> dict[str, float]:
+    """Random deferral matched to `pick`: each non-last step accepts a reaching row that has a
+    choice with that step's acceptance rate under `pick`; mean joint % and US$/1k over draws."""
+    rng = np.random.default_rng(seed)
+
+    def rates(conf: np.ndarray, ok: np.ndarray, th: tuple[float, ...]) -> list[float]:
+        reach, out = np.ones(len(conf), bool), []
+        for k, v in enumerate(th):
+            acc = reach & ok[:, k] & (conf[:, k] >= v)
+            base = reach & ok[:, k]
+            out.append(float(acc.sum() / base.sum()) if base.sum() else 0.0)
+            reach &= ~acc
+        return out
+
+    def draw(conf: np.ndarray, ok: np.ndarray, last: np.ndarray, r: list[float]) -> np.ndarray:
+        n, m = conf.shape
+        idx = np.where(last, m - 1, m)
+        decided = np.zeros(n, bool)
+        for k, p in enumerate(r):
+            take = ~decided & ok[:, k] & (rng.random(n) < p)
+            idx = np.where(take, k, idx)
+            decided |= take
+        return idx
+
+    rs = rates(t.skill_conf, t.skill_ok, tuple(pick[0]))
+    rt = rates(t.tool_conf, t.tool_ok, tuple(pick[1]))
+    joints, costs = [], []
+    for _ in range(draws):
+        vals = _ref_rows(
+            t,
+            draw(t.skill_conf, t.skill_ok, t.skill_last, rs),
+            draw(t.tool_conf, t.tool_ok, t.tool_last, rt),
+        )
+        joints.append(np.mean([0.0 if v["error"] else v["joint"] for v in vals]))
+        cs = [v["cost"] for v in vals if not v["error"] and v["cost"] is not None]
+        costs.append(np.mean(cs) if cs else np.nan)
+    return {"joint": 100 * float(np.mean(joints)), "cost_1k": 1000 * float(np.nanmean(costs))}
+
+
+def references(t: Any, r: dict[str, Any], args: argparse.Namespace) -> list[dict[str, Any]]:
+    m_s, m_t = len(r["sk_names"]), len(r["tl_names"])
+    out = [
+        ("always-last (final router alone)", ((NEVER,) * m_s, (NEVER,) * m_t)),
+        ("always-first (every step accepts any choice)", ((0.0,) * m_s, (0.0,) * m_t)),
+    ]
+    refs = [
+        {"label": label, "summary": cal.summarize(cal.row_values(t, *pick))} for label, pick in out
+    ]
+    refs.append(
+        {"label": "oracle (best stopping step per row)", "summary": cal.summarize(oracle_rows(t))}
+    )
+    for m in r["methods"][1:]:
+        if m["pick"] is not None:
+            rd = random_deferral(t, m["pick"], args.random_draws, args.seed)
+            refs.append({"label": f"random deferral at {m['label']} rates", "random": rd})
+    return refs
 
 
 def calibrated_share(rows: list[dict[str, Any]]) -> tuple[int, int]:
@@ -248,6 +352,22 @@ def render(
             prec = "-" if s.precision is None else f"{100 * s.precision:.1f}%"
             th = "never (drop step)" if s.threshold is None else f"{s.threshold:.2f}"
             out.append(f"| {s.stage} | {s.strategy} | {target} | {th} | {prec} | {s.accepted} |")
+        out.append("\nReferences on dev (all rows, no fit):\n")
+        out.append("| reference | joint % [95% CI] | US$/1k routing [95% CI] |")
+        out.append("|---|---|---|")
+        for ref in r["references"]:
+            if "random" in ref:
+                rd = ref["random"]
+                out.append(
+                    f"| {ref['label']} ({args.random_draws} draws, mean) | {rd['joint']:.1f} "
+                    f"| {rd['cost_1k']:.4f} |"
+                )
+            else:
+                sm = ref["summary"]
+                out.append(
+                    f"| {ref['label']} | {fmt_ci(sm['joint_ci'])} "
+                    f"| {fmt_ci(sm['cost_ci'], scale=1000.0, digits=4)} |"
+                )
         out.append(f"\nPareto front on dev ({len(r['front'])} points; pareto.csv):\n")
         out.append(
             "| skill thresholds | tool thresholds | joint % | joint cov. % | US$/1k "
@@ -342,6 +462,7 @@ def main() -> None:
         help="sensitivity: drop rows that are an error at some grid point (default: ITT)",
     )
     ap.add_argument("--checks", type=int, default=5, help="extra random simulator checks")
+    ap.add_argument("--random-draws", type=int, default=200, help="random-deferral draws")
     ap.add_argument("--out-dir", type=Path, default=Path("results/calibration"))
     args = ap.parse_args()
 

@@ -35,7 +35,7 @@ TUNED_COPIES = (
     "e6_llm_haiku",
     "e6b_llm_qwen3_local",
 )
-CASCADES = ("e7_regex_jev", "e8_regex_llm", "e9_regex_jev_llm")
+CASCADES = ("e7_regex_jev", "e8_regex_llm", "e9_regex_jev_llm", "e12_hybrid_jev_llm")
 BLOCK = re.compile(r"^  (llm(?:_[a-z0-9]+)*|jev):.*\n(?:(?:    |\s*#).*\n)*", re.MULTILINE)
 PROMPT_KEYS = ("prompt_track", "prompt_variant", "calibration")
 

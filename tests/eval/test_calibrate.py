@@ -278,12 +278,31 @@ def test_script_writes_report_yaml_and_csv(tmp_path, monkeypatch):
     calibrate_cascades.main()
     report = (out / "calibration.md").read_text(encoding="utf-8")
     assert "## e9_synthetic" in report and "(a) max joint" in report and "(b) precision" in report
+    assert "oracle (best stopping step per row)" in report and "random deferral at" in report
     snippet = __import__("yaml").safe_load((out / "thresholds.yaml").read_text(encoding="utf-8"))
     pipe = snippet["e9_synthetic"]["budget"]["routing"]["skill"]["pipeline"]
     assert pipe[-1] == {"strategy": "llm"}
     assert all(0.5 <= p["min_confidence"] <= 0.95 for p in pipe[:-1])
     lines = (out / "pareto.csv").read_text(encoding="utf-8").splitlines()
     assert lines[0].startswith("experiment,skill_thresholds") and len(lines) > 1
+
+
+def test_references_oracle_bounds_every_grid_point_and_random_matches_rates():
+    st = settings()
+    rows = [r for r in random_rows(80, 5) if r["skill"]]
+    t = cal.build_tables(rows, st)
+    g = cal.grid(0.5, 0.95, 0.05)
+    gs = cal.grid_sums(t, cal.combos_of(g, 2), cal.combos_of(g, 1))
+    best = max(p["joint_acc"] for p in cal.pareto_front(gs))
+    oracle = cal.summarize(calibrate_cascades.oracle_rows(t))["joint_ci"][0]
+    assert oracle >= best - 1e-9
+    # rates 1.0 everywhere (thresholds 0) = always-first; 0 everywhere = always-last
+    first = cal.summarize(cal.row_values(t, (0.0, 0.0), (0.0,)))["joint_ci"][0]
+    rd = calibrate_cascades.random_deferral(t, ((0.0, 0.0), (0.0,)), 3, 0)
+    assert abs(rd["joint"] - 100 * first) < 1e-6
+    last = cal.summarize(cal.row_values(t, (1.01, 1.01), (1.01,)))["joint_ci"][0]
+    rd = calibrate_cascades.random_deferral(t, ((1.01, 1.01), (1.01,)), 3, 0)
+    assert abs(rd["joint"] - 100 * last) < 1e-6
 
 
 def test_script_refuses_a_non_dev_split(tmp_path, monkeypatch):

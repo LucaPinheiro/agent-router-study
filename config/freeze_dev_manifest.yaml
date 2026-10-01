@@ -1,0 +1,24 @@
+# Dev shadow pass with the FINAL (frozen) configs, for cascade threshold calibration (D5, B4).
+#   uv run study run-manifest config/freeze_dev_manifest.yaml
+#   uv run python scripts/analysis/calibrate_cascades.py results/rescored/freeze-dev-shadow-r1.jsonl
+# The E9 config decides (tuned track; tuned == canonical for Sonnet 5 and Jev). Every router
+# of the shadow set runs on every case except Qwen3-8B (llm_local): it is not a step of any
+# cascade, and leaving it out keeps one resident Ollama model (the embedder).
+# Most LLM / Jev decisions are response-cache hits of the D6 prompt-selection pass (P0, rep 1).
+version: 1
+split: dev
+results_dir: results
+error_budget: 0.02
+max_infra_retries: 2
+
+runs:
+  - name: freeze-dev-shadow-r1
+    config: config/experiments/e9_regex_jev_llm.yaml
+    prompt_track: tuned
+    mode: routing-only
+    routing_mode: shadow
+    reps: 1
+    priority: 10
+    purpose: "cascade thresholds (D5): calibrate_cascades.py input"
+    overrides:
+      routing.shadow_strategies: [regex, bm25, embedding, llm, jev, hybrid, classifier]
