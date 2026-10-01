@@ -424,3 +424,12 @@ async def test_bedrock_executor_disables_parallel_tool_calls(settings, tool_choi
     assert req["additionalModelRequestFields"] == {"tool_choice": native}
     assert "toolChoice" not in req["toolConfig"]  # one source of truth for the choice
     assert chat.additional_model_request_fields is None  # the shared client is not mutated
+
+
+def test_ollama_untagged_model_matches_latest_tag() -> None:
+    """`bge-m3` in a config is `bge-m3:latest` on the server (prereg deviation D-001)."""
+    from routing_study.llm import _ollama_tag
+
+    assert _ollama_tag("bge-m3") == "bge-m3:latest"
+    assert _ollama_tag("qwen3:8b-q8_0") == "qwen3:8b-q8_0"
+    assert _ollama_tag("bge-m3") == _ollama_tag("bge-m3:latest")

@@ -999,6 +999,11 @@ def model_configs(
     return out
 
 
+def _ollama_tag(name: str) -> str:
+    """Ollama resolves an untagged name to `<name>:latest`; compare in that canonical form."""
+    return name if ":" in name else f"{name}:latest"
+
+
 async def _check_ollama(
     settings: Settings, names: set[str] | None, client: httpx.AsyncClient
 ) -> None:
@@ -1011,8 +1016,8 @@ async def _check_ollama(
     for base, wanted in by_base.items():
         r = await client.get(f"{base}/api/tags")
         r.raise_for_status()
-        have = {m["name"] for m in r.json().get("models", [])}
-        missing = sorted(wanted - have)
+        have = {_ollama_tag(m["name"]) for m in r.json().get("models", [])}
+        missing = sorted(w for w in wanted if _ollama_tag(w) not in have)
         if missing:
             raise UnknownModelError(f"Ollama at {base} has not pulled: {missing}")
 
