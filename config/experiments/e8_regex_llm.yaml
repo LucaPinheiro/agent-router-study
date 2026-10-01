@@ -3,7 +3,7 @@ routing:
   mode: cascade
   skill:
     pipeline:
-      - { strategy: regex, min_confidence: 0.90 }
+      - { strategy: regex, min_confidence: 0.88 }  # D5: method (a) unconstrained (budget infeasible), prereg-v1
       - { strategy: llm }             # last step: always accepts
     on_abstain: escalate
   tool:

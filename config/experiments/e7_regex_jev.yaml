@@ -3,7 +3,7 @@ routing:
   mode: cascade
   skill:
     pipeline:
-      - { strategy: regex, min_confidence: 0.90 }
+      - { strategy: regex, min_confidence: 0.81 }  # D5: dev shadow, method (a), prereg-v1
       - { strategy: jev }             # last step: always accepts
     on_abstain: escalate
   tool:

@@ -185,7 +185,7 @@ def test_build_from_experiment_yaml(tmp_path):
     skill = build_pipeline(s, "skill", routers)
     tool = build_pipeline(s, "tool", routers)
     assert [x.strategy for x in skill.steps] == ["regex", "jev", "llm"]
-    assert [x.min_confidence for x in skill.steps] == [0.9, 0.75, None]
+    assert [x.min_confidence for x in skill.steps] == [0.88, 0.76, None]  # prereg-v1 (D5)
     assert [x.strategy for x in tool.steps] == ["jev", "llm"]
     assert s.routing.tool.expose_top_k == 2
     e0 = load_settings("config/experiments/e0_native.yaml", openrouter_api_key="k")

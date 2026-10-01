@@ -62,7 +62,7 @@ def test_env_overrides_with_list_index_and_nesting(monkeypatch):
     monkeypatch.setenv("MCP_URL", "http://mcp.test/mcp")
     s = load_settings("config/experiments/e9_regex_jev_llm.yaml")
     assert s.routing.skill.pipeline[0].min_confidence == 0.95
-    assert s.routing.skill.pipeline[1].min_confidence == 0.75  # untouched
+    assert s.routing.skill.pipeline[1].min_confidence == 0.76  # untouched (prereg-v1, D5)
     assert s.routing.mode == "shadow"
     assert s.strategies.llm.model == "anthropic/claude-haiku-4.5"
     assert s.strategies.jev.model == "typesafe/jev-router"
