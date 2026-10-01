@@ -6,10 +6,12 @@ back through /api/public/v2/observations and /api/public/v3/scores.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
+import logging
 import os
 import time
-from collections.abc import Iterator, Mapping
+from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
 from typing import Any
 
@@ -17,6 +19,15 @@ import httpx
 from opentelemetry import propagate
 
 from routing_study.routers.common import tracing_active
+
+log = logging.getLogger(__name__)
+# Backoff between attempts of a Langfuse API call (4 retries, ~7.5 s in all, on top of the
+# SDK's own 2 retries on 429/5xx; the SDK never retries a timeout or a refused connection).
+RETRY_DELAYS_S: tuple[float, ...] = (0.5, 1.0, 2.0, 4.0)
+
+
+class LangfuseUnavailableError(RuntimeError):
+    """Langfuse unreachable (after retries) before the run spent anything: the run aborts."""
 
 
 class _NoopSpan:
@@ -66,6 +77,82 @@ def client() -> Any:
     return get_client()
 
 
+def retryable(exc: BaseException) -> bool:
+    """Transient Langfuse failure: transport error / timeout, 429 or 5xx."""
+    from langfuse.api.core.api_error import ApiError
+
+    if isinstance(exc, httpx.TransportError):
+        return True
+    if isinstance(exc, ApiError):
+        return exc.status_code is None or exc.status_code == 429 or exc.status_code >= 500
+    return False
+
+
+def _log_retry(what: str, exc: BaseException, attempt: int, retries: int, delay: float) -> None:
+    log.warning(
+        "langfuse %s failed (%s: %s); retry %d/%d in %.1fs",
+        what,
+        type(exc).__name__,
+        exc,
+        attempt,
+        retries,
+        delay,
+    )
+
+
+def with_retry[T](
+    fn: Callable[[], T],
+    *,
+    what: str,
+    delays: tuple[float, ...] = RETRY_DELAYS_S,
+    sleep: Callable[[float], Any] = time.sleep,
+) -> T:
+    """`fn()` retried with backoff on transient failures; the last failure is raised."""
+    for attempt, delay in enumerate((*delays, None), start=1):
+        try:
+            return fn()
+        except Exception as exc:
+            if delay is None or not retryable(exc):
+                raise
+            _log_retry(what, exc, attempt, len(delays), delay)
+            sleep(delay)
+    raise AssertionError("unreachable")  # pragma: no cover
+
+
+async def awith_retry[T](
+    fn: Callable[[], T], *, what: str, delays: tuple[float, ...] = RETRY_DELAYS_S
+) -> T:
+    """`with_retry` for coroutines: the SYNC API call runs in a worker thread. The SDK's
+    `async_api` is never used: its httpx.AsyncClient is process-wide and keeps pooled
+    connections bound to the event loop that opened them, so a second `asyncio.run` in the
+    same process (multi-run manifests) fails with "Event loop is closed"."""
+    for attempt, delay in enumerate((*delays, None), start=1):
+        try:
+            return await asyncio.to_thread(fn)
+        except Exception as exc:
+            if delay is None or not retryable(exc):
+                raise
+            _log_retry(what, exc, attempt, len(delays), delay)
+            await asyncio.sleep(delay)
+    raise AssertionError("unreachable")  # pragma: no cover
+
+
+def preflight(delays: tuple[float, ...] = RETRY_DELAYS_S) -> None:
+    """Fail fast, before a run spends anything, when tracing is on but Langfuse is
+    unreachable or the keys are rejected (after retries)."""
+    if not enabled():
+        return
+    try:
+        projects = with_retry(lambda: client().api.projects.get(), what="preflight", delays=delays)
+    except Exception as exc:
+        raise LangfuseUnavailableError(
+            f"Langfuse at {os.environ.get('LANGFUSE_HOST')} unreachable: "
+            f"{type(exc).__name__}: {exc}"
+        ) from exc
+    if not projects.data:
+        raise LangfuseUnavailableError("Langfuse keys match no project")
+
+
 def register_prompts(texts: Mapping[str, str]) -> dict[str, int]:
     """Langfuse Prompt Management (plan §4.4): one version per prompt content, labelled with its
     hash; created on first use. Returns name -> version ({} without Langfuse)."""
@@ -77,9 +164,17 @@ def register_prompts(texts: Mapping[str, str]) -> dict[str, int]:
     for name, text in texts.items():
         label = hashlib.sha256(text.encode()).hexdigest()[:12]
         try:
-            prompt = lf.get_prompt(name, label=label, cache_ttl_seconds=0, max_retries=0)
+            prompt = with_retry(
+                lambda n=name, lb=label: lf.get_prompt(
+                    n, label=lb, cache_ttl_seconds=0, max_retries=0
+                ),
+                what=f"get_prompt {name}",
+            )
         except NotFoundError:
-            prompt = lf.create_prompt(name=name, prompt=text, labels=[label])
+            prompt = with_retry(
+                lambda n=name, t=text, lb=label: lf.create_prompt(name=n, prompt=t, labels=[lb]),
+                what=f"create_prompt {name}",
+            )
         out[name] = prompt.version
     return out
 

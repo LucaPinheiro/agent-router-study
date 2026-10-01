@@ -372,6 +372,8 @@ class Runner:
     budget_per_turn: dict[str, float] | None = None
     # per invocation: re-running the same --run-name never resumes an old checkpoint thread
     invocation: str = field(default_factory=lambda: uuid.uuid4().hex[:8])
+    # turns whose Langfuse experiment link failed after retries (logged at the end of run)
+    link_failures: int = field(default=0, init=False)
 
     @property
     def config_name(self) -> str:
@@ -399,6 +401,7 @@ class Runner:
             raise ValueError("REDIS_URL is required (catalog cache + checkpointer)")
         import redis.asyncio as aioredis
 
+        tracing.preflight()  # Langfuse down: abort here, before anything is spent
         done: set[tuple[str, int]] = set()
         if self.resume:
             done = {(r["case_id"], int(r["rep"])) for r in existing_rows(out)}
@@ -445,10 +448,16 @@ class Runner:
             self.assert_same_version(existing_rows(out))
         self.dataset_id: str | None = None
         self.dataset_run_id: str | None = None
-        uploaded = self.upload_dataset and self._upload(cases)
-        self.prompt_versions = tracing.register_prompts(
-            {"host_rules": HOST_RULES, "available_skills": AVAILABLE_SKILLS}
-        )
+        self.link_failures = 0
+        try:  # still before any case runs: a Langfuse outage aborts without spending
+            uploaded = self.upload_dataset and self._upload(cases)
+            self.prompt_versions = tracing.register_prompts(
+                {"host_rules": HOST_RULES, "available_skills": AVAILABLE_SKILLS}
+            )
+        except Exception as exc:
+            raise tracing.LangfuseUnavailableError(
+                f"Langfuse dataset/prompt upload failed after retries: {type(exc).__name__}: {exc}"
+            ) from exc
 
         sem = asyncio.Semaphore(self.concurrency)
         try:
@@ -475,6 +484,13 @@ class Runner:
                         raise
         finally:
             await redis.aclose()
+            if self.link_failures:
+                log.warning(
+                    "%s: %d turn(s) not linked to the Langfuse experiment (traces and scores "
+                    "are kept; the experiment lists fewer items)",
+                    self.run_name,
+                    self.link_failures,
+                )
             self._run_scores(out)
             tracing.flush()
             if any(
@@ -551,15 +567,21 @@ class Runner:
             return False
         lf = tracing.client()
         name = f"routing-study-{self.split}"
-        ds = lf.create_dataset(name=name, description=f"routing study, split {self.split}")
+        ds = tracing.with_retry(
+            lambda: lf.create_dataset(name=name, description=f"routing study, split {self.split}"),
+            what="create_dataset",
+        )
         self.dataset_id = getattr(ds, "id", None)
-        for c in cases:
-            lf.create_dataset_item(
-                dataset_name=name,
-                id=c.id,
-                input={"customer_id": c.customer_id, "turns": c.turns},
-                expected_output=c.expected,
-                metadata={"category": c.category, "split": self.split},
+        for c in cases:  # upserts keyed by case id: a retried call is idempotent
+            tracing.with_retry(
+                lambda c=c: lf.create_dataset_item(
+                    dataset_name=name,
+                    id=c.id,
+                    input={"customer_id": c.customer_id, "turns": c.turns},
+                    expected_output=c.expected,
+                    metadata={"category": c.category, "split": self.split},
+                ),
+                what=f"create_dataset_item {c.id}",
             )
         return True
 
@@ -582,14 +604,17 @@ class Runner:
         ) as (root, trace_id):
             item_ctx = ExitStack()
             if item_id and trace_id:
-                try:
-                    link = await tracing.client().async_api.dataset_run_items.create(
-                        run_name=self.run_name,
-                        run_description=f"{self.config_name} {self.mode} on {self.split}",
-                        metadata=self.meta,
-                        dataset_item_id=item_id,
-                        trace_id=trace_id,
-                        observation_id=root.id,
+                try:  # sync API in a thread, retried (see tracing.awith_retry)
+                    link = await tracing.awith_retry(
+                        lambda: tracing.client().api.dataset_run_items.create(
+                            run_name=self.run_name,
+                            run_description=f"{self.config_name} {self.mode} on {self.split}",
+                            metadata=self.meta,
+                            dataset_item_id=item_id,
+                            trace_id=trace_id,
+                            observation_id=root.id,
+                        ),
+                        what=f"link {case.id} rep {rep}",
                     )
                     self.dataset_run_id = link.dataset_run_id
                     item_ctx.enter_context(
@@ -609,7 +634,8 @@ class Runner:
                             },
                         )
                     )
-                except Exception:
+                except Exception:  # never crash the run: the trace and scores are kept
+                    self.link_failures += 1
                     log.warning("linking the turn to the Langfuse experiment failed", exc_info=True)
             try:
                 async with McpTools(self.settings, case.customer_id) as mcp:

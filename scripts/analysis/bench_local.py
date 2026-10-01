@@ -22,7 +22,7 @@ from typing import Any
 import httpx
 from fastmcp import Client
 
-from routing_study.catalog import fetch_catalog
+from routing_study.catalog import PROTOCOL_VERSION, fetch_catalog
 from routing_study.eval.runner import load_cases
 from routing_study.eval.scorers import routing_scores
 from routing_study.graph.nodes import _routing_input as graph_routing_input
@@ -77,7 +77,7 @@ async def main() -> None:
     if args.confidence:
         cfg.confidence = args.confidence
     router = build_routers(s, {name})[name]
-    catalog = await fetch_catalog(s, Client(mcp))
+    catalog = await fetch_catalog(s, Client(mcp, mode=PROTOCOL_VERSION))
     cases = load_cases("dev", args.n)
     base = (cfg.base_url or s.ollama_base_url).rstrip("/").removesuffix("/v1")
 

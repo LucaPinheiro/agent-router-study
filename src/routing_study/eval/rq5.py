@@ -154,13 +154,13 @@ async def retrain_seconds(config: Path, held: list[str]) -> dict[str, float]:
     from fastmcp import Client
     from mcp_server.server import mcp
 
-    from routing_study.catalog import fetch_catalog
+    from routing_study.catalog import PROTOCOL_VERSION, fetch_catalog
     from routing_study.routers.base import GLOBAL_OPTION
     from routing_study.routers.pipeline import build_routers
     from routing_study.settings import load_settings
 
     settings = load_settings(config)
-    full = await fetch_catalog(settings, Client(mcp))
+    full = await fetch_catalog(settings, Client(mcp, mode=PROTOCOL_VERSION))
     reduced = full.without(held)
 
     def stages(cat: Any) -> list[list[Any]]:

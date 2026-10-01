@@ -4,6 +4,13 @@
   `skill://<id>/SKILL.md` resources (frontmatter `allowed-tools` must match the `_meta` skills).
 - `CatalogProvider`: Redis cache (TTL = server `ttlMs`, fallback 300 s) under
   `mcp:catalog:<url>:<protocol_version>`, plus an in-process copy until the same TTL.
+- Every client is PINNED to `PROTOCOL_VERSION` (2026-07-28). fastmcp's default `mode="auto"`
+  probes `server/discover` and silently falls back to the 2025-11-25 initialize handshake on
+  ANY probe error (a client-side timeout under load included), which yields a catalog with
+  another protocol version and another inputSchema key order.
+- `Catalog.hash` covers the semantic content only (instructions, tools, skills; JSON-object
+  keys sorted, server order of tools / skills / schema properties kept); never the protocol
+  version, url or TTL.
 - `Catalog`: skill RouteOptions (3 skills + `__global__`), per-skill tool RouteOptions
   (5 skill tools + 3 globals) and OpenAI-format tool schemas, verbatim from the server.
 - `McpTools`: `tools/call` with `X-Customer-Id` and the current `traceparent` in `_meta`.
@@ -24,6 +31,7 @@ import yaml
 from fastmcp import Client
 from fastmcp.client.transports import StreamableHttpTransport
 from mcp.shared.exceptions import MCPError
+from mcp_types.version import MODERN_PROTOCOL_VERSIONS
 
 from routing_study.routers.base import GLOBAL_OPTION, RouteOption
 from routing_study.settings import Settings
@@ -31,7 +39,8 @@ from routing_study.tracing.langfuse import traceparent
 
 log = logging.getLogger(__name__)
 
-PROTOCOL_VERSION = mt.LATEST_PROTOCOL_VERSION
+PROTOCOL_VERSION = "2026-07-28"  # pinned: see the module docstring
+assert PROTOCOL_VERSION in MODERN_PROTOCOL_VERSIONS, "the MCP SDK no longer speaks 2026-07-28"
 RDNS = "br.routingstudy"
 SERVER_GLOBAL = "global"  # `_meta.br.routingstudy/skill` value of the always-exposed tools
 DEFAULT_TTL_S = 300
@@ -71,7 +80,21 @@ class Catalog:
 
     @property
     def hash(self) -> str:
-        return hashlib.sha256(self.to_json().encode()).hexdigest()[:12]
+        """Content hash (provenance `catalog_hash`): same tools / instructions / skills ->
+        same hash, whatever protocol version, url or TTL the fetch had."""
+        raw = json.dumps(self.content(), ensure_ascii=False, separators=(",", ":"))
+        return hashlib.sha256(raw.encode()).hexdigest()[:12]
+
+    def content(self) -> dict[str, Any]:
+        """The semantic content, normalized: JSON-object keys sorted (their order is
+        meaningless and differs between protocol eras) except the members of a schema's
+        `properties`, whose server order shapes the tool schema the executor sees; tools and
+        skills stay lists in server order (order shapes the prompt bytes)."""
+        return {
+            "instructions": self.instructions,
+            "tools": [_normalize(t) for t in self.tools],
+            "skills": [asdict(s) for s in self.skills.values()],
+        }
 
     def to_json(self) -> str:
         """Server order kept (skills, schema properties): it shapes the prompt bytes, and the
@@ -247,6 +270,17 @@ class Catalog:
         }
 
 
+def _normalize(value: Any, *, keep_order: bool = False) -> Any:
+    """Sort JSON-object keys recursively; `keep_order` keeps one object's member order (a
+    JSON Schema `properties` map) while still normalizing the members themselves."""
+    if isinstance(value, dict):
+        items = list(value.items()) if keep_order else sorted(value.items())
+        return {k: _normalize(v, keep_order=k == "properties" and not keep_order) for k, v in items}
+    if isinstance(value, list):
+        return [_normalize(v) for v in value]
+    return value
+
+
 # ---------------------------------------------------------------- MCP client
 
 
@@ -257,7 +291,8 @@ def mcp_client(settings: Settings, customer_id: str | None = None) -> Client:
     if customer_id:
         headers["X-Customer-Id"] = customer_id
     transport = StreamableHttpTransport(settings.mcp_url, headers=headers)
-    return Client(transport, timeout=settings.request_timeout_s)
+    # pinned, never "auto": no silent fallback to the 2025-11-25 handshake
+    return Client(transport, timeout=settings.request_timeout_s, mode=PROTOCOL_VERSION)
 
 
 def parse_skill(skill_id: str, markdown: str) -> tuple[Skill, set[str]]:
@@ -283,6 +318,16 @@ async def fetch_catalog(settings: Settings, client: Client | None = None) -> Cat
     """`client`: an unopened client to use instead of `mcp_client(settings)` (e.g. an
     in-process `Client(mcp_server.server.mcp)` for offline tuning)."""
     async with client or mcp_client(settings) as client:
+        if client.protocol_version != PROTOCOL_VERSION:
+            raise RuntimeError(
+                f"MCP client negotiated {client.protocol_version}, expected {PROTOCOL_VERSION} "
+                "(pin the client: Client(..., mode=PROTOCOL_VERSION))"
+            )
+        # an explicit server/discover: a pinned client adopts a synthesized result without
+        # the server's instructions, and this call fails loudly instead of falling back
+        discovered = mt.DiscoverResult.model_validate(
+            await client.session.send_discover(PROTOCOL_VERSION)
+        )
         tools: list[mt.Tool] = []
         cursor: str | None = None
         ttl_ms: int | None = None
@@ -306,8 +351,8 @@ async def fetch_catalog(settings: Settings, client: Client | None = None) -> Cat
                 skills[skill_id] = skill
         catalog = Catalog(
             url=settings.mcp_url,
-            protocol_version=client.protocol_version or PROTOCOL_VERSION,
-            instructions=client.instructions or "",
+            protocol_version=client.protocol_version,
+            instructions=discovered.instructions or "",
             tools=[t.model_dump(by_alias=True, exclude_none=True, mode="json") for t in tools],
             skills=skills,
             ttl_s=int(ttl_ms / 1000) if ttl_ms else DEFAULT_TTL_S,
@@ -343,8 +388,16 @@ class CatalogProvider:
         if self.redis is not None:
             try:
                 raw = await self.redis.get(self.key)
-                if raw:
-                    catalog, source = Catalog.from_json(raw), "redis"
+                cached = Catalog.from_json(raw) if raw else None
+                if cached is not None and cached.protocol_version != PROTOCOL_VERSION:
+                    # written by an unpinned client of older code: never served
+                    log.warning(
+                        "redis catalog %s holds protocol %s: refetching",
+                        self.key,
+                        cached.protocol_version,
+                    )
+                elif cached is not None:
+                    catalog, source = cached, "redis"
                     ttl_s = await self.redis.ttl(self.key)  # memo ends with the Redis key
             except Exception:  # cache is an optimization; the server is authoritative
                 log.warning("redis catalog read failed", exc_info=True)

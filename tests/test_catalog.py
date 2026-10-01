@@ -217,7 +217,9 @@ async def live_catalog() -> Catalog:
     from fastmcp import Client
     from mcp_server.server import mcp
 
-    return await catalog_mod.fetch_catalog(Settings(_env_file=None), Client(mcp))
+    return await catalog_mod.fetch_catalog(
+        Settings(_env_file=None), Client(mcp, mode=catalog_mod.PROTOCOL_VERSION)
+    )
 
 
 async def test_p1_skill_guide_keeps_only_skill_level_subjects(live_catalog: Catalog) -> None:
@@ -276,3 +278,110 @@ async def test_p1_tool_guide_keeps_tool_level_preconditions(live_catalog: Catalo
         "- not dispute_charge: desistência ou devolução "
         "(use cancel_order, request_refund ou create_return_request)" in pagamentos
     )
+
+
+# ---------------------------------------------------------------- protocol pin / content hash
+
+
+def _variant(cat: Catalog, **changes: object) -> Catalog:
+    fields = {
+        "url": cat.url,
+        "protocol_version": cat.protocol_version,
+        "instructions": cat.instructions,
+        "tools": cat.tools,
+        "skills": cat.skills,
+        "ttl_s": cat.ttl_s,
+    }
+    return Catalog(**(fields | changes))  # type: ignore[arg-type]
+
+
+def _reorder_schema_keys(tool: dict) -> dict:
+    """What a 2025-11-25 fetch returns: same tool, JSON-object keys in another order."""
+    schema = dict(reversed(list(tool["inputSchema"].items())))
+    return dict(reversed(list({**tool, "inputSchema": schema}.items())))
+
+
+def test_catalog_hash_is_content_only() -> None:
+    cat = _unsorted_catalog()
+    legacy = _variant(
+        cat,
+        protocol_version="2025-11-25",
+        url="http://elsewhere/mcp",
+        ttl_s=17,
+        tools=[_reorder_schema_keys(t) for t in cat.tools],
+    )
+    assert legacy.to_json() != cat.to_json()
+    assert legacy.hash == cat.hash
+
+
+def test_catalog_hash_follows_semantic_changes() -> None:
+    cat = _unsorted_catalog()
+    first = cat.tools[0]
+    changed = {
+        "instructions": _variant(cat, instructions="OTHER"),
+        "description": _variant(cat, tools=[{**first, "description": "x"}, *cat.tools[1:]]),
+        "tool order": _variant(cat, tools=list(reversed(cat.tools))),
+        "properties order": _variant(
+            cat,
+            tools=[
+                {
+                    **first,
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": {"alpha": {"type": "string"}, "zeta": {"type": "string"}},
+                    },
+                },
+                *cat.tools[1:],
+            ],
+        ),
+        "skill markdown": _variant(
+            cat,
+            skills={
+                k: Skill(s.id, s.description, s.examples, s.markdown + "!")
+                for k, s in cat.skills.items()
+            },
+        ),
+    }
+    for what, other in changed.items():
+        assert other.hash != cat.hash, what
+
+
+def test_mcp_clients_are_pinned_to_2026_07_28() -> None:
+    assert catalog_mod.PROTOCOL_VERSION == "2026-07-28"
+    settings = Settings(_env_file=None)
+    assert catalog_mod.mcp_client(settings).mode == "2026-07-28"
+    assert catalog_mod.mcp_client(settings, "C001").mode == "2026-07-28"
+    assert CatalogProvider(settings).key.endswith(":2026-07-28")
+
+
+async def test_redis_entry_of_another_protocol_is_never_served(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    served = make_catalog()
+    stale = _variant(served, protocol_version="2025-11-25")
+    redis = FakeRedis()
+    provider = CatalogProvider(Settings(_env_file=None), redis)
+    redis.data[provider.key], redis.ttls[provider.key] = stale.to_json(), 200
+
+    async def fetch(_: Settings) -> Catalog:
+        return served
+
+    monkeypatch.setattr(catalog_mod, "fetch_catalog", fetch)
+    got, source = await provider.get()
+    assert (source, got.protocol_version) == ("server", "2026-07-28")
+    assert Catalog.from_json(redis.data[provider.key]).protocol_version == "2026-07-28"
+
+
+async def test_fetch_catalog_refuses_a_legacy_session() -> None:
+    from fastmcp import Client
+    from mcp_server.server import mcp
+
+    with pytest.raises(RuntimeError, match="negotiated 2025-11-25"):
+        await catalog_mod.fetch_catalog(Settings(_env_file=None), Client(mcp, mode="legacy"))
+
+
+async def test_fetch_catalog_pinned_reads_instructions_from_discover(
+    live_catalog: Catalog,
+) -> None:
+    assert live_catalog.protocol_version == "2026-07-28"
+    assert live_catalog.instructions  # a pinned client adopts no server instructions itself

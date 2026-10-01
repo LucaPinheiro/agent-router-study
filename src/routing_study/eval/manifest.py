@@ -302,6 +302,7 @@ def execute(
     executes one resume pass (tests inject a fake)."""
     from routing_study.budget import BudgetExceededError
     from routing_study.eval.rescore import rescore_file
+    from routing_study.tracing.langfuse import LangfuseUnavailableError
 
     run_once = run_once or _execute_once
     log = ManifestLog(manifest.results_dir / f"manifest-{manifest_path.stem}.log", echo)
@@ -356,6 +357,10 @@ def execute(
             except BudgetExceededError as exc:
                 log(f"BUDGET {run.name}: {exc}; stopping the manifest")
                 states[run.name] = "budget"
+                return states
+            except LangfuseUnavailableError as exc:  # raised before the run spent anything
+                log(f"LANGFUSE {run.name}: {exc}; stopping the manifest (nothing spent)")
+                states[run.name] = "langfuse"
                 return states
             rescored, _ = rescore_file(out, RESCORED, data_dir=data_dir)
             log(f"RESCORED {run.name} -> {rescored}")

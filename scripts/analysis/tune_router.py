@@ -61,7 +61,7 @@ import yaml
 from fastmcp import Client
 
 from routing_study.budget import BudgetExceededError
-from routing_study.catalog import Catalog, fetch_catalog
+from routing_study.catalog import PROTOCOL_VERSION, Catalog, fetch_catalog
 from routing_study.eval.scorers import routing_failure, routing_scores
 from routing_study.graph.nodes import _routing_input as routing_input
 from routing_study.routers.base import RoutingInput
@@ -153,7 +153,7 @@ def patched(settings: Settings, assigns: list[tuple[list[str], Any]]) -> Setting
 async def dev_catalog(settings: Settings) -> Catalog:
     from mcp_server.server import mcp
 
-    return await fetch_catalog(settings, Client(mcp))
+    return await fetch_catalog(settings, Client(mcp, mode=PROTOCOL_VERSION))
 
 
 # ---------------------------------------------------------------- evaluation

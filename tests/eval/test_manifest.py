@@ -231,3 +231,52 @@ def test_cli_run_manifest_dry_run(tmp_path, monkeypatch):
     )
     res = CliRunner().invoke(app, ["run-manifest", str(path), "--dry-run"])
     assert res.exit_code == 1 and "ABORT r1" in res.output  # the split file does not exist
+
+
+def test_langfuse_outage_stops_the_manifest_before_spending(tmp_path):
+    from routing_study.tracing.langfuse import LangfuseUnavailableError
+
+    _dataset(tmp_path)
+    m = mf.Manifest(
+        split="dev",
+        results_dir=tmp_path / "results",
+        runs=[
+            {"name": "r1", "config": str(E1), "mode": "routing-only"},
+            {"name": "r2", "config": str(E1), "mode": "routing-only"},
+        ],
+    )
+    calls = []
+
+    async def run_once(run, *_):
+        calls.append(run.name)
+        raise LangfuseUnavailableError("down")
+
+    assert _execute(tmp_path, m, run_once) == {"r1": "langfuse"}
+    assert calls == ["r1"] and not (tmp_path / "results" / "r1.jsonl").exists()
+
+
+def test_resume_provenance_uses_the_catalog_content_hash():
+    """Rows written by a process whose catalog came from another protocol era (same content)
+    carry the same catalog_hash, so the resume assertion accepts them."""
+    import sys
+
+    from routing_study.eval.runner import Runner
+    from routing_study.settings import Settings
+
+    sys.path.insert(0, str(Path(__file__).parents[1] / "graph"))
+    from graph_fakes import make_catalog
+
+    cat = make_catalog()
+    legacy = type(cat)(
+        url=cat.url,
+        protocol_version="2025-11-25",
+        instructions=cat.instructions,
+        tools=[dict(reversed(list(t.items()))) for t in cat.tools],
+        skills=cat.skills,
+    )
+    r = Runner(Settings(_env_file=None), split="dev", mode="routing-only", run_name="x")
+    r.meta = {"config_hash": "a", "prompt_hash": "p", "catalog_hash": cat.hash}
+    r.meta["dataset_sha256"] = "d"
+    r.assert_same_version([{"catalog_hash": legacy.hash}])
+    with pytest.raises(ValueError, match="catalog_hash"):
+        r.assert_same_version([{"catalog_hash": "823546e24af8"}])

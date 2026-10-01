@@ -71,11 +71,15 @@ def run(
         overwrite=overwrite,
     )
     from routing_study.budget import BudgetExceededError
+    from routing_study.tracing.langfuse import LangfuseUnavailableError
 
     try:
         out = asyncio.run(runner.run(cases))
     except BudgetExceededError as exc:
         typer.echo(f"ABORTED (budget guard): {exc}", err=True)
+        raise typer.Exit(code=2) from None
+    except LangfuseUnavailableError as exc:
+        typer.echo(f"ABORTED before spending (Langfuse): {exc}", err=True)
         raise typer.Exit(code=2) from None
     typer.echo(f"run {name}: {len(cases)} cases x {reps} reps -> {out}")
     rescored, _ = rescore_file(out, RESCORED)
@@ -168,7 +172,9 @@ def run_manifest(
 
     states = execute(load_manifest(manifest), manifest, only=only, dry_run=dry_run, echo=typer.echo)
     typer.echo(" ".join(f"{k}={v}" for k, v in states.items()))
-    if any(v in ("aborted", "flagged", "budget", "incomplete") for v in states.values()):
+    if any(
+        v in ("aborted", "flagged", "budget", "incomplete", "langfuse") for v in states.values()
+    ):
         raise typer.Exit(code=1)
 
 
