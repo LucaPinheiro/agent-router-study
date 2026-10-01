@@ -285,6 +285,7 @@ def build_routers(
         built["regex"] = RegexRouter.from_path(
             c.rules_path,
             dict(c.calibration),
+            overlays=c.overlay_paths,
             history_turns=c.history_turns,
             history_weight=c.history_weight,
         )

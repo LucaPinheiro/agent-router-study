@@ -88,7 +88,57 @@ runs:
   - { name: v2-e0-native-e2e-rep2-60, config: config/experiments/e0_native.yaml, mode: e2e, cases: { limit: 60 }, priority: 85, purpose: "executor variance" }
   - { name: v2-e9-tuned-e2e-rep2-60, config: config/experiments/e9_regex_jev_llm.yaml, prompt_track: tuned, mode: e2e, cases: { limit: 60 }, priority: 85, purpose: "executor variance" }
 
-  # ---- 10. RQ5 leave-tools-out (M2): needs the reduced catalogs; add entries once they exist
+  # ---- 10. RQ5 leave-tools-out (M2, D7; exploratory). Design: docs/rq5-design.md. Table:
+  #   uv run study rq5 config/study_manifest.yaml --retrain config/experiments/e10_classifier.yaml
+  # Run names rq5-<split>-<strategy>-<condition>; conditions differ only by `overrides`:
+  #   base = 3 tools excluded (catalog filter, host side) + regex rules without them;
+  #   zero = full catalog, regex still without them (zero-effort add; = eng for non-regex);
+  #   eng  = full catalog + agent-written, timeboxed regex overlay; full = production config.
+  # Free routers: all 349 test-v2 cases.
+  - name: rq5-test_v2-regex-base
+    config: config/experiments/e1_regex.yaml
+    mode: routing-only
+    priority: 90
+    purpose: "RQ5 base"
+    overrides: &rq5_base
+      catalog.exclude_tools: [get_refund_status, reschedule_delivery, generate_return_label]
+      strategies.regex.rules_path: config/rq5/regex_rules_base.yaml
+  - name: rq5-test_v2-regex-zero
+    config: config/experiments/e1_regex.yaml
+    mode: routing-only
+    priority: 90
+    purpose: "RQ5 zero-effort add"
+    overrides: &rq5_zero
+      strategies.regex.rules_path: config/rq5/regex_rules_base.yaml
+  - name: rq5-test_v2-regex-eng
+    config: config/experiments/e1_regex.yaml
+    mode: routing-only
+    priority: 90
+    purpose: "RQ5 engineered add (agent-written rules, timeboxed)"
+    overrides: &rq5_eng
+      strategies.regex.rules_path: config/rq5/regex_rules_base.yaml
+      strategies.regex.overlay_paths: [config/rq5/regex_overlay_engineered.yaml]
+  - { name: rq5-test_v2-regex-full, config: config/experiments/e1_regex.yaml, mode: routing-only, priority: 90, purpose: "RQ5 reference: production rules" }
+  - { name: rq5-test_v2-bm25-base, config: config/experiments/e2_bm25.yaml, mode: routing-only, priority: 90, overrides: *rq5_base, purpose: "RQ5 base" }
+  - { name: rq5-test_v2-bm25-zero, config: config/experiments/e2_bm25.yaml, mode: routing-only, priority: 90, overrides: *rq5_zero, purpose: "RQ5 zero-effort add (= eng)" }
+  - { name: rq5-test_v2-classifier-base, config: config/experiments/e10_classifier.yaml, mode: routing-only, priority: 90, overrides: *rq5_base, purpose: "RQ5 base" }
+  - { name: rq5-test_v2-classifier-zero, config: config/experiments/e10_classifier.yaml, mode: routing-only, priority: 90, overrides: *rq5_zero, purpose: "RQ5 zero-effort add (= eng)" }
+  - { name: rq5-test_v2-embedding-base, config: config/experiments/e3_embedding.yaml, mode: routing-only, priority: 90, overrides: *rq5_base, purpose: "RQ5 base" }
+  - { name: rq5-test_v2-embedding-zero, config: config/experiments/e3_embedding.yaml, mode: routing-only, priority: 90, overrides: *rq5_zero, purpose: "RQ5 zero-effort add (= eng)" }
+  - { name: rq5-test_v2-hybrid-base, config: config/experiments/e11_hybrid.yaml, mode: routing-only, priority: 90, overrides: *rq5_base, purpose: "RQ5 base" }
+  - { name: rq5-test_v2-hybrid-zero, config: config/experiments/e11_hybrid.yaml, mode: routing-only, priority: 90, overrides: *rq5_zero, purpose: "RQ5 zero-effort add" }
+  - { name: rq5-test_v2-hybrid-eng, config: config/experiments/e11_hybrid.yaml, mode: routing-only, priority: 90, overrides: *rq5_eng, purpose: "RQ5 engineered add" }
+  - { name: rq5-test_v2-hybrid-full, config: config/experiments/e11_hybrid.yaml, mode: routing-only, priority: 90, purpose: "RQ5 reference: production rules" }
+  # Paid routers (canonical prompt track = catalog text only), 1 rep, on the 48 affected cases
+  # + a 60-case stratified regression sample of the others (scripts/analysis/rq5_ids.py).
+  # The zero entries are the main canonical runs' rep 1 (same case, rep and prompt): cache
+  # hits, ~US$0 when those ran first.
+  - { name: rq5-test_v2-jev-base, config: config/experiments/e4_jev.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/rq5_test_v2.ids }, priority: 95, overrides: *rq5_base, purpose: "RQ5 base (paid)" }
+  - { name: rq5-test_v2-jev-zero, config: config/experiments/e4_jev.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/rq5_test_v2.ids }, priority: 95, overrides: *rq5_zero, purpose: "RQ5 zero-effort add (cache hits of v2-e4-jev-canonical)" }
+  - { name: rq5-test_v2-haiku-base, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/rq5_test_v2.ids }, priority: 95, overrides: *rq5_base, purpose: "RQ5 base (paid)" }
+  - { name: rq5-test_v2-haiku-zero, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/rq5_test_v2.ids }, priority: 95, overrides: *rq5_zero, purpose: "RQ5 zero-effort add (cache hits of v2-e6-haiku-canonical)" }
+  - { name: rq5-test_v2-sonnet-base, config: config/experiments/e5_llm_sonnet.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/rq5_test_v2.ids }, priority: 95, overrides: *rq5_base, purpose: "RQ5 base (paid)" }
+  - { name: rq5-test_v2-sonnet-zero, config: config/experiments/e5_llm_sonnet.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/rq5_test_v2.ids }, priority: 95, overrides: *rq5_zero, purpose: "RQ5 zero-effort add (cache hits of v2-e5-sonnet-canonical)" }
 
   # ---- 11. test-v1 (exposed) replication with the free routers only (B1 option A)
   - { name: v1-e1-regex-routing-r1, config: config/experiments/e1_regex.yaml, split: test_v1, mode: routing-only, reps: 1, priority: 100, purpose: "replication / contamination check" }

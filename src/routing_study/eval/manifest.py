@@ -65,6 +65,9 @@ class ManifestRun(BaseModel):
     cases: CaseFilter = Field(default_factory=CaseFilter)
     priority: int = 100
     concurrency: int = Field(default=4, ge=1)
+    # `{"dotted.key": value}` patched over the config YAML (RQ5 conditions: catalog
+    # exclusion, regex overlays); covered by config_hash like any other setting
+    overrides: dict[str, Any] = Field(default_factory=dict)
     config_hash: str | None = None  # frozen at pre-registration (asserted)
     prompt_hash: str | None = None
     purpose: str = ""
@@ -196,7 +199,7 @@ def quarantine_errors(results_dir: Path, name: str) -> Path:
 def load_run_settings(run: ManifestRun) -> Any:
     from routing_study.settings import load_settings
 
-    settings = load_settings(run.config)
+    settings = load_settings(run.config, patches=run.overrides)
     if run.routing_mode:
         settings.routing.mode = run.routing_mode
     return settings

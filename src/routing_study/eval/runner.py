@@ -204,8 +204,12 @@ def config_hash(settings: Settings) -> str:
     )
     regex = settings.strategies.regex
     if regex is not None:
-        rules = Path(regex.rules_path)
-        h.update(b"\0regex_rules\0" + (rules.read_bytes() if rules.exists() else b"<missing>"))
+        for i, path in enumerate([regex.rules_path, *regex.overlay_paths]):
+            rules = Path(path)
+            tag = b"\0regex_rules\0" if i == 0 else b"\0regex_overlay\0"
+            h.update(tag + (rules.read_bytes() if rules.exists() else b"<missing>"))
+    if settings.catalog.exclude_tools:  # only when set: older configs keep their hash
+        h.update(b"\0catalog\0" + settings.catalog.model_dump_json().encode())
     return h.hexdigest()[:12]
 
 

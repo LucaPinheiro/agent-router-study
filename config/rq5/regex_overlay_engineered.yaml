@@ -1,0 +1,52 @@
+# RQ5 ENGINEERED ADD (docs/rq5-design.md): agent-written rules, timeboxed.
+#
+# Engineer: an AI agent (Claude Opus, the session that built the RQ5 harness), NOT a human.
+# Inputs: ONLY the three tools' catalog entries (description, WHEN TO USE, DON'T USE FOR,
+#   _meta examples/keywords), the SKILL.md playbooks and the base rules/defs. No dev or test
+#   message was read. Disclosure: the agent had read the original production rules of these
+#   tools (config/rq5/regex_overlay_original.yaml) while building the split, so these rules
+#   may be influenced by them (bias towards the `full` condition).
+# Timebox: 20 min for the 3 tools. Wall clock: start 2026-10-01T01:43:13Z, end
+#   2026-10-01T01:44:25Z (1.2 min: first draft + 2 fix rounds, checked ONLY against the
+#   catalog `_meta` examples: held-out recall and steals from sibling tools). Agent minutes
+#   are not human hours; recorded in config/rq5/effort.yaml.
+# Merged over config/rq5/regex_rules_base.yaml via strategies.regex.overlay_paths.
+
+defs:
+  NEWDATE: '(outr[ao] (dia|data|horario|periodo)|nova data|novo (dia|horario)|adiar|adia\w*|semana que vem|proxima semana)'
+  WEEKDAY: '((segunda|terca|quarta|quinta|sexta)(-feira)?|sabado|domingo|amanha|depois de amanha|(de|a|pela|na) (manha|tarde))'
+  AWAY: '(nao (vou |vai )?(estar|estarei|estou|estava|tem ninguem|tera ninguem|vai ter ninguem)|ninguem (em casa|no apartamento|pra receber|para receber)|nao estava|viajando|de viagem|fora de casa|tentativa de entrega|entregador (veio|passou|voltou)|perdi a entrega)'
+  SHIP_BACK: '(etiqueta|codigo (de |da )?(postagem|envio da devolucao)|postagem|postar|logistica reversa|como (eu )?(faco )?(pra |para )?(enviar|mandar|despachar|envio|mando)\b.*\bde volta|despach\w* (o |a )?(retorno|devolucao))'
+  REFUND_TRACK: '(ja caiu|caiu|cai|vai cair|apare(ceu|ce|cer)|prazo|quando|status|situacao|andamento|ainda nao|nada ainda|cade)'
+
+rules:
+  # --------------------------------------------------------------- skill stage
+  pedidos_logistica:
+    - { pattern: '\b(reagend\w*|remarc\w*)', weight: 1.0 }
+    - { pattern: '\b{{AWAY}}', weight: 1.0 }
+    - { pattern: '\b{{NEWDATE}}', weight: 0.6 }
+
+  pagamentos_reembolsos:
+    - { pattern: '\b(prazo|quando|status|andamento|situacao) (do|da|de) (meu |minha |o |a )?{{REFUND}}', weight: 1.0 }
+
+  trocas_devolucoes:
+    - { pattern: '\b{{SHIP_BACK}}', weight: 1.0 }
+
+  # --------------------------------------------------------------- tool stage
+  reschedule_delivery:
+    - { pattern: '\b(reagend\w*|remarc\w*)', weight: 1.0 }
+    - { pattern: '\b{{AWAY}}', weight: 1.0 }
+    - { pattern: '\b{{NEWDATE}}', weight: 1.0 }
+    - { pattern: '\b(entreg\w*|receb\w*|vir|vier|trazer)\b.*\b{{WEEKDAY}}\b|\b{{WEEKDAY}}\b.*\b(entreg\w*|receb\w*)', weight: 0.6 }
+
+  get_refund_status:
+    - { pattern: '\b{{REFUND}}.*\b{{REFUND_TRACK}}\b|\b{{REFUND_TRACK}}\b.*\b{{REFUND}}', weight: 1.0 }
+    - { pattern: '\b(esperando|aguardando|acompanhar|consultar)\b.*\b{{REFUND}}', weight: 1.0 }
+    - { pattern: '\b(prazo|status|andamento|situacao) (do|da|de) (meu|minha) {{REFUND}}', weight: 1.0 }  # personal, not policy
+    - { pattern: '\b(ja (pedi|solicitei|foi solicitado)|solicitei)\b.*\b{{REFUND}}', weight: 0.6 }
+
+  generate_return_label:
+    - { pattern: '\b{{SHIP_BACK}}', weight: 1.0 }
+    - { pattern: '\b(ja (abri|fiz|solicitei|pedi) a devolu\w*|devolucao (ja )?(aberta|aprovada|aceita))', weight: 0.6 }
+    - { pattern: '\bdev-[0-9a-z]{4,}', weight: 0.6 }  # return id from create_return_request
+    - { pattern: '\b(correios|agencia|despach\w*)\b', weight: 0.3 }

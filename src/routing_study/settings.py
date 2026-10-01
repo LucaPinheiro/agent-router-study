@@ -169,6 +169,10 @@ Level = Literal["skill", "tool"]
 
 class RegexStrategy(_Config):
     rules_path: str = "config/regex_rules.yaml"
+    # extra rule files merged over `rules_path` (defs appended, rules appended per option id):
+    # RQ5 leave-tools-out conditions (docs/rq5-design.md). Dumped only when set, so configs
+    # without overlays keep their config hash.
+    overlay_paths: list[str] = Field(default_factory=list, exclude_if=lambda v: not v)
     # score(message) + history_weight * score(last `history_turns` messages)
     history_turns: int = Field(default=0, ge=0)
     history_weight: float = Field(default=0.5, ge=0.0)
@@ -379,6 +383,13 @@ class ExecutorConfig(ModelEndpoint):
         return self
 
 
+class CatalogConfig(_Config):
+    """Host-side view of the MCP catalog. `exclude_tools` drops tools after the server fetch
+    (RQ5 leave-tools-out, docs/rq5-design.md); the MCP server itself is never changed."""
+
+    exclude_tools: list[str] = Field(default_factory=list)
+
+
 class BudgetConfig(_Config):
     """Hard spend caps per billing account, enforced from a persistent append-only ledger
     (`study budget` prints it). `prices_path`: per-token prices of providers that do not
@@ -439,6 +450,7 @@ class Settings(BaseSettings):
     strategies: StrategiesConfig = Field(default_factory=StrategiesConfig)
     executor: ExecutorConfig | None = None
     budget: BudgetConfig = Field(default_factory=BudgetConfig)
+    catalog: CatalogConfig = Field(default_factory=CatalogConfig)
 
     @property
     def langfuse_enabled(self) -> bool:
@@ -519,8 +531,16 @@ def _yaml_data(path: Path) -> dict[str, Any]:
     return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
 
 
-def load_settings(experiment: str | Path | None = None, **overrides: Any) -> Settings:
-    """Build settings for one experiment YAML (or env/.env only when `experiment` is None)."""
+def load_settings(
+    experiment: str | Path | None = None,
+    *,
+    patches: dict[str, Any] | None = None,
+    **overrides: Any,
+) -> Settings:
+    """Build settings for one experiment YAML (or env/.env only when `experiment` is None).
+
+    `patches`: `{"dotted.key.path": value}` applied over the YAML after the env patches (a
+    manifest entry's `overrides`, e.g. `catalog.exclude_tools` for the RQ5 conditions)."""
     if experiment is None:
         return Settings(**overrides)
     path = Path(experiment)
@@ -537,6 +557,10 @@ def load_settings(experiment: str | Path | None = None, **overrides: Any) -> Set
         raise ValueError(f"{path}: unknown top-level key(s) {unknown}")
     env_file = Settings.model_config.get("env_file")
     env_patches = _nested_env_overrides(env_file if isinstance(env_file, str) else None)
+    bad = sorted(k for k in patches or {} if k.split(".")[0] not in Settings.model_fields)
+    if bad:  # the top level ignores unknown keys: a misspelled patch must not be dropped
+        raise ValueError(f"unknown settings patch key(s) {bad}")
+    env_patches += [(k.split("."), v) for k, v in (patches or {}).items()]
     if env_patches:
         # Patch env values (incl. list indexes) into the YAML base and pass as init kwargs.
         data = _yaml_data(path)

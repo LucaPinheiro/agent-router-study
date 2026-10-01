@@ -173,6 +173,37 @@ def run_manifest(
 
 
 @app.command()
+def rq5(
+    manifest: Annotated[Path, typer.Argument(exists=True, dir_okay=False)],
+    split: Annotated[str | None, typer.Option(help="default: the manifest's split")] = None,
+    retrain: Annotated[
+        Path | None,
+        typer.Option(help="experiment config whose free routers are timed for re-train (s)"),
+    ] = None,
+    out: Annotated[Path | None, typer.Option(help="also write the table here")] = None,
+) -> None:
+    """RQ5 leave-tools-out table (docs/rq5-design.md) from the manifest's rescored
+    `rq5-<split>-<strategy>-<condition>` runs; run them first with `study run-manifest`."""
+    from routing_study.eval.manifest import RESCORED, load_manifest
+    from routing_study.eval.rq5 import held_out_tools, load_rq5_rows, render, retrain_seconds
+
+    m = load_manifest(manifest)
+    split = split or m.split
+    names = [r.name for r in m.runs if m.split_of(r) == split]
+    held = held_out_tools()
+    data = load_rq5_rows(names, RESCORED)
+    if not data:
+        typer.echo(f"no rescored rq5-{split}-* runs in {RESCORED}")
+        raise typer.Exit(code=1)
+    timing = asyncio.run(retrain_seconds(retrain, held)) if retrain else None
+    table = render(data, held, split, timing)
+    if out:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(table, encoding="utf-8")
+    typer.echo(table)
+
+
+@app.command()
 def simulate(
     results: Annotated[Path, typer.Argument(exists=True, help="rescored results of a shadow run")],
     config: Config,

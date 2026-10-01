@@ -12,6 +12,7 @@ Raw confidence = strength * (0.5 + 0.5 * separation), then the level's calibrati
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, ClassVar
 
@@ -72,8 +73,27 @@ class RegexRules(BaseModel):
         return self
 
     @classmethod
-    def load(cls, path: str | Path) -> RegexRules:
-        return cls.model_validate(yaml.safe_load(Path(path).read_text(encoding="utf-8")) or {})
+    def load(cls, path: str | Path, overlays: Sequence[str | Path] = ()) -> RegexRules:
+        """`path` plus `overlays` merged in order: overlay `defs` are appended (a name already
+        defined is an error) and overlay rules are appended to the option's list. An overlay
+        holds only `defs` and `rules` (`full_score` stays the base's)."""
+
+        def read(p: str | Path) -> dict[str, Any]:
+            return yaml.safe_load(Path(p).read_text(encoding="utf-8")) or {}
+
+        data = read(path)
+        data.setdefault("defs", {})
+        data.setdefault("rules", {})
+        for p in overlays:
+            extra = read(p)
+            if bad := set(extra) - {"defs", "rules"}:
+                raise ValueError(f"{p}: an overlay holds only defs/rules (got {sorted(bad)})")
+            if dup := set(extra.get("defs") or {}) & set(data["defs"]):
+                raise ValueError(f"{p}: def(s) already defined {sorted(dup)}")
+            data["defs"].update(extra.get("defs") or {})
+            for opt, rs in (extra.get("rules") or {}).items():
+                data["rules"][opt] = [*(data["rules"].get(opt) or []), *rs]
+        return cls.model_validate(data)
 
 
 class RegexRouter(BaseRouter):
@@ -103,9 +123,10 @@ class RegexRouter(BaseRouter):
         cls,
         path: str | Path,
         calibration: dict[str, Calibration] | None = None,
+        overlays: list[str] | None = None,
         **kwargs: Any,
     ) -> RegexRouter:
-        return cls(RegexRules.load(path), calibration, **kwargs)
+        return cls(RegexRules.load(path, overlays or []), calibration, **kwargs)
 
     def score(self, text: str, options: list[RouteOption]) -> dict[str, float]:
         norm = normalize(text)

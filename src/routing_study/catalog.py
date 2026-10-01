@@ -86,6 +86,28 @@ class Catalog:
         data["skills"] = {k: Skill(**v) for k, v in data["skills"].items()}
         return cls(**data)
 
+    def without(self, names: list[str] | set[str]) -> Catalog:
+        """This catalog minus the tools `names` (RQ5 leave-tools-out, host side only): drops
+        them from tools/list and drops skill-frontmatter examples that are verbatim copies of
+        their `_meta` examples. Everything derived from the catalog (route options, shots,
+        DON'T USE FOR targets, executor schemas, hash) follows."""
+        drop = set(names)
+        if unknown := drop - set(self._by_name):
+            raise ValueError(f"catalog.exclude_tools: unknown tool(s) {sorted(unknown)}")
+        copied = {e for n in drop for e in self.meta(n, "examples", [])}
+        skills = {
+            k: Skill(s.id, s.description, [e for e in s.examples if e not in copied], s.markdown)
+            for k, s in self.skills.items()
+        }
+        return Catalog(
+            url=self.url,
+            protocol_version=self.protocol_version,
+            instructions=self.instructions,
+            tools=[t for t in self.tools if t["name"] not in drop],
+            skills=skills,
+            ttl_s=self.ttl_s,
+        )
+
     # ------------------------------------------------------------ lookups
 
     def tool(self, name: str) -> dict[str, Any]:
@@ -296,6 +318,8 @@ async def fetch_catalog(settings: Settings, client: Client | None = None) -> Cat
                 f"skill {skill_id}: allowed-tools {sorted(names)} != _meta "
                 f"{sorted(catalog.tools_for(skill_id))}"
             )
+    if settings.catalog.exclude_tools:  # after the consistency check: it is about the server
+        catalog = catalog.without(settings.catalog.exclude_tools)
     return catalog
 
 
@@ -306,6 +330,8 @@ class CatalogProvider:
         self.settings = settings
         self.redis = redis
         self.key = f"mcp:catalog:{settings.mcp_url}:{PROTOCOL_VERSION}"
+        if excluded := settings.catalog.exclude_tools:  # a reduced view never overwrites the full
+            self.key += ":exclude=" + ",".join(sorted(excluded))
         self._memo: tuple[Catalog, float] | None = None
 
     async def get(self) -> tuple[Catalog, str]:
