@@ -18,6 +18,7 @@ import sys
 from collections.abc import Iterable, Sequence
 from difflib import SequenceMatcher
 from pathlib import Path
+from typing import Any
 
 import httpx
 import numpy as np
@@ -70,6 +71,43 @@ def catalog_units(files: Sequence[Path] = CATALOG_FILES) -> list[str]:
     return sorted(u for u in units if len(u.split()) >= MIN_UNIT_WORDS)
 
 
+_LEAK: Any = None
+
+
+def leak_rules() -> Any:
+    """`tests/test_leakage.py` as a module: its catalog units and lexical rule are the single
+    source of truth for catalog leakage (normalized equality, containment of a >= 4-word text,
+    `SequenceMatcher` >= 0.90 on >= 3-word units; semantic cosine >= 0.90 on >= 4-word units)."""
+    global _LEAK
+    if _LEAK is None:
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location(
+            "_test_leakage", ROOT / "tests" / "test_leakage.py"
+        )
+        assert spec and spec.loader
+        _LEAK = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(_LEAK)
+    return _LEAK
+
+
+def leak_hit(c: Case) -> str | None:
+    """First catalog unit that the repo leakage test would flag on any user turn of `c`."""
+    leak = leak_rules()
+    units = leak.catalog_units()
+    for turn in (t.content for t in c.turns if t.role == "user"):
+        msg = leak.norm(turn)
+        for unit, origin in units.items():
+            if kind := leak.lexical_hit(unit, msg):
+                return f"leak_{kind.split()[0]}:{origin}:{unit[:40]}"
+    return None
+
+
+def leak_semantic_units() -> list[str]:
+    leak = leak_rules()
+    return sorted(u for u in leak.catalog_units() if len(u.split()) >= leak.MIN_SEMANTIC_WORDS)
+
+
 def catalog_sha256(files: Sequence[Path] = CATALOG_FILES) -> str:
     h = hashlib.sha256()
     for path in files:
@@ -120,7 +158,7 @@ def lexical_hit(
         r, _ = max_ratio(t, unit_refs, threshold)
         if r >= threshold:
             return f"lexical_catalog:{r:.3f}"
-    return None
+    return leak_hit(c)
 
 
 def semantic_text(c: Case) -> str:

@@ -77,8 +77,15 @@ def v1_subset_ids() -> list[str]:
 
 
 def split_cases(split: str) -> list[Case]:
+    """Cases with the PRE-audit gold (what the auditors judged): a re-run of `adjudicate`
+    must never compare verdicts with a gold the audit itself changed."""
     if split == "test_v2":
-        return load(V2)
+        return [
+            c.model_copy(update={"expected": Expected.model_validate(c.label_audit["original"])})
+            if c.label_audit and c.label_audit.get("original")
+            else c
+            for c in load(V2)
+        ]
     ids = set(json.loads(SUBSET_IDS.read_text())["ids"])
     return [c for c in load(V1) if c.id in ids]
 

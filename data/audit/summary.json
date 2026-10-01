@@ -320,13 +320,14 @@
       "both_missing_alternatives_cases": 11
     }
   },
-  "dataset_test_v2_sha256": "d6c25659b5813f0402c6bd226f1abfac314a4c97b43e3026420ee4874a7a7868",
+  "dataset_test_v2_sha256": "6637c4795b2340b953ac5867498c1aeba7953fea25d76b8614de265cf2902a66",
   "files_sha256": {
     "adjudication_test_v1_subset.jsonl": "2f38b5bba3b09aa8c4e48e7d8439824297dc3e4048251a7513f2a1952e6c10db",
     "adjudication_test_v2.jsonl": "a7107bd0506f5936e636ba45fe0d5d50dd7a69b86f5f21649045eb2bb15ae898",
+    "verdicts_superseded.jsonl": "9645480421a0141d11d20dff87fe94e4e2950638ec867e4cac16bffa94e86820",
     "verdicts_test_v1_subset_A.jsonl": "59beba96e0835efb0c7c5a6c036636fe441f70c4c85d4d9b2c62e04b3fc4b5fa",
     "verdicts_test_v1_subset_B.jsonl": "05a21b3862e18a7ec562cb076294e3ab7388b2ba44911873bbf74bcc3bb50a1d",
-    "verdicts_test_v2_A.jsonl": "f6cb38c702e1587fedaec92a796d75274ff7bed2a7f0715e8206a98ffd40550b",
-    "verdicts_test_v2_B.jsonl": "c0e2f2c43fcaef72ecff56f17be6608f058488520c40d13343b17c82843c5f2d"
+    "verdicts_test_v2_A.jsonl": "2d9ed6aca25cc7c471b47106c1cca3dc6b092f6dc57525f6d085ca491081a9ea",
+    "verdicts_test_v2_B.jsonl": "c99d8ea98adefd0df9c19934846c2102ad6514ea203323e64baabdbe2896bb3e"
   }
 }

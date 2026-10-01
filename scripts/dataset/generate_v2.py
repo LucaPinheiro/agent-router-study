@@ -247,12 +247,16 @@ def main() -> None:
     ap.add_argument("--max-cost", type=float, default=2.5, help="USD cap for generation calls")
     ap.add_argument("--rounds", type=int, default=5)
     ap.add_argument("--oversample", type=float, default=1.6)
+    ap.add_argument("--replace", nargs="+", default=None, help="regenerate these ids in place")
     ap.add_argument(
         "--resume",
         action="store_true",
         help="replay the paid outputs in generation_v2_raw.jsonl, then generate only the rest",
     )
     args = ap.parse_args()
+    if args.replace:
+        replace_cases(args.replace)
+        return
     key = load_env()
     rng = random.Random(SEED)
     led = ledger()
@@ -487,6 +491,137 @@ def main() -> None:
             }
         )
     )
+
+
+def replace_cases(ids: list[str], max_calls: int = 5) -> None:
+    """Regenerate single slots in place (same id, category and target tool) after a leak or
+    duplicate is found post hoc. Paid outputs are appended to the raw/log files with round
+    "replace"; the new rows carry no `label_audit` until the audit is re-run for them."""
+    key = load_env()
+    led = ledger()
+    compat = order_compat()
+    rng = random.Random(f"{SEED}-replace-{','.join(ids)}")
+    cases = [Case.model_validate_json(x) for x in OUT.read_text().splitlines() if x.strip()]
+    by_id = {c.id: c for c in cases}
+
+    def load(name: str) -> list[Case]:
+        return [Case.model_validate_json(x) for x in (DATA / name).read_text().splitlines() if x]
+
+    existing = load("seed.jsonl") + load("synthetic.jsonl")
+    case_refs = [case_text(c) for c in existing]
+    units = overlap.catalog_units()
+    leak_units = overlap.leak_semantic_units()
+    emb = overlap.Embedder()
+    ref_vecs = emb([overlap.semantic_text(c) for c in existing] + units)
+    leak_vecs = emb(leak_units)
+    jobs = {(j["cat"], j["label"]): j for j in build_jobs(random.Random(SEED))}
+    meta = json.loads(META.read_text())
+    records = meta.setdefault("replacements", [])
+    with (
+        httpx.Client() as client,
+        LOG.open("a", encoding="utf-8") as log,
+        RAW.open("a", encoding="utf-8") as raw,
+    ):
+        for cid in ids:
+            old = by_id[cid]
+            gold = pre_audit_expected(old)
+            if old.category not in ("direto", "parafrase", "multiturno"):
+                raise SystemExit(f"{cid}: replace supports tool-targeted categories only")
+            job = jobs[(old.category, gold.acceptable_tools[0])]
+            others = [case_text(c) for c in cases if c.id != cid]
+            cost, new = 0.0, None
+            for _ in range(max_calls):
+                sl = job_slots(job, 4, rng, compat)
+                body = {
+                    "model": MODEL,
+                    "messages": [
+                        {"role": "user", "content": build_prompt(job["cat"], job["target"], 4, sl)}
+                    ],
+                    "temperature": TEMPERATURE,
+                    "response_format": {"type": "json_object"},
+                    "reasoning": {"effort": "low"},
+                }
+                parsed, usage = chat_json(
+                    client, key, body, purpose="dataset_v2_generation", led=led
+                )
+                cost += usage["cost"]
+                items = parsed.get("items", []) if isinstance(parsed, dict) else []
+                raw.write(
+                    json.dumps(
+                        {"round": "replace", "job": job["label"], "slots": sl, "items": items},
+                        ensure_ascii=False,
+                    )
+                    + "\n"
+                )
+                for i, item in enumerate(items[: len(sl)] if isinstance(items, list) else []):
+                    c, why = (
+                        make_case(job, item, sl[i]) if isinstance(item, dict) else (None, "schema")
+                    )
+                    if c is not None:
+                        why = overlap.lexical_hit(c, case_refs, units) or ""
+                    if c is not None and not why:
+                        s_ref = float(
+                            overlap.max_cosine(emb([overlap.semantic_text(c)]), ref_vecs)[0][0]
+                        )
+                        turns = [t.content for t in c.turns if t.role == "user"]
+                        s_leak = float(overlap.max_cosine(emb(turns), leak_vecs)[0].max())
+                        r_in, _ = overlap.max_ratio(case_text(c), others, WITHIN_LEXICAL)
+                        if max(s_ref, s_leak) >= overlap.SEMANTIC_THRESHOLD:
+                            why = f"semantic:{max(s_ref, s_leak):.3f}"
+                        elif r_in > WITHIN_LEXICAL:
+                            why = f"lexical_within:{r_in:.3f}"
+                    if why or c is None:
+                        log.write(
+                            json.dumps(
+                                {
+                                    "round": "replace",
+                                    "job": job["label"],
+                                    "reject": why,
+                                    "item": item,
+                                },
+                                ensure_ascii=False,
+                            )
+                            + "\n"
+                        )
+                        continue
+                    new = c.model_copy(update={"id": cid})
+                    break
+                if new is not None:
+                    break
+            if new is None:
+                raise SystemExit(f"{cid}: no clean replacement in {max_calls} calls")
+            cases = [new if c.id == cid else c for c in cases]
+            records.append(
+                {
+                    "id": cid,
+                    "reason": overlap.leak_hit(old) or "manual",
+                    "old_text": [t.content for t in old.turns],
+                    "cost_usd": round(cost, 4),
+                }
+            )
+            print(f"{cid}: replaced (${cost:.4f}): {new.turns[-1].content}")
+    with OUT.open("w", encoding="utf-8") as f:
+        for c in cases:
+            f.write(json.dumps(case_dict(c), ensure_ascii=False, separators=(",", ":")) + "\n")
+    meta["total_cost_usd_all_attempts"] = round(
+        sum(
+            float(r.get("cost_usd") or 0)
+            for r in led.rows()
+            if r.get("purpose") == "dataset_v2_generation"
+        ),
+        4,
+    )
+    meta["output_sha256_pre_audit_after_replacements"] = hashlib.sha256(
+        OUT.read_bytes()
+    ).hexdigest()
+    meta["leakage_rules"] = "tests/test_leakage.py (lexical) + cosine >= 0.9 per user turn"
+    META.write_text(json.dumps(meta, indent=2, ensure_ascii=False) + "\n")
+
+
+def pre_audit_expected(c: Case):  # noqa: ANN201
+    """Pre-audit gold (the audit may have changed the first tool)."""
+    orig = (c.label_audit or {}).get("original")
+    return c.expected.model_validate(orig) if orig else c.expected
 
 
 if __name__ == "__main__":

@@ -92,8 +92,20 @@
     ]
   },
   "cost_usd_this_invocation": 0.0215,
-  "total_cost_usd_all_attempts": 1.642,
+  "total_cost_usd_all_attempts": 1.6464,
   "resumed_from_raw": true,
   "openrouter_total_usage_delta": 0.1064,
-  "output_sha256_pre_audit": "fae81ed5f1fed14fd134b13eab0872acdf174fdcbf6caf5102e690cd189beab6"
+  "output_sha256_pre_audit": "fae81ed5f1fed14fd134b13eab0872acdf174fdcbf6caf5102e690cd189beab6",
+  "replacements": [
+    {
+      "id": "v2-direto-025",
+      "reason": "leak_contained:track_shipment.description:onde esta o pacote",
+      "old_text": [
+        "Boa noite, onde está o pacote do O0047? Tem como ver a localização em tempo real?"
+      ],
+      "cost_usd": 0.0044
+    }
+  ],
+  "output_sha256_pre_audit_after_replacements": "1ff7936f900f732b77f73cac33432edd00cf75e4a24a76299404ef9e296f6f8b",
+  "leakage_rules": "tests/test_leakage.py (lexical) + cosine >= 0.9 per user turn"
 }
