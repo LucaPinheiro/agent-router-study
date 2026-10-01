@@ -338,7 +338,7 @@ def test_extra_llm_strategies_are_a_name_to_model_mapping():
 def test_shadow_set_keeps_local_llms_out_when_models_do_not_fit():
     s = load_settings("config/experiments/e9_regex_jev_llm.yaml", _env_file=None)
     # embedder + 8B = 2 local models > 1 loaded at a time
-    assert shadow_set(s) == ["regex", "bm25", "embedding", "llm", "jev", "hybrid"]
+    assert shadow_set(s) == ["regex", "bm25", "embedding", "llm", "jev", "hybrid", "classifier"]
     s.ollama_max_loaded_models = 2
     assert "llm_local" in shadow_set(s)
     s.routing.shadow_strategies = ["regex", "llm_local"]
