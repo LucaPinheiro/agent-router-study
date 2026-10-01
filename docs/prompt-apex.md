@@ -13,12 +13,45 @@ tuned track shows each router's ceiling and how much prompt engineering adds per
 | llm_local (Qwen3-8B) | E6b | `qwen3:8b-q8_0` (num_ctx 8192) | Ollama |
 | jev | E4 | `typesafe/jev-router` | OpenRouter |
 
-## Status: D6 selection redone on the fixed code (2026-10-01): Sonnet 5, Haiku 4.5, Jev
+## Status: D6 selection on the fixed code (2026-10-01): Sonnet 5, Haiku 4.5, Jev, Qwen3-8B
 
 The selection is in `config/prompt_selection.yaml`, written by
-`scripts/analysis/select_prompts.py`. The lead applies it with `apply_prompt_selection.py`;
-`config/experiments` has not been edited. Qwen3-8B (E6b) is not in this pass: the lead runs it
-later with the same procedure (see "Adding Qwen3-8B") and recomputes the canonical choice.
+`scripts/analysis/select_prompts.py` and applied to `config/experiments` by
+`apply_prompt_selection.py` under the rules of
+`docs/decisions/2026-10-01-calibration-and-prompts.md`. Qwen3-8B (E6b) was added with the same
+procedure (section "Qwen3-8B (E6b)" below) and the canonical choice was recomputed over all four
+models: **P0 on both tracks for every model**, so track B == track A everywhere and no
+`*_tuned.yaml` copy exists.
+
+### Qwen3-8B (E6b), same procedure (2026-10-01)
+
+`--concurrency 1`, one resident Ollama model (`qwen3:8b-q8_0`, num_ctx 8192, thinking off),
+ITT, files `results/prompt_apex_v2/e6b_{r1,r2,full}.json`.
+
+- **Round 1** (60-case subset, all 8 single modifiers): pruned P0+P6c (78.3, 0/4 vs P0),
+  P0+P2k2 (81.7, 1/3) and P0+P5 (81.7, 1/3), each below −1 SE of the subset leader P0+P3 (86.7).
+  Kept: P0 85.0, P0+P1 85.0, P0+P3 86.7, P0+P4 86.7, P0+P6 83.3.
+- **Round 2** (leader P3 combined with each other survivor): P0+P3+P4 83.3, P0+P3+P1 85.0,
+  P0+P3+P6 83.3; none pruned.
+- **Full dev, reduced by the lead (time budget; results/freeze/DECISIONS.log)**: P0, P0+P3 and
+  P0+P4 only. P0+P5 was started as a canonical candidate but hung 6.5 h on a client-side deadlock
+  and was killed; it was already pruned for Qwen in round 1. P0+P1, P0+P6 and the round-2 combos
+  were not run on full dev (budget-truncated, like Haiku P6).
+
+| variant | CV joint | b+/c− vs P0 | p50 ms | out tok | err % |
+|---|---|---|---|---|---|
+| P0 | 82.2 ± 3.8 | 0/0 | 10017 | 76 | 0.0 |
+| P0+P3 | 82.1 ± 5.8 | 2/2 | 9919 | 78 | 0.0 |
+| P0+P4 | 84.2 ± 5.1 | 8/5 | 10839 | 104 | 0.0 |
+
+- **Tuned = P0** (one-SE rule; P0+P4 is +2.0 within one SE, 8/5 discordant). Nested-CV joint
+  81.5 ± 3.2 (picks P0 ×4, P0+P4 ×1). Raw argmax sensitivity: P0+P4.
+- **Calibration**: cross-fitted ECE skill 0.045 → 0.041, tool 0.116 → 0.032, so both maps
+  are applied (decision rule `ece_cal < ece_raw`).
+- **Canonical over the four models** (candidates = variants run on full dev for every model):
+  P0 80.2, P0+P4 81.2 → **P0** (one-SE; every nested fold picks P0). P0+P5 is not a candidate
+  of the four-model rule because it did not run on Qwen's full dev; over the three models where it
+  ran it was 79.5 against P0 79.5 (one-SE → P0), so it cannot change the choice.
 
 **Why the first pass was thrown away.** Three bugs biased it, so none of its numbers are reused:
 
@@ -171,6 +204,7 @@ reverse.
 | Jev | P0+P6c+P2k2 | 77.6 | -6.9 | 4.2 | yes | 1/2 | 0 |
 
 Canonical over Sonnet 5, Haiku 4.5, Jev: **P0** (raw best P0+P4); mean CV joint per candidate: P0 79.5, P0+P4 80.2, P0+P5 79.5; nested mean 79.5 (picks P0, P0, P0, P0, P0).
+Recomputed with Qwen3-8B (four models): **P0** (raw best P0+P4); P0 80.2, P0+P4 81.2; nested mean 80.2 (picks P0 ×5).
 
 ### Output format and context economics (per routing call)
 

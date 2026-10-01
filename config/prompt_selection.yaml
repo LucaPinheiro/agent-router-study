@@ -7,10 +7,10 @@ rule: dev only, 5-fold stratified CV seed 0, ITT; one-SE rule (simplest, then ch
 canonical:
   variant: P0
   raw_best: P0+P4
-  candidates: {P0: 0.795, P0+P4: 0.8018, P0+P5: 0.7952}
-  nested_mean_joint: 0.795
+  candidates: {P0: 0.8016, P0+P4: 0.8117}
+  nested_mean_joint: 0.8016
   nested_picks: [P0, P0, P0, P0, P0]
-  models: [Sonnet 5, Haiku 4.5, Jev]
+  models: [Sonnet 5, Haiku 4.5, Jev, Qwen3-8B]
 models:
   global.anthropic.claude-sonnet-5:
     name: Sonnet 5
@@ -572,4 +572,194 @@ models:
           static_tokens: 1014.322
           cache_read_tokens: 722.2
           completion_tokens: 116.1
+          error_rate: 0.0
+  qwen3:8b-q8_0:
+    name: Qwen3-8B
+    canonical:
+      variant: P0
+      calibration:
+        skill:
+          x: [0.95, 1.0]
+          y: [0.897959, 0.897959]
+        tool:
+          x: [0.4, 0.7875, 0.95, 1.0]
+          y: [0.25, 0.5, 0.830769, 0.894737]
+      cv_joint_mean: 0.8215
+      cv_joint_sd: 0.0381
+      ece_raw: {skill: 0.0447, tool: 0.1162}
+      ece_cal: {skill: 0.0413, tool: 0.0316}
+      cost_per_1k: 0.0
+      p50_ms: 10016.759
+      p95_ms: 18780.855
+      static_tokens: 916.661
+      cache_read_tokens: 0.0
+      error_rate: 0.0
+      nested_joint_mean: 0.8215
+      nested_joint_sd: 0.0381
+    tuned:
+      variant: P0
+      calibration:
+        skill:
+          x: [0.95, 1.0]
+          y: [0.897959, 0.897959]
+        tool:
+          x: [0.4, 0.7875, 0.95, 1.0]
+          y: [0.25, 0.5, 0.830769, 0.894737]
+      cv_joint_mean: 0.8215
+      cv_joint_sd: 0.0381
+      ece_raw: {skill: 0.0447, tool: 0.1162}
+      ece_cal: {skill: 0.0413, tool: 0.0316}
+      cost_per_1k: 0.0
+      p50_ms: 10016.759
+      p95_ms: 18780.855
+      static_tokens: 916.661
+      cache_read_tokens: 0.0
+      error_rate: 0.0
+      raw_best: P0+P4
+      nested_joint_mean: 0.8148
+      nested_joint_sd: 0.032
+      nested_picks: [P0, P0, P0+P4, P0, P0]
+    search:
+      files:
+      - file: results/prompt_apex_v2/e6b_r1.json
+        subset: 60
+        variants: [P0, P0+P6c, P0+P1, P0+P2k2, P0+P3, P0+P4, P0+P6, P0+P5]
+      - file: results/prompt_apex_v2/e6b_r2.json
+        subset: 60
+        variants: [P0+P3+P4, P0+P3+P1, P0+P3+P6]
+      - file: results/prompt_apex_v2/e6b_full.json
+        subset: 0
+        variants: [P0, P0+P3, P0+P4]
+      subset:
+        P0: {n_clean: 60, joint: 0.85, diff_vs_leader: -0.0167, se: 0.0167, pruned: false, errors: 0,
+          round: 1}
+        P0+P6c:
+          n_clean: 60
+          joint: 0.7833
+          diff_vs_leader: -0.0833
+          se: 0.036
+          pruned: true
+          errors: 0
+          round: 1
+          discordant_vs_p0: [0, 4]
+        P0+P1:
+          n_clean: 60
+          joint: 0.85
+          diff_vs_leader: -0.0167
+          se: 0.029
+          pruned: false
+          errors: 0
+          round: 1
+          discordant_vs_p0: [2, 2]
+        P0+P2k2:
+          n_clean: 60
+          joint: 0.8167
+          diff_vs_leader: -0.05
+          se: 0.0284
+          pruned: true
+          errors: 0
+          round: 1
+          discordant_vs_p0: [1, 3]
+        P0+P3:
+          n_clean: 60
+          joint: 0.8667
+          diff_vs_leader: 0.0
+          se: 0.0
+          pruned: false
+          errors: 0
+          round: 1
+          discordant_vs_p0: [1, 0]
+        P0+P4:
+          n_clean: 60
+          joint: 0.8667
+          diff_vs_leader: 0.0
+          se: 0.0336
+          pruned: false
+          errors: 0
+          round: 1
+          discordant_vs_p0: [3, 2]
+        P0+P6:
+          n_clean: 60
+          joint: 0.8333
+          diff_vs_leader: -0.0333
+          se: 0.0333
+          pruned: false
+          errors: 0
+          round: 1
+          discordant_vs_p0: [2, 3]
+        P0+P5:
+          n_clean: 60
+          joint: 0.8167
+          diff_vs_leader: -0.05
+          se: 0.0284
+          pruned: true
+          errors: 0
+          round: 1
+          discordant_vs_p0: [1, 3]
+        P0+P3+P4:
+          n_clean: 60
+          joint: 0.8333
+          diff_vs_leader: -0.0333
+          se: 0.0333
+          pruned: false
+          errors: 0
+          round: 2
+          discordant_vs_p0: [2, 3]
+        P0+P3+P1:
+          n_clean: 60
+          joint: 0.85
+          diff_vs_leader: -0.0167
+          se: 0.029
+          pruned: false
+          errors: 0
+          round: 2
+          discordant_vs_p0: [2, 2]
+        P0+P3+P6:
+          n_clean: 60
+          joint: 0.8333
+          diff_vs_leader: -0.0333
+          se: 0.0333
+          pruned: false
+          errors: 0
+          round: 2
+          discordant_vs_p0: [2, 3]
+      full_dev:
+        P0:
+          cv_joint_mean: 0.8215
+          cv_joint_sd: 0.0381
+          discordant_vs_p0: [0, 0]
+          flag_errors_over_2pct: false
+          cost_per_1k: 0.0
+          p50_ms: 10016.759
+          p95_ms: 18780.855
+          prompt_tokens: 961.957
+          static_tokens: 916.661
+          cache_read_tokens: 0.0
+          completion_tokens: 75.8
+          error_rate: 0.0
+        P0+P3:
+          cv_joint_mean: 0.8213
+          cv_joint_sd: 0.0577
+          discordant_vs_p0: [2, 2]
+          flag_errors_over_2pct: false
+          cost_per_1k: 0.0
+          p50_ms: 9918.536
+          p95_ms: 12113.937
+          prompt_tokens: 1019.315
+          static_tokens: 975.052
+          cache_read_tokens: 0.0
+          completion_tokens: 78.0
+          error_rate: 0.0
+        P0+P4:
+          cv_joint_mean: 0.8415
+          cv_joint_sd: 0.0513
+          discordant_vs_p0: [8, 5]
+          flag_errors_over_2pct: false
+          cost_per_1k: 0.0
+          p50_ms: 10839.042
+          p95_ms: 15506.94
+          prompt_tokens: 986.828
+          static_tokens: 941.616
+          cache_read_tokens: 0.0
+          completion_tokens: 104.3
           error_rate: 0.0
