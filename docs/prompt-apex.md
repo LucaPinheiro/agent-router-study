@@ -13,128 +13,244 @@ tuned track shows each router's ceiling and how much prompt engineering adds per
 | llm_local (Qwen3-8B) | E6b | `qwen3:8b-q8_0` (num_ctx 8192) | Ollama |
 | jev | E4 | `typesafe/jev-router` | OpenRouter |
 
-## Status: PRELIMINARY — selection to be redone (2026-09-30)
+## Status: D6 selection redone on the fixed code (2026-10-01): Sonnet 5, Haiku 4.5, Jev
 
-A code review found three issues that invalidate part of the selection below. A fix round
-follows (`.omc/plans/final-study-master.md`, D6), then the selection will be redone. **No
-selection has been applied to `config/experiments`.** The numbers are kept as a record of
-the first pass.
+The selection is in `config/prompt_selection.yaml`, written by
+`scripts/analysis/select_prompts.py`. The lead applies it with `apply_prompt_selection.py`;
+`config/experiments` has not been edited. Qwen3-8B (E6b) is not in this pass: the lead runs it
+later with the same procedure (see "Adding Qwen3-8B") and recomputes the canonical choice.
 
-1. Bedrock throttling was scored as a wrong answer. Haiku's first subset round ran while
-   Sonnet and Jev were running too, and ThrottlingException errors came back as `skill =
-   None`: 8, 21 and 12 stage calls under P2k2, P3 and P4. That made those modifiers look
-   harmful on Haiku (P3 56.7, P4 68.3, P2k2 71.7) and pruned them. Once the errors were
-   retried (`e6_r1_fix`), the same points scored P3 81.7, P4 81.7 and P2k2 80.0, against
-   P0 80.0. `tune_router.py` now retries routing errors, which `study run` excludes from
-   accuracy, and reports `errors` apart from `parse_fail`.
-2. The skill-stage P1 guide renders rules that are false. Clauses are lifted from single
-   tools and generalised to the whole skill.
-3. The tuner sends `loaded_skill=None` at the tool stage for `__global__`, while the graph
-   sends `"__global__"`.
+**Why the first pass was thrown away.** Three bugs biased it, so none of its numbers are reused:
 
-E5b (Qwen3-32B) was dropped from the study by the user (time), in commit 7f674ec. For
-reference only, the pre-study `bench_local` gave the 32B skill/tool p50 of 9.4 s / 33.7 s and
-joint 85% on 20 dev cases (`.omc/handoffs/providers.md`).
+- Bedrock throttling errors were scored as abstentions, which pruned Haiku's P2k2, P3 and P4.
+- The P1 skill guide rendered rules that are false (fixed in 3c9e261).
+- The tuner sent `loaded_skill=None` on `__global__` (fixed in 69209dd).
 
-### First-pass results (full dev, 151 cases; CV joint mean ± std over 5 folds)
+The catalog text also changed (F8 and F10, catalog hash `785db6efc779` → `33f89f3db4f5`). That
+changed every prompt, so every decision was paid for again.
 
-| model | P0 | P0+P1 | P0+P3 | P0+P6 | P0+P6c | other | first-pass tuned (nested) |
-|---|---|---|---|---|---|---|---|
-| Sonnet 5 | 78.2 ± 7.5 | 78.8 ± 7.4 | **82.2 ± 7.3** | 79.5 | 79.5 | P2k2 79.5 | P0+P3 (82.2) |
-| Haiku 4.5 | 80.8 ± 3.1 | 80.8 ± 3.7 | — ¹ | 80.8 | **81.5 ± 4.9** | | P0+P6c (81.5) |
-| Jev | 79.5 ± 10.6 | **80.8 ± 8.1** | 78.9 | 79.5 | 76.9 | P2k2+P6c 80.2, P2k2 78.9 | P0+P1 (78.2) |
-| Qwen3-8B | 81.5 ± 6.0 | **83.5 ± 7.5** | 81.5 | 78.8 | 77.5 | P4 82.2, P1+P4 82.2 | P0+P1 (83.5) |
-| **mean over the 4** | 80.0 | **81.0** | — | 79.7 | 78.9 | | |
+### Result: P0 on both tracks for all three models
 
-¹ Not run on full dev: first pruned by the throttling artefact, then the Bedrock budget ran
-out (a Haiku full-dev pass costs about $0.49; $0.49 was left). The subset estimate, 81.7, would
-tie P3 with P1 across the 4 models (about 81.1 vs 81.0).
-
-First-pass canonical: P0+P1, best mean over the candidates run on full dev for every model.
-Issue 2 bears directly on that choice.
-
-### Output-format axis (tool stage; full dev)
-
-| model | format | joint | out tok/call | tool p50 ms | case p50 / p95 ms | $/1k cases |
-|---|---|---|---|---|---|---|
-| Sonnet 5 | verbose (P0) | 78.2 | 157 | 3609 | 6039 / 9461 | 5.64 |
-| | scored top-3 (P6) | 79.5 | 81 | 2523 | 4904 / 8243 | 4.04 |
-| | compact ids (P6c) | 79.5 | 74 | 2426 | 4813 / 7842 | 3.88 |
-| Haiku 4.5 | verbose | 80.8 | 148 | 2313 | 3555 / 6294 | 5.31 |
-| | scored | 80.8 | 86 | 1479 | 2736 / 4933 | 4.63 |
-| | compact | 81.5 | 63 | 1239 | 2515 / 4483 | 4.32 |
-| Jev | verbose | 79.5 | 227 | 2051 | 4017 / 8846 | 0.84 |
-| | scored | 79.5 | 151 | 1412 | 3428 / 9811 | 0.88 |
-| | compact | 76.9 | 122 | 1575 | 3605 / 9694 | 0.57 |
-| Qwen3-8B | verbose | 81.5 | 77 | 8479 | 11105 / 13004 | 0 |
-| | scored | 78.8 | 51 | 5666 | 8253 / 9545 | 0 |
-| | compact | 77.5 | 27 | 3874 | 6500 / 7718 | 0 |
-
-- Output tokens are per call, averaged over the skill and tool stages.
-- Compact ranking cuts the tool-stage p50 by 23–54% and the output tokens by 46–65%.
-  - On the Bedrock models it costs no accuracy (+0.7 and +1.3 points) and is 19–31% cheaper.
-  - It costs the 8B 4.0 points and Jev 2.6 points. The cause was not investigated.
-
-### Context economics (full dev, per routing call)
-
-| model | variant | prompt tok (static / dyn) | cache read / write | $/1k |
+| model | canonical | tuned | nested-CV joint (tuned) | raw best on full dev (not selected) |
 |---|---|---|---|---|
-| Sonnet 5 | P0 | 2225 (2106 / 119) | 1816 / 136 | 5.64 |
-| Sonnet 5 | P0+P1 | 2730 (2636 / 94) | 2304 / 153 | 5.82 |
-| Haiku 4.5 | P0 | 1916 (1825 / 90) | 0 / 0 (prefix < 4096) | 5.31 |
-| Haiku 4.5 | P0+P1 | 2303 (2224 / 80) | 0 / 0 | 6.06 |
-| Jev | P0 / P0+P1 | 1150 / 1505 | 0 / 0 | 0.84 / 0.96 |
-| Qwen3-8B | P0 / P0+P1 | 954 / 1278 | n/a (KV prefix reuse) | 0 |
+| Sonnet 5 | P0 | P0 | 77.5 ± 9.8 | P0+P4 80.2 (5 cases gained, 1 lost vs P0) |
+| Haiku 4.5 | P0 | P0 | 81.5 ± 3.8 | P0+P4 83.5 (3 gained, 2 lost) |
+| Jev | P0 | P0 | 78.2 ± 9.4 | P0+P5 80.9 (8/4); P0+P6c 80.9 (6/2) |
 
-- Sonnet 5 reads about 82–84% of its prompt from cache. P1 adds about 500 static tokens but
-  costs only +3%, because those tokens are cached reads at $0.20/M.
-- Haiku 4.5 never reaches its 4096-token cache minimum, so the same guide costs it +14%.
-  Output tokens dominate Sonnet's bill: $10/M against $0.20/M for a cached read.
+- **No modifier beats P0 by more than one standard error** (5 folds × 151 cases). The one-SE
+  rule therefore keeps the simplest prompt every time.
+  - The SE of the best variant is 2.2–6.2 points: Haiku 2.2, Sonnet 3.7, Jev 6.2 (P5).
+  - The largest full-dev gain is +2.7 points (Sonnet with P4). It comes from 6 discordant
+    cases, 5 to 1, so an exact sign test gives p ≈ 0.22.
+- **Canonical track.** The candidates are the variants run on full dev for every model: P0, P4
+  and P5. Their mean CV joint over the three models is P0 79.5, P0+P4 80.2 and P0+P5 79.5. P0 is
+  inside one SE and is the simplest, and each outer fold of the nested CV picks P0 too.
+- **The tuned track equals the canonical track for all three models.** With this rule, prompt
+  engineering adds nothing measurable on 151 cases. That is the finding for RQ "tuned vs
+  canonical".
+- **Sensitivity: plain argmax instead of the one-SE rule** (nested CV, best mean per fold):
 
-### Confidence (first pass)
+  | model | nested-CV joint | picks |
+  |---|---|---|
+  | Sonnet | 80.2 ± 7.5 | P4 in all 5 folds |
+  | Haiku | 82.2 ± 3.2 | P4 in 4 folds |
+  | Jev | 78.9 ± 10.4 | P5 and P6c |
 
-- Isotonic maps were fitted on dev folds (`--calibrate`). On held-out folds they lower ECE
-  for most model/stage pairs. Examples: Haiku P6c goes from 0.039/0.057 to 0.021/0.050, and
-  the 8B P1 tool stage from 0.112 to 0.059.
-- Sonnet P3 at the tool stage is the exception: 0.100 → 0.111. The maps are small (151 cases).
-- The 8B self-reports only 0.95 or 1.0.
-- Logprob confidence (json_object mode, P0+P1, full dev) was compared on the 8B:
-  - joint 82.8 against 83.5 with the grammar;
-  - raw ECE 0.066/0.157 against 0.028/0.112;
-  - calibrated tool ECE 0.047 against 0.059;
-  - p95 28.9 s against 13.7 s.
-  It does not pay off, so the plan keeps `self_reported`.
+  If the lead prefers the higher-variance argmax rule, the tuned track would be Sonnet P0+P4
+  and Haiku P0+P4. The YAML records `raw_best` for this.
+- **Jev cost.** P0+P6c (compact ranking) costs 35% less than P0 ($0.60 against $0.93 per 1k
+  cases), cuts p50 by 20% (4.0 s against 5.0 s) and p95 by 35%, at equal or better accuracy
+  (80.9 against 78.2). It is not selected, because it adds a modifier and the gain is within
+  one SE. It is the cheapest choice to keep in mind for an E4/E7 cost variant.
 
-### Spend of the first pass
+### Per model × track (full dev, 151 cases; selection as written to the YAML)
 
-- Bedrock: $9.64 of the $10 allowance. The ledger went from $0.1304 to $9.6432, with the cap
-  set at $10.13.
-- OpenRouter: $0.95 of the $2 allowance. The ledger went from $0.0086 to $0.9555, with the cap
-  set at $2.0086.
-- Qwen3-8B: $0 (local).
+The columns:
 
-Per-point metrics for every run are in `docs/results/prompt-apex-metrics.json`.
+- nested-CV joint: the selection procedure, run inside the CV;
+- fixed CV joint: the chosen variant alone;
+- ECE: cross-fitted, with the map fitted on 4 folds and applied to the held-out fold;
+- $/1k: the routing cost per 1000 cases (skill + tool call);
+- static and cache-read tokens: per routing call.
+
+| model | track | variant | nested-CV joint | fixed CV joint | ECE skill raw→cal | ECE tool raw→cal | $/1k | p50 / p95 ms | static tok | cache-read tok | err % |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Sonnet 5 | canonical | P0 | 77.5 ± 9.8 | 77.5 ± 9.8 | 0.111→0.091 | 0.036→0.056 | 5.97 | 5640 / 9403 | 2119 | 1746 | 0.0 |
+| Sonnet 5 | tuned | P0 | 77.5 ± 9.8 | 77.5 ± 9.8 | 0.111→0.091 | 0.036→0.056 | 5.97 | 5640 / 9403 | 2119 | 1746 | 0.0 |
+| Haiku 4.5 | canonical | P0 | 82.8 ± 3.3 | 82.8 ± 3.3 | 0.058→0.063 | 0.055→0.061 | 5.32 | 3319 / 5066 | 1826 | 0 | 0.0 |
+| Haiku 4.5 | tuned | P0 | 81.5 ± 3.8 | 82.8 ± 3.3 | 0.058→0.063 | 0.055→0.061 | 5.32 | 3319 / 5066 | 1826 | 0 | 0.0 |
+| Jev | canonical | P0 | 78.2 ± 9.4 | 78.2 ± 9.4 | 0.063→0.024 | 0.047→0.058 | 0.93 | 5006 / 12455 | 1107 | 784 | 0.7 |
+| Jev | tuned | P0 | 78.2 ± 9.4 | 78.2 ± 9.4 | 0.063→0.024 | 0.047→0.058 | 0.93 | 5006 / 12455 | 1107 | 784 | 0.7 |
+
+- **Calibration.** Isotonic maps per stage are fitted on all of dev and written to the YAML.
+  Cross-fitted, they help only in some cases:
+  - they help Sonnet's skill stage (0.111 → 0.091) and Jev's skill stage (0.063 → 0.024);
+  - they slightly hurt Sonnet's tool stage (0.036 → 0.056), Haiku (0.058/0.055 → 0.063/0.061)
+    and Jev's tool stage (0.047 → 0.058). Those raw confidences are already well calibrated, and
+    151 cases are too few for the map.
+
+  The lead decides whether to apply a map to a stage where it hurts. The YAML has `ece_raw` and
+  `ece_cal` per stage.
+- Errors (ITT): at most 1 failed row per full-dev point (0.7%), all of them parse failures that
+  persisted after the retries. One variant had more than 2% failed rows: Jev P0 on the subset
+  (2 of 60). Every Jev and Sonnet grid with a failure was re-run before scoring. The response
+  cache serves the successes, so only the failures were paid for again. Each run's first pass is kept
+  as `*_pass1.json`.
+
+### Search log (what was run, and on which cases)
+
+The procedure for each model:
+
+1. Round 1 ran on a stratified 60-case subset with seed 0. It scored P0 and every single
+   modifier: P1, P2k2, P3, P4, P5, P6 and P6c.
+   - Bedrock first ran P0, P6c, P1, P2k2, P3 and P4.
+   - P6 and P5 were added afterwards, when the budget allowed. Their verdicts are on the same
+     subset.
+2. Pruning used only the cases that are error-free for every variant of the round. A variant
+   was dropped only when its paired joint difference to the subset leader was below −1 SE,
+   where SE = sd(per-case difference)/√n. P0 is never dropped.
+3. Round 2 combined the modifiers that survived. Only Jev had more than one, and it ran
+   P6c+P5 and P6c+P2k2.
+4. The survivors went to full dev, where only the remaining 91 cases are new.
+5. Canonical candidates are the variants that survived on at least 2 of the 3 models: P0, P4
+   and P5. They were run on full dev for every model, including Jev P4, which was pruned on
+   Jev's own subset.
+6. Budget-truncated: Haiku P6 survived its subset but was not run on full dev, because the
+   Bedrock budget was spent. On the subset it was 80.0 against 83.3 for P0, 1 gained and 3 lost.
+
+"b+/c−" counts the discordant cases against P0: the variant right and P0 wrong, then the
+reverse.
+
+### Full-dev variants per model (fixed-point CV joint; discordant vs P0 = (+, −))
+
+| model | variant | CV joint | b+/c− vs P0 | $/1k | p50 ms | out tok | err % |
+|---|---|---|---|---|---|---|---|
+| Sonnet 5 | P0 | 77.5 ± 9.8 | 0/0 | 5.97 | 5640 | 157 | 0.0 |
+| Sonnet 5 | P0+P4 | 80.2 ± 7.5 | 5/1 | 6.46 | 6126 | 195 | 0.0 |
+| Sonnet 5 | P0+P5 | 76.9 ± 7.4 | 4/5 | 5.34 | 5733 | 156 | 0.7 |
+| Haiku 4.5 | P0 | 82.8 ± 3.3 | 0/0 | 5.32 | 3319 | 148 | 0.0 |
+| Haiku 4.5 | P0+P4 | 83.5 ± 4.5 | 3/2 | 5.70 | 3793 | 175 | 0.0 |
+| Haiku 4.5 | P0+P5 | 80.8 ± 5.2 | 1/4 | 5.40 | 3389 | 148 | 0.0 |
+| Jev | P0 | 78.2 ± 9.4 | 0/0 | 0.93 | 5006 | 225 | 0.7 |
+| Jev | P0+P6c | 80.9 ± 9.6 | 6/2 | 0.60 | 4010 | 118 | 0.0 |
+| Jev | P0+P4 | 76.9 ± 9.7 | 5/7 | 0.83 | 5336 | 223 | 0.7 |
+| Jev | P0+P1 | 78.9 ± 11.9 | 3/2 | 0.96 | 5370 | 230 | 0.0 |
+| Jev | P0+P2k2 | 80.1 ± 8.9 | 5/2 | 0.91 | 4823 | 209 | 0.0 |
+| Jev | P0+P5 | 80.9 ± 12.5 | 8/4 | 0.77 | 5498 | 230 | 0.0 |
+| Jev | P0+P6c+P5 | 78.9 ± 11.6 | 7/6 | 0.50 | 4429 | 116 | 0.0 |
+
+### Subset pruning (60 cases, error-free for all variants)
+
+| model | variant | joint | Δ vs leader | SE | pruned | b+/c− vs P0 | errors |
+|---|---|---|---|---|---|---|---|
+| Sonnet 5 | P0 | 79.7 | -5.1 | 2.9 | no | -/- | 0 |
+| Sonnet 5 | P0+P6c | 81.4 | -3.4 | 2.4 | yes | 2/1 | 0 |
+| Sonnet 5 | P0+P1 | 79.7 | -5.1 | 2.9 | yes | 2/2 | 0 |
+| Sonnet 5 | P0+P2k2 | 78.0 | -6.8 | 3.3 | yes | 1/2 | 0 |
+| Sonnet 5 | P0+P3 | 79.7 | -5.1 | 2.9 | yes | 1/1 | 0 |
+| Sonnet 5 | P0+P4 | 84.8 | 0.0 | 0.0 | no | 3/0 | 0 |
+| Sonnet 5 | P0+P6 | 81.4 | -3.4 | 2.4 | yes | 2/1 | 0 |
+| Sonnet 5 | P0+P5 | 83.0 | -1.7 | 1.7 | no | 3/1 | 1 |
+| Haiku 4.5 | P0 | 83.3 | 0.0 | 0.0 | no | -/- | 0 |
+| Haiku 4.5 | P0+P6c | 78.3 | -5.0 | 3.7 | yes | 1/4 | 0 |
+| Haiku 4.5 | P0+P1 | 78.3 | -5.0 | 2.8 | yes | 0/3 | 0 |
+| Haiku 4.5 | P0+P2k2 | 80.0 | -3.3 | 2.3 | yes | 0/2 | 0 |
+| Haiku 4.5 | P0+P3 | 80.0 | -3.3 | 2.3 | yes | 0/2 | 0 |
+| Haiku 4.5 | P0+P4 | 83.3 | 0.0 | 2.4 | no | 1/1 | 0 |
+| Haiku 4.5 | P0+P6 | 80.0 | -3.3 | 3.3 | no | 1/3 | 0 |
+| Haiku 4.5 | P0+P5 | 81.7 | -1.7 | 2.9 | no | 1/2 | 0 |
+| Jev | P0 | 79.7 | -5.1 | 3.8 | no | -/- | 0 |
+| Jev | P0+P6c | 84.8 | 0.0 | 0.0 | no | 5/1 | 0 |
+| Jev | P0+P6 | 79.7 | -5.1 | 3.8 | yes | 1/0 | 0 |
+| Jev | P0+P1 | 81.4 | -3.4 | 3.4 | no | 1/0 | 0 |
+| Jev | P0+P2k2 | 81.4 | -3.4 | 4.2 | no | 2/1 | 0 |
+| Jev | P0+P3 | 76.3 | -8.5 | 4.4 | yes | 2/3 | 0 |
+| Jev | P0+P4 | 78.0 | -6.8 | 3.3 | yes | 1/2 | 1 |
+| Jev | P0+P5 | 81.4 | -3.4 | 3.4 | no | 3/1 | 0 |
+| Jev | P0+P6c+P5 | 81.0 | -3.5 | 3.5 | no | 2/1 | 1 |
+| Jev | P0+P6c+P2k2 | 77.6 | -6.9 | 4.2 | yes | 1/2 | 0 |
+
+Canonical over Sonnet 5, Haiku 4.5, Jev: **P0** (raw best P0+P4); mean CV joint per candidate: P0 79.5, P0+P4 80.2, P0+P5 79.5; nested mean 79.5 (picks P0, P0, P0, P0, P0).
+
+### Output format and context economics (per routing call)
+
+| model | variant | n | prompt tok (static / dyn) | cache read / write | out tok | $/1k | case p50 / p95 ms | tool p50 ms |
+|---|---|---|---|---|---|---|---|---|
+| Sonnet 5 | P0 | 151 | 2229 (2119 / 111) | 1746 / 209 | 157 | 5.97 | 5640 / 9403 | 3481 |
+| Sonnet 5 | P0+P4 | 151 | 2302 (2196 / 106) | 1887 / 141 | 195 | 6.46 | 6126 / 8602 | 3658 |
+| Sonnet 5 | P0+P6c | 60 | 2148 (2041 / 108) | 1697 / 172 | 75 | 4.15 | 4526 / 6417 | 2292 |
+| Haiku 4.5 | P0 | 151 | 1917 (1826 / 92) | 0 / 0 | 148 | 5.32 | 3319 / 5066 | 2177 |
+| Haiku 4.5 | P0+P4 | 151 | 1978 (1886 / 92) | 0 / 0 | 175 | 5.70 | 3793 / 5311 | 2417 |
+| Haiku 4.5 | P0+P6c | 60 | 1855 (1760 / 94) | 0 / 0 | 64 | 4.35 | 2483 / 3827 | 1329 |
+| Jev | P0 | 151 | 1157 (1107 / 50) | 784 / 31 | 225 | 0.93 | 5006 / 12455 | 2932 |
+| Jev | P0+P6c | 151 | 1043 (997 / 46) | 676 / 40 | 118 | 0.60 | 4010 / 8143 | 1721 |
+| Jev | P0+P1 | 151 | 1460 (1409 / 51) | 1019 / 36 | 230 | 0.96 | 5370 / 11116 | 2913 |
+
+- **Output tokens dominate the bill.** Compact ranking (P6c) halves the output tokens, cuts
+  cost by 18–38% and cuts tool-stage p50 by 33–41%.
+  - On the Bedrock subsets it still lost accuracy against the leader. Haiku P0+P6c went 1
+    gained and 4 lost against P0, so it was pruned.
+- **P4 (rationale) costs +7–8% ($) and +9–14% p50** for its +0.7 to +2.7 points.
+- **Caching.**
+  - Sonnet 5 reads about 78–82% of its prompt from cache.
+  - Haiku 4.5 never reaches its 4096-token cache minimum.
+  - Jev's upstream (OpenRouter) now reports cache reads of about 68% of its prompt.
+  - P1 adds about 300–400 static tokens per call. On Sonnet they are cached reads.
+
+### Spend of this pass (ledger deltas)
+
+- **Bedrock: $7.93 of the $8 allowance.** The ledger went from $9.658 to $17.589, with
+  `BUDGET__AWS_USD_CAP=17.658`.
+  - Subset rounds cost about $4.9 (8 variants × 2 models).
+  - Full dev cost about $3.0 (P0, P4 and P5 × 2 models, 91 new cases each).
+- **OpenRouter (Jev only): $0.92 of the $1 allowance.** The `typesafe/jev-router` line went
+  from $0.9555 to $1.8774.
+  - Other workers spent on OpenRouter at the same time, so the env cap was reset before each
+    launch to their current total plus the Jev allowance still left.
+- Response cache: every successful decision is in `.cache/responses`, so re-running any
+  command below is free.
+
+### Adding Qwen3-8B (lead), and recomputing the canonical choice
+
+```bash
+C=config/experiments/e6b_llm_qwen3_local.yaml; O=results/prompt_apex_v2
+uv run python scripts/analysis/tune_router.py $C --concurrency 1 --preload --subset 60 \
+    --prompt-variant "P0,P0+P6c,P0+P1,P0+P2k2,P0+P3,P0+P4,P0+P6,P0+P5" --out $O/e6b_r1.json
+# prune (rule above; select_prompts.py prints the verdicts), then full dev for the survivors
+# AND for the canonical candidates P0, P0+P4, P0+P5:
+uv run python scripts/analysis/tune_router.py $C --concurrency 1 --preload \
+    --prompt-variant "P0,P0+P4,P0+P5,<survivors>" --out $O/e6b_full.json
+uv run python scripts/analysis/select_prompts.py --md docs/results/prompt-selection.md \
+    --runs "Sonnet 5=global.anthropic.claude-sonnet-5" $O/e5_r1.json $O/e5_full.json $O/e5_full_p5.json \
+    --runs "Haiku 4.5=global.anthropic.claude-haiku-4-5-20251001-v1:0" $O/e6_r1.json $O/e6_full.json $O/e6_full_p5.json \
+    --runs "Jev=typesafe/jev-router" $O/e4_r1.json $O/e4_r2.json $O/e4_full.json $O/e4_full_r2.json \
+    --runs "Qwen3-8B=qwen3:8b-q8_0" $O/e6b_r1.json $O/e6b_full.json
+```
+
+The canonical choice is recomputed over the variants run on full dev for every model given.
+If Qwen's survivors add a variant that two models kept, run it on full dev for the other
+models too (Jev is cheap; Bedrock needs budget), or leave it out of the canonical candidates
+and say so.
 
 ## How to reproduce
 
 ```bash
-# one model, a list of variants: 60-case stratified subset first (early pruning)
-uv run python scripts/analysis/tune_router.py config/experiments/e6b_llm_qwen3_local.yaml \
-    --prompt-variant "P0,P0+P6c,P0+P6,P0+P1" --subset 60 --concurrency 1 --preload \
-    --out results/prompt_apex/e6b_r1.json
-# the survivors on all of dev: same command without --subset (the subset cases are cached);
-# add --calibrate to print the isotonic maps of the best point
-uv run python scripts/analysis/prompt_apex_report.py results/prompt_apex/*.json   # tables
-uv run python scripts/analysis/apply_prompt_selection.py   # config/prompt_selection.yaml -> configs
+source results/prompt_apex_v2/env.sh   # caps: ledger spend at start + 8 (AWS) / + 1 (OpenRouter)
+# round 1 on the 60-case subset (Jev: add --set strategies.jev.cache=true)
+uv run python scripts/analysis/tune_router.py config/experiments/e5_llm_sonnet.yaml \
+    --prompt-variant "P0,P0+P6c,P0+P1,P0+P2k2,P0+P3,P0+P4,P0+P6,P0+P5" --subset 60 \
+    --out results/prompt_apex_v2/e5_r1.json
+# survivors + canonical candidates on full dev (subset cases come from the cache)
+uv run python scripts/analysis/tune_router.py config/experiments/e5_llm_sonnet.yaml \
+    --prompt-variant "P0,P0+P4" --out results/prompt_apex_v2/e5_full.json
+# selection + calibration + tables (free); then the lead applies it to the configs
+uv run python scripts/analysis/select_prompts.py --runs ... (see above)
+uv run python scripts/analysis/apply_prompt_selection.py
 ```
 
-- Paid runs need the budget caps in the environment, for example
-  `BUDGET__AWS_USD_CAP=10.13 BUDGET__OPENROUTER_USD_CAP=2.0086` (the ledger's spend before
-  the study plus US$ 10 and US$ 2). For Jev, add `--set strategies.jev.cache=true` so no
-  decision is paid for twice.
-- Local runs use `--concurrency 1 --preload`, with one resident model and `num_ctx` 8192.
-- Everything is served from `.cache/responses` after the first pass. Re-running the tables or
-  the calibration costs nothing.
+Re-running a command retries only the failed rows; the successes come from the cache. Bedrock
+runs are sequential: Sonnet first, then Haiku. Jev ran alongside them, because it is a
+different provider.
 
 ## Method
 
@@ -144,27 +260,24 @@ the dataset.
 
 **Protocol.** 5-fold cross-validation, stratified by category, with seed 0. A router has no
 state fitted on data, so every variant is scored once on every dev case and then summarised
-per fold:
+per fold. A failed stage is an error and is scored wrong (ITT).
 
-- "CV joint" is the mean ± std over the 5 folds of the fixed variant;
-- "nested" is the honest estimate of the selection itself: in each fold, pick the best
-  variant on the other 4 folds and score it on the held-out fold;
-- ties go to the lower cost per 1k cases, then to the lower p50.
-
-**Search (greedy, with early pruning).**
-
-1. Round 1 scores P0 and every single modifier on top of P0 on a stratified 60-case subset
-   (`--subset 60`, seed 0).
-2. Round 2 combines the modifiers that helped a model, still on the subset.
-3. The survivors go to the full dev split. The subset cases are cached, so only the other
-   91 cases are paid for.
-
-On the subset one case is 1.7 points (0.66 on full dev) and the fold std is 6–19 points, so a modifier is dropped
-only when it clearly hurts, never for a one-case difference.
+- "Fixed CV joint" is the mean ± std over the 5 folds of one variant.
+- The **one-SE rule** picks among the variants:
+  1. best = the highest mean;
+  2. candidates = every variant with a mean of at least best − SE(best), where SE is the fold
+     sd/√5;
+  3. among the candidates, the fewest modifier tokens, then the lowest $/1k, then P0. A tie
+     goes to P0.
+- The **tuned** track applies the rule per model.
+- The **canonical** track applies it to the per-fold mean over models, among the variants run
+  on full dev for every model.
+- "Nested-CV joint" is the honest estimate of the procedure: run the rule on 4 folds and score
+  its pick on the held-out fold.
 
 **Same inputs for every router:**
 
-- option text from the catalog (catalog hash `785db6efc779`);
+- option text from the catalog (catalog hash `33f89f3db4f5`);
 - a history window of 4 turns;
 - `max_tokens` 512;
 - reasoning off (Qwen thinking off via `reasoning_effort: none`);
