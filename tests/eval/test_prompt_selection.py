@@ -54,6 +54,33 @@ def test_apply_is_idempotent_and_switches_tracks():
     assert back["llm"]["prompt_variant"] == "P0+P3" and "calibration" not in back["llm"]
 
 
+def test_apply_keeps_a_map_only_where_it_lowers_ece():
+    sel = {
+        "sonnet": {
+            "canonical": {
+                "variant": "P0",
+                "calibration": {
+                    "skill": {"x": [0.5], "y": [0.9]},
+                    "tool": {"x": [0.5], "y": [0.8]},
+                },
+                "ece_raw": {"skill": 0.11, "tool": 0.036},
+                "ece_cal": {"skill": 0.09, "tool": 0.056},
+            }
+        }
+    }
+    s = yaml.safe_load(aps.apply(CONFIG, "canonical", sel))["strategies"]
+    assert s["llm"]["calibration"] == {"skill": {"x": [0.5], "y": [0.9]}}
+    sel["sonnet"]["canonical"]["ece_cal"] = {"skill": 0.2, "tool": 0.2}
+    s = yaml.safe_load(aps.apply(CONFIG, "canonical", sel))["strategies"]
+    assert "calibration" not in s["llm"]
+
+
+def test_tuned_copy_only_when_a_model_variant_differs():
+    assert aps.tuned_differs(CONFIG, SELECTION)
+    same = {"sonnet": {"canonical": {"variant": "P0"}, "tuned": {"variant": "P0"}}}
+    assert not aps.tuned_differs(CONFIG, same)
+
+
 def test_one_se_rule_prefers_simpler_then_cheaper_and_p0_on_ties():
     order = ["P0", "P0+P3", "P0+P6c", "P0+P1+P3"]
     cost = {"P0": 5.0, "P0+P3": 5.1, "P0+P6c": 3.9, "P0+P1+P3": 5.5}

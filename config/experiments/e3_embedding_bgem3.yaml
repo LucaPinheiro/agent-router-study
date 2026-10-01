@@ -52,9 +52,35 @@ strategies:
     calibration:            # fitted on dev (CV-Brier-chosen calibrator per level)
       skill: { x: [0.455559, 0.633178, 0.807027, 0.946897], y: [0.516129, 0.740741, 0.875, 0.972973] }
       tool:  { x: [0.282739, 0.318548, 0.354357, 0.390166, 0.425976, 0.461785, 0.497594, 0.533403, 0.569212, 0.605021, 0.64083, 0.676639, 0.712449, 0.748258, 0.784067, 0.819876, 0.855685, 0.891494, 0.927303, 0.963112, 0.998922], y: [0.211196, 0.240476, 0.272414, 0.306879, 0.343646, 0.382387, 0.422683, 0.464035, 0.505888, 0.547658, 0.588767, 0.628674, 0.666899, 0.703048, 0.736821, 0.768022, 0.796544, 0.822371, 0.845555, 0.866205, 0.884472] }
-  llm:       { provider: bedrock, model: global.anthropic.claude-sonnet-5, temperature: null, confidence: self_reported }  # Bedrock Sonnet 5 rejects temperature
-  llm_local: { provider: ollama, model: "qwen3:8b-q8_0", num_ctx: 8192, temperature: 0, confidence: self_reported }  # thinking off (reasoning.enabled=false)
-  jev:       { provider: openrouter, model: typesafe/jev-router, parse_retries: 1 }
+  llm:  # Bedrock Sonnet 5 rejects temperature
+    provider: bedrock
+    model: global.anthropic.claude-sonnet-5
+    temperature: null
+    confidence: self_reported
+    prompt_track: canonical
+    prompt_variant: P0
+    calibration:            # isotonic raw -> P(correct), fitted on dev
+      skill: {x: [0.572326, 0.845833, 0.9, 0.956912], y: [0.8, 0.807692, 0.888889, 0.985714]}
+  llm_local:  # thinking off (reasoning.enabled=false)
+    provider: ollama
+    model: 'qwen3:8b-q8_0'
+    num_ctx: 8192
+    temperature: 0
+    confidence: self_reported
+    prompt_track: canonical
+    prompt_variant: P0
+    calibration:            # isotonic raw -> P(correct), fitted on dev
+      skill: {x: [0.95, 1.0], y: [0.897959, 0.897959]}
+      tool: {x: [0.4, 0.7875, 0.95, 1.0], y: [0.25, 0.5, 0.830769, 0.894737]}
+  jev:  # shared samples per (case, rep, prompt): reps stay independent
+    provider: openrouter
+    model: typesafe/jev-router
+    parse_retries: 1
+    cache: true
+    prompt_track: canonical
+    prompt_variant: P0
+    calibration:            # isotonic raw -> P(correct), fitted on dev
+      skill: {x: [0.756818, 0.927, 0.95, 0.981053], y: [0.73913, 0.833333, 0.869565, 0.987179]}
   hybrid:    { rrf_k: 60 }
 
 executor:

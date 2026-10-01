@@ -55,9 +55,35 @@ strategies:
     calibration:                      # isotonic raw -> P(correct), fitted on dev (lower CV Brier than Platt)
       skill: { x: [0.361615, 0.518244, 0.60742, 0.832673, 0.94852, 0.96687, 0.988528, 0.997242], y: [0.333333, 0.444444, 0.75, 0.860465, 0.862069, 0.862069, 0.930233, 0.930233] }
       tool:  { x: [0.277759, 0.457729, 0.779592, 0.982974, 0.998994], y: [0.333333, 0.625, 0.710145, 0.860465, 0.973684] }
-  llm:       { provider: bedrock, model: global.anthropic.claude-sonnet-5, temperature: null, confidence: self_reported }  # Bedrock Sonnet 5 rejects temperature
-  llm_local: { provider: ollama, model: "qwen3:8b-q8_0", num_ctx: 8192, temperature: 0, confidence: self_reported }  # thinking off (reasoning.enabled=false)
-  jev:       { provider: openrouter, model: typesafe/jev-router, parse_retries: 1 }
+  llm:  # Bedrock Sonnet 5 rejects temperature
+    provider: bedrock
+    model: global.anthropic.claude-sonnet-5
+    temperature: null
+    confidence: self_reported
+    prompt_track: canonical
+    prompt_variant: P0
+    calibration:            # isotonic raw -> P(correct), fitted on dev
+      skill: {x: [0.572326, 0.845833, 0.9, 0.956912], y: [0.8, 0.807692, 0.888889, 0.985714]}
+  llm_local:  # thinking off (reasoning.enabled=false)
+    provider: ollama
+    model: 'qwen3:8b-q8_0'
+    num_ctx: 8192
+    temperature: 0
+    confidence: self_reported
+    prompt_track: canonical
+    prompt_variant: P0
+    calibration:            # isotonic raw -> P(correct), fitted on dev
+      skill: {x: [0.95, 1.0], y: [0.897959, 0.897959]}
+      tool: {x: [0.4, 0.7875, 0.95, 1.0], y: [0.25, 0.5, 0.830769, 0.894737]}
+  jev:  # shared samples per (case, rep, prompt): reps stay independent
+    provider: openrouter
+    model: typesafe/jev-router
+    parse_retries: 1
+    cache: true
+    prompt_track: canonical
+    prompt_variant: P0
+    calibration:            # isotonic raw -> P(correct), fitted on dev
+      skill: {x: [0.756818, 0.927, 0.95, 0.981053], y: [0.73913, 0.833333, 0.869565, 0.987179]}
   hybrid:
     # D3 (docs/tuning-effort.md): calibrated convex fusion, members + alpha chosen by 5-fold
     # CV on dev over 7 member sets x 11 alphas (nested joint 83.5; RRF baseline 61.6; logistic
