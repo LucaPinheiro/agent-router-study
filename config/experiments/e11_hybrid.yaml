@@ -1,15 +1,14 @@
-# E7 — regex -> Jev (skill), Jev (tool): cascade without LLM
+# E11 — hybrid: calibrated fusion of the cheap routers (regex / BM25 / embedding / classifier)
 routing:
-  mode: cascade
+  mode: single
   skill:
     pipeline:
-      - { strategy: regex, min_confidence: 0.90 }
-      - { strategy: jev }             # last step: always accepts
+      - { strategy: hybrid }
     on_abstain: escalate
   tool:
     expose_top_k: 2
     pipeline:
-      - { strategy: jev }
+      - { strategy: hybrid }
 
 strategies:
   regex:

@@ -61,7 +61,17 @@ strategies:
   llm:       { provider: bedrock, model: global.anthropic.claude-sonnet-5, temperature: null, confidence: self_reported }  # Bedrock Sonnet 5 rejects temperature
   llm_local: { provider: ollama, model: "qwen3:8b-q8_0", num_ctx: 8192, temperature: 0, confidence: self_reported }  # thinking off (reasoning.enabled=false)
   jev:       { provider: openrouter, model: typesafe/jev-router, parse_retries: 1 }
-  hybrid:    { rrf_k: 60 }
+  hybrid:
+    # D3 (docs/tuning-effort.md): calibrated convex fusion, members + alpha chosen by 5-fold
+    # CV on dev over 7 member sets x 11 alphas (nested joint 83.5; RRF baseline 61.6; logistic
+    # stacker over regex/bm25/embedding 80.1). Regex-free fusion = embedding alone (77.5):
+    # the gain comes from the regex member, whose rules were written on dev (optimistic).
+    fusion: convex
+    members: [regex, classifier]
+    alpha: 0.5              # weight of members[0]
+    calibration:            # fused p(top) -> P(correct), fitted on dev; Platt (skill) / isotonic (tool) by CV Brier
+      skill: { x: [0.390289, 0.419843, 0.449397, 0.478951, 0.508505, 0.538059, 0.567613, 0.597167, 0.626721, 0.656275, 0.685829, 0.715383, 0.744937, 0.774491, 0.804045, 0.833599, 0.863153, 0.892707, 0.922261, 0.951815, 0.98137], y: [0.745702, 0.771418, 0.795248, 0.817182, 0.837247, 0.855499, 0.872018, 0.886897, 0.900245, 0.912173, 0.922798, 0.932232, 0.940588, 0.947971, 0.954481, 0.960211, 0.965246, 0.969663, 0.973535, 0.976924, 0.979888] }
+      tool:  { x: [0.343146, 0.456121, 0.617442, 0.822891, 0.916105], y: [0.166667, 0.7, 0.75, 0.952941, 0.952941] }
   classifier:
     # "open Jev replica" (D4): linear probe (logistic regression) on frozen qwen3-embedding
     # vectors of catalog utterances (examples + description sentences + keywords + a skill's
