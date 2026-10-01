@@ -1,0 +1,50 @@
+{
+  "catalog_units": 589,
+  "catalog_sha256": "640c374ace609827d46fbb4e139d8c44d01d4d8474dd1f39cfbca3c6d118e344",
+  "test_v2": {
+    "n": 349,
+    "lexical_vs_500_cases": {
+      "max": 0.7748,
+      "n_ge_0.9": 0
+    },
+    "lexical_vs_catalog": {
+      "max": 0.6364,
+      "n_ge_0.9": 0
+    },
+    "semantic_vs_500_cases": {
+      "max": 0.8996,
+      "n_ge_0.9": 0
+    },
+    "semantic_vs_catalog": {
+      "max": 0.8692,
+      "n_ge_0.9": 0
+    },
+    "semantic_within_v2_nn": {
+      "max": 0.9406,
+      "n_ge_0.9": 18
+    },
+    "id_overlap_with_500": 0
+  },
+  "dataset_test.jsonl": {
+    "n": 349,
+    "lexical_vs_catalog": {
+      "max": 0.8929,
+      "n_ge_0.95": 0
+    },
+    "semantic_vs_catalog": {
+      "max": 0.9142,
+      "n_ge_0.9": 4
+    }
+  },
+  "dataset_dev.jsonl": {
+    "n": 151,
+    "lexical_vs_catalog": {
+      "max": 0.8958,
+      "n_ge_0.95": 0
+    },
+    "semantic_vs_catalog": {
+      "max": 0.9559,
+      "n_ge_0.9": 4
+    }
+  }
+}

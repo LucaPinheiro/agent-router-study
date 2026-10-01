@@ -60,6 +60,7 @@ AUDIT = DATA / "audit"
 OUT = DATA / "dataset_test_v2.jsonl"
 META = DATA / "generation_meta_v2.json"
 LOG = AUDIT / "generation_v2_log.jsonl"
+RAW = AUDIT / "generation_v2_raw.jsonl"
 SEED = 20260930  # test-v1 generation used 20260929
 MODEL = "google/gemini-2.5-flash"
 TEMPERATURE = 0.9
@@ -191,7 +192,7 @@ def reject_reason(cat: str, target: Any, item: dict[str, Any], slot: tuple[str, 
     try:
         tools = list(dict.fromkeys(item["acceptable_tools"]))
         last = item["turns"][-1]["content"]
-    except (KeyError, TypeError, IndexError):
+    except (KeyError, TypeError, IndexError, AttributeError):
         return "schema"
     if not labels_ok(cat, target, tools, last):
         return "label_spec"
@@ -221,7 +222,10 @@ def make_case(
     job: dict[str, Any], item: dict[str, Any], slot: tuple[str, list[str]]
 ) -> tuple[Case | None, str]:
     cat, target = job["cat"], job["target"]
-    c = to_case(cat, target, item, slot, "tmp")
+    try:
+        c = to_case(cat, target, item, slot, "tmp")
+    except (AttributeError, IndexError, TypeError, KeyError):
+        return None, "schema"
     if c is None:
         return None, reject_reason(cat, target, item, slot)
     if cat == "adversarial":
@@ -243,6 +247,11 @@ def main() -> None:
     ap.add_argument("--max-cost", type=float, default=2.5, help="USD cap for generation calls")
     ap.add_argument("--rounds", type=int, default=5)
     ap.add_argument("--oversample", type=float, default=1.6)
+    ap.add_argument(
+        "--resume",
+        action="store_true",
+        help="replay the paid outputs in generation_v2_raw.jsonl, then generate only the rest",
+    )
     args = ap.parse_args()
     key = load_env()
     rng = random.Random(SEED)
@@ -269,7 +278,14 @@ def main() -> None:
     prompts: list[str] = []
     total_cost = 0.0
     calls = 0
+    replay: dict[int, list[dict[str, Any]]] = {}
+    if args.resume:
+        for line in RAW.read_text(encoding="utf-8").splitlines():
+            row = json.loads(line)
+            replay.setdefault(row["round"], []).append(row)
     log = LOG.open("w", encoding="utf-8")
+    # every paid generator output, before any filter (appended to on --resume)
+    raw = RAW.open("a" if args.resume else "w", encoding="utf-8")
 
     with httpx.Client() as client:
         before = credits(client, key)
@@ -288,14 +304,22 @@ def main() -> None:
                     n -= m
             if not todo:
                 break
-            if total_cost > args.max_cost:
+            if total_cost > args.max_cost and rnd not in replay:
                 raise SystemExit(f"generation cost ${total_cost:.4f} > cap ${args.max_cost}")
             print(f"round {rnd}: {len(todo)} calls", flush=True)
 
             tasks = []  # slots and prompts drawn sequentially (per-job RNG, reproducible)
-            for j, m in todo:
-                sl = job_slots(j, m, j["rng"], compat)
-                tasks.append((j, sl, build_prompt(j["cat"], j["target"], m, sl)))
+            if rnd in replay:  # the same state reproduces the same task list, in order
+                rows = replay[rnd]
+                assert [j["label"] for j, _ in todo] == [r["job"] for r in rows], rnd
+                for (j, m), r in zip(todo, rows, strict=True):
+                    sl = [(c, list(o)) for c, o in r["slots"]]
+                    assert len(sl) == m, (rnd, r["job"])
+                    tasks.append((j, sl, build_prompt(j["cat"], j["target"], m, sl)))
+            else:
+                for j, m in todo:
+                    sl = job_slots(j, m, j["rng"], compat)
+                    tasks.append((j, sl, build_prompt(j["cat"], j["target"], m, sl)))
             prompts.extend(t[2] for t in tasks)
 
             def run(task: tuple[dict[str, Any], list, str]) -> tuple[dict, list, list, dict]:
@@ -313,13 +337,27 @@ def main() -> None:
                 items = parsed.get("items", []) if isinstance(parsed, dict) else []
                 return j, sl, items if isinstance(items, list) else [], usage
 
-            with ThreadPoolExecutor(12) as ex:
-                results = list(ex.map(run, tasks))
+            if rnd in replay:
+                results = [
+                    (j, sl, r["items"], {"cost": 0.0})
+                    for (j, sl, _), r in zip(tasks, replay[rnd], strict=True)
+                ]
+            else:
+                with ThreadPoolExecutor(12) as ex:
+                    results = list(ex.map(run, tasks))
 
             cands: list[tuple[dict[str, Any], Case]] = []
             for j, sl, items, usage in results:
                 calls += 1
                 total_cost += usage["cost"]
+                if rnd not in replay:
+                    raw.write(
+                        json.dumps(
+                            {"round": rnd, "job": j["label"], "slots": sl, "items": items},
+                            ensure_ascii=False,
+                        )
+                        + "\n"
+                    )
                 for i, item in enumerate(items[: len(sl)]):
                     c, why = (
                         make_case(j, item, sl[i]) if isinstance(item, dict) else (None, "schema")
@@ -372,6 +410,7 @@ def main() -> None:
             )
         after = credits(client, key)
     log.close()
+    raw.close()
 
     short = {
         j["label"]: j["quota"] - len(j["accepted"]) for j in jobs if len(j["accepted"]) < j["quota"]
@@ -426,13 +465,27 @@ def main() -> None:
             ),
             "conflicts": sorted(k for k, s in sat.items() if s["conflict"]),
         },
-        "total_cost_usd": round(total_cost, 4),
+        "cost_usd_this_invocation": round(total_cost, 4),
+        "total_cost_usd_all_attempts": round(
+            sum(
+                float(r.get("cost_usd") or 0)
+                for r in led.rows()
+                if r.get("purpose") == "dataset_v2_generation"
+            ),
+            4,
+        ),
+        "resumed_from_raw": bool(replay),
         "openrouter_total_usage_delta": round(after["total_usage"] - before["total_usage"], 4),
         "output_sha256_pre_audit": hashlib.sha256(OUT.read_bytes()).hexdigest(),
     }
     META.write_text(json.dumps(meta, indent=2, ensure_ascii=False) + "\n")
     print(
-        json.dumps({k: meta[k] for k in ("n", "category_counts", "rejections", "total_cost_usd")})
+        json.dumps(
+            {
+                k: meta[k]
+                for k in ("n", "category_counts", "rejections", "total_cost_usd_all_attempts")
+            }
+        )
     )
 
 

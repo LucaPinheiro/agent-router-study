@@ -221,7 +221,7 @@ def valid_verdict(v: Any, cid: str) -> bool:
 # ------------------------------------------------------------------ run
 
 
-def run(split: str, auditor: str, max_cost: float) -> None:
+def run(split: str, auditor: str, max_cost: float, limit: int | None = None) -> None:
     key = load_env()
     model = AUDITORS[auditor]
     cases = split_cases(split)
@@ -229,6 +229,7 @@ def run(split: str, auditor: str, max_cost: float) -> None:
     done = {json.loads(x)["id"] for x in path.read_text().splitlines()} if path.exists() else set()
     todo = [c for c in cases if c.id not in done]
     random.Random(f"{SUBSET_SEED}-{split}").shuffle(todo)  # mix categories inside a batch
+    todo = todo[:limit] if limit else todo
     batches = [todo[i : i + BATCH] for i in range(0, len(todo), BATCH)]
     system = SYSTEM.replace("{catalog}", catalog_text())
     led = ledger()
@@ -749,6 +750,7 @@ def main() -> None:
     r.add_argument("--split", choices=SPLITS, required=True)
     r.add_argument("--auditor", choices=[*AUDITORS, "all"], default="all")
     r.add_argument("--max-cost", type=float, default=1.5)
+    r.add_argument("--limit", type=int, default=None, help="pilot: first N shuffled cases")
     sub.add_parser("subset")
     sub.add_parser("adjudicate")
     d = sub.add_parser("apply-decisions")
@@ -763,7 +765,7 @@ def main() -> None:
         print(f"test-v1 subset: {len(ids)} ids")
     elif args.cmd == "run":
         for a in AUDITORS if args.auditor == "all" else [args.auditor]:
-            run(args.split, a, args.max_cost)
+            run(args.split, a, args.max_cost, args.limit)
     elif args.cmd == "adjudicate":
         adjudicate()
     else:

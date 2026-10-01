@@ -83,14 +83,16 @@ def user_turns(c: Case) -> list[str]:
     return [normalize(t.content) for t in c.turns if t.role == "user"]
 
 
-def max_ratio(text: str, refs: Iterable[str]) -> tuple[float, str]:
-    """Highest `SequenceMatcher` ratio of `text` against `refs` (upper-bound pruned)."""
+def max_ratio(text: str, refs: Iterable[str], floor: float = 0.0) -> tuple[float, str]:
+    """Highest `SequenceMatcher` ratio of `text` against `refs` (upper-bound pruned); refs whose
+    ratio cannot reach `floor` are skipped, so a result below `floor` is only a lower bound."""
     best, best_ref = 0.0, ""
     sm = SequenceMatcher(None, autojunk=False)
     sm.set_seq2(text)
     for ref in refs:
         sm.set_seq1(ref)
-        if sm.real_quick_ratio() <= best or sm.quick_ratio() <= best:
+        bound = max(best, floor)
+        if sm.real_quick_ratio() < bound or sm.quick_ratio() < bound:
             continue
         r = sm.ratio()
         if r > best:
@@ -108,14 +110,14 @@ def lexical_hit(
     text = case_text(c)
     if text in set(case_refs):
         return "exact_case"
-    r, _ = max_ratio(text, case_refs)
+    r, _ = max_ratio(text, case_refs, threshold)
     if r >= threshold:
         return f"lexical_case:{r:.3f}"
     turns = user_turns(c)
     if any(t in set(unit_refs) for t in turns):
         return "exact_catalog"
     for t in turns:
-        r, _ = max_ratio(t, unit_refs)
+        r, _ = max_ratio(t, unit_refs, threshold)
         if r >= threshold:
             return f"lexical_catalog:{r:.3f}"
     return None
@@ -137,8 +139,23 @@ class Embedder:
         self._make = lambda http: EmbeddingsClient(Settings(), model, backend="ollama", http=http)
         self.batch = batch
         self._cache: dict[str, np.ndarray] = {}
+        self._disk = (
+            Path.home() / ".cache" / "routing_study" / f"embed_{model.replace(':', '_')}.npz"
+        )
+        try:
+            with np.load(self._disk) as z:
+                self._disk_cache = {k: z[k] for k in z.files}
+        except (OSError, ValueError):
+            self._disk_cache = {}
+
+    @staticmethod
+    def _key(text: str) -> str:
+        return hashlib.sha256(text.encode()).hexdigest()
 
     def __call__(self, texts: Sequence[str]) -> np.ndarray:
+        for t in dict.fromkeys(texts):
+            if t not in self._cache and self._key(t) in self._disk_cache:
+                self._cache[t] = self._disk_cache[self._key(t)]
         todo = [t for t in dict.fromkeys(texts) if t not in self._cache]
 
         async def run() -> None:  # a fresh HTTP client per event loop
@@ -153,12 +170,80 @@ class Embedder:
 
         if todo:
             asyncio.run(run())
+            self._disk_cache.update({self._key(t): self._cache[t] for t in todo})
+            self._disk.parent.mkdir(parents=True, exist_ok=True)
+            np.savez(self._disk, **self._disk_cache)
         return np.stack([self._cache[t] for t in texts]) if texts else np.zeros((0, 1))
 
 
 def max_cosine(query: np.ndarray, refs: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Per query row: max cosine against `refs` (unit vectors) and its argmax."""
-    if len(refs) == 0:
+    if len(refs) == 0 or len(query) == 0:
         return np.zeros(len(query)), np.zeros(len(query), dtype=int)
     sims = query @ refs.T
     return sims.max(axis=1), sims.argmax(axis=1)
+
+
+def report(out: Path = ROOT / "data" / "audit" / "overlap_report.json") -> dict[str, object]:
+    """Leakage/duplicate report for test-v2 (vs the 500 existing cases, the catalog and
+    itself) and the committed leakage check of test-v1 and dev vs the catalog."""
+    data = ROOT / "data"
+
+    def load(name: str) -> list[Case]:
+        path = data / name
+        return [Case.model_validate_json(x) for x in path.read_text().splitlines() if x.strip()]
+
+    existing = load("seed.jsonl") + load("synthetic.jsonl")
+    v2 = load("dataset_test_v2.jsonl")
+    units = catalog_units()
+    refs = [case_text(c) for c in existing]
+    emb = Embedder()
+    ev2 = emb([semantic_text(c) for c in v2])
+    eex = emb([semantic_text(c) for c in existing])
+    eun = emb(units)
+    s_case, _ = max_cosine(ev2, eex)
+    s_cat, _ = max_cosine(ev2, eun)
+    within = ev2 @ ev2.T
+    np.fill_diagonal(within, -1)
+    s_within = within.max(axis=1)
+
+    def lex(cases: list[Case], against_cases: bool) -> list[float]:
+        out_ = []
+        for c in cases:
+            if against_cases:
+                out_.append(max_ratio(case_text(c), refs, 0.8)[0])
+            else:
+                out_.append(max(max_ratio(t, units, 0.8)[0] for t in user_turns(c)))
+        return out_
+
+    def summ(xs: Sequence[float], thr: float) -> dict[str, float | int]:
+        a = np.asarray(xs, dtype=float)
+        return {"max": round(float(a.max()), 4), f"n_ge_{thr}": int((a >= thr).sum())}
+
+    rep: dict[str, object] = {
+        "catalog_units": len(units),
+        "catalog_sha256": catalog_sha256(),
+        "test_v2": {
+            "n": len(v2),
+            "lexical_vs_500_cases": summ(lex(v2, True), LEXICAL_THRESHOLD),
+            "lexical_vs_catalog": summ(lex(v2, False), LEXICAL_THRESHOLD),
+            "semantic_vs_500_cases": summ(s_case, SEMANTIC_THRESHOLD),
+            "semantic_vs_catalog": summ(s_cat, SEMANTIC_THRESHOLD),
+            "semantic_within_v2_nn": summ(s_within, SEMANTIC_THRESHOLD),
+            "id_overlap_with_500": len({c.id for c in v2} & {c.id for c in existing}),
+        },
+    }
+    for name in ("dataset_test.jsonl", "dataset_dev.jsonl"):
+        cases = load(name)
+        s, _ = max_cosine(emb([semantic_text(c) for c in cases]), eun)
+        rep[name] = {
+            "n": len(cases),
+            "lexical_vs_catalog": summ(lex(cases, False), 0.95),
+            "semantic_vs_catalog": summ(s, SEMANTIC_THRESHOLD),
+        }
+    out.write_text(json.dumps(rep, indent=2) + "\n")
+    return rep
+
+
+if __name__ == "__main__":
+    print(json.dumps(report(), indent=2))

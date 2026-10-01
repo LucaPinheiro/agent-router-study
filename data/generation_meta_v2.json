@@ -1,0 +1,99 @@
+{
+  "split": "test_v2",
+  "model": "google/gemini-2.5-flash",
+  "temperature": 0.9,
+  "reasoning_effort": "low",
+  "seed": 20260930,
+  "n": 349,
+  "category_counts": {
+    "direto": 105,
+    "parafrase": 87,
+    "ambiguo": 70,
+    "multiturno": 35,
+    "fora_escopo": 35,
+    "adversarial": 17
+  },
+  "per_tool_any": {
+    "get_customer_profile": 14,
+    "search_help_center": 22,
+    "escalate_to_human": 47,
+    "get_order_status": 30,
+    "track_shipment": 31,
+    "update_delivery_address": 13,
+    "reschedule_delivery": 13,
+    "cancel_order": 31,
+    "get_payment_status": 22,
+    "generate_boleto_second_copy": 13,
+    "request_refund": 40,
+    "get_refund_status": 22,
+    "dispute_charge": 22,
+    "check_return_eligibility": 21,
+    "create_return_request": 30,
+    "generate_return_label": 13,
+    "create_exchange": 23,
+    "open_warranty_claim": 22,
+    "__abstain__": 43
+  },
+  "per_tool_first": {
+    "get_customer_profile": 14,
+    "search_help_center": 22,
+    "escalate_to_human": 13,
+    "get_order_status": 30,
+    "track_shipment": 13,
+    "update_delivery_address": 13,
+    "reschedule_delivery": 13,
+    "cancel_order": 22,
+    "get_payment_status": 22,
+    "generate_boleto_second_copy": 13,
+    "request_refund": 22,
+    "get_refund_status": 13,
+    "dispute_charge": 22,
+    "check_return_eligibility": 13,
+    "create_return_request": 21,
+    "generate_return_label": 13,
+    "create_exchange": 14,
+    "open_warranty_claim": 13,
+    "__abstain__": 43
+  },
+  "rounds_run": 9,
+  "calls": 117,
+  "rejections": {
+    "args_param": 7,
+    "label_spec": 95,
+    "order_not_offered": 22,
+    "semantic_case": 104,
+    "semantic_catalog": 1,
+    "surplus": 144
+  },
+  "thresholds": {
+    "lexical_vs_existing_and_catalog": 0.9,
+    "semantic_cosine": 0.9,
+    "lexical_within_v2": 0.85,
+    "embedder": "qwen3-embedding:8b-q8_0"
+  },
+  "dedupe_references": {
+    "existing_cases": 500,
+    "catalog_units": 589,
+    "catalog_sha256": "640c374ace609827d46fbb4e139d8c44d01d4d8474dd1f39cfbca3c6d118e344"
+  },
+  "prompts_sha256": "ee059ac5b852d64f12b8b58bd933082b42f005e26705ff6fb39824f0f87ff23d",
+  "code_sha256": {
+    "generate_v2.py": "bfcf21e44903b3335b02c5c6f6d4e6f43b3199f5d6ccf15d53cf4c76173cefa4",
+    "generate.py": "3429bbd5a3866738a5087a0273e8d86558d1244121bb15557b19430d465a8b65"
+  },
+  "mock_db_sha256": "9cd81f4e7455d1bc1ba3b22b9aed6734e7465b47c70f9f30c5412ea1b93fc174",
+  "mock_db_satisfiability": {
+    "cases_with_order": 283,
+    "first_tool_ok": 279,
+    "conflicts": [
+      "v2-adversarial-001",
+      "v2-adversarial-003",
+      "v2-adversarial-004"
+    ]
+  },
+  "cost_usd_this_invocation": 0.0215,
+  "total_cost_usd_all_attempts": 1.642,
+  "resumed_from_raw": true,
+  "openrouter_total_usage_delta": 0.1064,
+  "output_sha256_pre_audit": "fae81ed5f1fed14fd134b13eab0872acdf174fdcbf6caf5102e690cd189beab6"
+}

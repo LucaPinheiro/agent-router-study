@@ -32,7 +32,9 @@ def credits(client: httpx.Client, key: str) -> dict[str, float]:
     return {k: float(v) for k, v in r.json()["data"].items()}
 
 
-def parse_json(text: str) -> Any:
+def parse_json(text: str | None) -> Any:
+    if not isinstance(text, str):
+        raise ValueError("empty completion content")
     text = re.sub(r"^```(?:json)?|```$", "", text.strip()).strip()
     return json.loads(text)
 
@@ -99,7 +101,7 @@ def chat_json(
                 ) from e
             print(f"  retry {attempt + 1}: HTTP {e.response.status_code}", flush=True)
             time.sleep(2**attempt)
-        except (httpx.HTTPError, KeyError, ValueError, TypeError, IndexError) as e:
+        except (httpx.HTTPError, KeyError, ValueError, TypeError, IndexError, AttributeError) as e:
             print(f"  retry {attempt + 1}: {type(e).__name__}", flush=True)
             time.sleep(2**attempt)
     return None, usage

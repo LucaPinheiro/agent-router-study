@@ -134,4 +134,109 @@ gold, `reviewed: true`, `label_audit.human_decision` (and `original` when the go
 analysis). **Applying decisions changes the test-v2 sha256: re-freeze it below before the
 pre-registration tag.**
 
-<!-- FREEZE -->
+## test-v2 generation results
+
+From `data/generation_meta_v2.json` and `data/audit/overlap_report.json`.
+
+| Category | direto | parafrase | ambiguo | multiturno | fora_escopo | adversarial | total |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| test-v1 | 105 | 87 | 70 | 35 | 35 | 17 | 349 |
+| test-v2 | 105 | 87 | 70 | 35 | 35 | 17 | 349 |
+
+Per tool, gold before the audit (any = listed in `acceptable_tools`, first = preferred label;
+test-v1 `any` in brackets):
+
+| Tool | any | first | | Tool | any | first |
+| --- | --- | --- | --- | --- | --- | --- |
+| get_customer_profile | 14 (7) | 14 | | get_payment_status | 22 (17) | 22 |
+| search_help_center | 22 (24) | 22 | | generate_boleto_second_copy | 13 (15) | 13 |
+| escalate_to_human | 47 (41) | 13 | | request_refund | 40 (48) | 22 |
+| get_order_status | 30 (37) | 30 | | get_refund_status | 22 (20) | 13 |
+| track_shipment | 31 (31) | 13 | | dispute_charge | 22 (31) | 22 |
+| update_delivery_address | 13 (11) | 13 | | check_return_eligibility | 21 (19) | 13 |
+| reschedule_delivery | 13 (16) | 13 | | create_return_request | 30 (40) | 21 |
+| cancel_order | 31 (34) | 22 | | generate_return_label | 13 (14) | 13 |
+| create_exchange | 23 (30) | 14 | | open_warranty_claim | 22 (18) | 13 |
+| `__abstain__` | 43 (37) | 43 | | | | |
+
+Minimum per tool: 13 (test-v1: 7). After the agreed audit fixes the minimum first-label count is
+still >= 8 for every tool (`tests/test_dataset.py`).
+
+- Rejections over 117 generator calls: 95 label/spec mismatches, 22 orders not offered (mostly
+  `abuse` items that cite another customer's order), 7 invented arg names, 104 semantic
+  near-duplicates of the 500 existing cases (cosine >= 0.9), 1 semantic near-duplicate of a
+  catalog unit, 0 lexical hits, 144 surplus items over quota. Rejected slots were regenerated
+  (9 rounds).
+- Final overlap of test-v2: lexical max 0.775 vs the 500 cases and 0.636 vs the catalog;
+  semantic max 0.900 (below threshold, 0 cases >= 0.9) vs the 500 cases and 0.869 vs the
+  catalog; 0 id overlap. Within test-v2, 18 cases have a semantic nearest neighbour >= 0.9
+  (redundancy, not leakage; lexical within-set dedupe only).
+- Committed leakage check of the older splits against the catalog (review minor 2): test-v1
+  lexical max 0.893 (0 >= 0.95), semantic 4 cases >= 0.9 (max 0.914); dev lexical max 0.896,
+  semantic 4 cases >= 0.9 (max 0.956).
+- Mock DB (`mock_db.json` sha in the metadata): 283 cases reference an order; on 279 of them
+  the first gold tool completes on the order's state. Conflicts (no acceptable tool completes):
+  `v2-adversarial-001`, `-003`, `-004` (named-tool requests on orders whose state rejects the
+  action; kept, the router decision is still well defined). The mock DB was built from
+  dev/test-v1 only; if it is regenerated with test-v2, recheck these numbers.
+- Cost: US$1.642 for generation, including US$0.67 of a first run that crashed on an empty
+  completion before writing anything (the code now saves every paid output to
+  `generation_v2_raw.jsonl` and `--resume` replays it).
+
+## Audit results
+
+From `data/audit/summary.json`. Kappa is Cohen's kappa; first-tool kappa is multi-class.
+
+| | test-v2 (n=349) | test-v1 subset (n=182) |
+| --- | --- | --- |
+| A vs B, gold acceptable: agreement / kappa | 0.900 / 0.662 | 0.824 / 0.599 |
+| A vs B, args correct | 0.848 / 0.519 | 0.885 / 0.487 |
+| A vs B, out of scope | 0.989 / 0.941 | 0.984 / 0.949 |
+| A vs B, escalation acceptable | 0.974 / 0.886 | 0.929 / 0.707 |
+| A vs B, first proposed tool | 0.914 / 0.908 | 0.841 / 0.825 |
+| A: gold acceptable rate [95% CI] | 0.785 [0.739, 0.825] | 0.615 [0.543, 0.683] |
+| B: gold acceptable rate [95% CI] | 0.857 [0.816, 0.890] | 0.769 [0.703, 0.825] |
+| A vs gold: out of scope / escalation / first tool kappa | 0.930 / 0.910 / 0.848 | 0.966 / 0.601 / 0.747 |
+| B vs gold: out of scope / escalation / first tool kappa | 0.902 / 0.903 / 0.854 | 0.983 / 0.682 / 0.824 |
+| A / B first tool in gold set | 0.911 / 0.888 | 0.896 / 0.929 |
+| Decisions keep / fixed / flagged | 214 / 27 / 108 | 96 / 18 / 68 |
+
+test-v2 decisions by category (keep/fixed/flagged): direto 79/6/20, parafrase 52/10/25,
+ambiguo 15/6/49, multiturno 23/4/8, fora_escopo 34/0/1, adversarial 11/1/5.
+
+Reading:
+
+- Both auditors accept test-v2 more often than the test-v1 subset (the subset over-weights the
+  hard categories, so compare per category in `summary.json`).
+- **ambiguo is the weak spot**: auditor A accepts only 23/70 test-v2 ambiguous label sets
+  (B: 44/70); 49 of the 108 flags are ambiguous cases. This backs review M4 (multi-label credit
+  is generous): report single-label and first-label-only accuracy alongside the main metric.
+- Many args flags (spot-checked, not counted) are pedantic disagreements on free-text values (`query`,
+  `reason`, `details`) or enum spellings; args are scored only when non-empty, so these matter
+  for the e2e/args metrics only.
+- The pre-declared rule was applied unchanged: no threshold or rule was edited after seeing
+  the verdicts.
+
+## Freeze
+
+sha256 after the automated adjudication (before any human decision). A human decision file
+applied with `audit.py apply-decisions` changes the dataset sha: update this table (the test
+`test_v2_frozen_sha256_matches_dataset_card` fails until it is updated).
+
+| File | sha256 |
+| --- | --- |
+| `data/dataset_test_v2.jsonl` | `d6c25659b5813f0402c6bd226f1abfac314a4c97b43e3026420ee4874a7a7868` |
+| `data/generation_meta_v2.json` | `c200a77ac6265ca3932300cf2accfed6eba80f5faedd404c0e73f57e0496292f` |
+| `data/audit/test_v1_subset_ids.json` | `d022eb07f9566e19e8c4b8520741cb5c43ecd90514b3fefd446ed1c107500efc` |
+| `data/audit/verdicts_test_v2_A.jsonl` | `f6cb38c702e1587fedaec92a796d75274ff7bed2a7f0715e8206a98ffd40550b` |
+| `data/audit/verdicts_test_v2_B.jsonl` | `c0e2f2c43fcaef72ecff56f17be6608f058488520c40d13343b17c82843c5f2d` |
+| `data/audit/verdicts_test_v1_subset_A.jsonl` | `59beba96e0835efb0c7c5a6c036636fe441f70c4c85d4d9b2c62e04b3fc4b5fa` |
+| `data/audit/verdicts_test_v1_subset_B.jsonl` | `05a21b3862e18a7ec562cb076294e3ab7388b2ba44911873bbf74bcc3bb50a1d` |
+| `data/audit/adjudication_test_v2.jsonl` | `a7107bd0506f5936e636ba45fe0d5d50dd7a69b86f5f21649045eb2bb15ae898` |
+| `data/audit/adjudication_test_v1_subset.jsonl` | `2f38b5bba3b09aa8c4e48e7d8439824297dc3e4048251a7513f2a1952e6c10db` |
+| `data/audit/summary.json` | `83bfe3475dba91246f0321f594eed470d7856d04874813862d3b1f4527c18042` |
+| `data/audit/overlap_report.json` | `f7c7ee4f2d58193ab04edb6f0329652c39251d038b4d957ab589f98d4815f2a9` |
+| `data/audit/generation_v2_raw.jsonl` | `a43408f7c46dbe89417b366e16091478ee3cc2fc1422545e9136b1c45bae1595` |
+| `data/audit/generation_v2_log.jsonl` | `1e81ca808e35946ee7971e8d76a8119dff4bdc080028d90ca9b81ed8cdeee9e7` |
+
+`data/audit/review.html` is regenerated by `adjudicate` (it embeds a timestamp) and is not frozen.

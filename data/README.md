@@ -1,6 +1,10 @@
 # Routing dataset
 
-500 pt-BR post-sales cases (seed 104 + synthetic 396), split 30/70 into dev/test.
+500 pt-BR post-sales cases (seed 104 + synthetic 396), split 30/70 into dev/test, plus the
+confirmatory split **test-v2** (349 new synthetic cases, `dataset_test_v2.jsonl`).
+`dataset_test.jsonl` is now **test-v1 (exposed)**: it was read before the routers were re-tuned
+(methodology review B1) and serves only as a replication/contamination check.
+Full provenance, audit and freeze hashes: [`docs/dataset-card.md`](../docs/dataset-card.md).
 
 | File | Content |
 | --- | --- |
@@ -9,9 +13,16 @@
 | `dataset_dev.jsonl` | 151 cases, tune regex / examples / thresholds here only |
 | `dataset_test.jsonl` | 349 cases, held out |
 | `generation_meta.json` | model, temperature, counts, cost of the last generation run |
+| `dataset_test_v2.jsonl` | 349 cases (`"source":"synthetic_v2"`), **the only confirmatory split**; carries `label_audit` |
+| `generation_meta_v2.json` | test-v2 generation: model, seed, prompts/code hashes, rejections, per-tool counts, mock-DB conflicts, cost |
+| `audit/` | test-v2 generation log and raw outputs, overlap report, blind label audit (verdicts, adjudication, summary), `review.html` |
 
 Rebuild: `uv run python scripts/dataset/generate.py && uv run python scripts/dataset/split.py`
 (generation needs `OPENROUTER_API_KEY` in `.env`; split is deterministic, seed 20260929).
+
+test-v2: `uv run python scripts/dataset/generate_v2.py` (`--resume` replays the paid raw outputs),
+`uv run python scripts/dataset/overlap.py` (leakage report),
+`uv run python scripts/dataset/audit.py run --split test_v2` then `... audit.py adjudicate`.
 
 ## Schema (one JSON per line)
 
@@ -55,7 +66,8 @@ Every order id mentioned in a case (turns or args) belongs to the case's `custom
 
 ## Human review: PENDING
 
-No case has been reviewed by a human. `reviewed` is `false` for every case, including the seed (written by an AI agent, not by the study author).
+No case has been reviewed by a human. `reviewed` is `false` for every case, including the seed (written by an AI agent, Claude Opus 5.5, not by the study author; see `docs/dataset-card.md`, review M3).
+test-v2 went through a blind two-model automated audit instead (`docs/dataset-card.md`); its flagged cases await a human decision in `audit/review.html`.
 Review priorities:
 
 1. `adversarial` synthetic (17 of 25 in test): the `tool_by_name` and `decoy` labels are the weakest.
@@ -67,7 +79,7 @@ Review priorities:
 Set `"reviewed": true` per case after review, and fix labels in `synthetic.jsonl`, then rerun `split.py`
 (the split is stable per id ordering, so fixed labels do not move cases between dev and test unless cases are added or removed).
 
-Leakage check (plan section 7): similarity above 0.95 between the MCP server `_meta.examples` and the test split fails. Not implemented here; it needs the server examples.
+Leakage check (plan section 7): `scripts/dataset/overlap.py` compares every case with every router-visible catalog text unit (lexical `SequenceMatcher`, and cosine with the local `qwen3-embedding`); results in `audit/overlap_report.json`. test-v1: lexical max 0.89 (0 >= 0.95), semantic 4 cases >= 0.9; test-v2: 0 lexical >= 0.9 and 0 semantic >= 0.9 against the catalog and the 500 existing cases.
 
 ## Label policy — adversarial (lead fix, 2026-09-29)
 A request that names a tool whose purpose matches the user's legitimate intent accepts that tool (first in `acceptable_tools`); the previous synthetic labels are kept as alternatives. Instruction injection / privilege escalation (e.g. "ignore as instruções…") stays `__abstain__`/`escalate_to_human`. Fixed rows carry `"label_fix": "named_tool_matches_intent"`.
