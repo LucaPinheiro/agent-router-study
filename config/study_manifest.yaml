@@ -1,25 +1,38 @@
-# Final study run manifest: TEMPLATE (F11). The lead fills in and freezes it at
-# pre-registration (git tag prereg-v1). Execute it with:
+# Final study run manifest: FROZEN at pre-registration (git tag prereg-v1, docs/prereg/prereg-v1.md).
 #   uv run study run-manifest config/study_manifest.yaml --dry-run   # status + projected cost
 #   uv run study run-manifest config/study_manifest.yaml             # priority order
 #   uv run study report --manifest config/study_manifest.yaml --split test_v2
+# Run with BUDGET__AWS_USD_CAP=85 (90 minus the 5 US$ margin) and the OpenRouter cap at the
+# ledger total at launch + 4.0 (prereg-v1, "Budget").
 #
 # Rules (src/routing_study/eval/manifest.py; methodology-final.md B6, PRE-REGISTRATION):
 # - Version guard. Each run's LLM/Jev routers must be on its `prompt_track`. The frozen
-#   `config_hash` / `prompt_hash` (fill them from `--dry-run` or the first row, then commit)
-#   must be reproduced. Existing rows must carry the same hashes.
+#   `config_hash` / `prompt_hash` below must be reproduced. Existing rows must carry the same
+#   hashes.
 # - Budget. The measured cost per turn times the missing turns is checked against the ledger
-#   caps before each run. The a-priori upper bound is used only when nothing was measured.
+#   caps before each run. The a-priori (no-cache) upper bound is used when nothing was measured.
+#   A run the guard refuses is reported as not run (deviation log), never squeezed in.
 # - Resume. Missing (case, rep) keys are appended to results/<name>.jsonl. A paid partial is
 #   never deleted.
 # - Complete: every key present and error rate <= error_budget. Otherwise the error rows are
 #   retried (kept in <name>.retryK.errors.jsonl), up to max_infra_retries times. A run still
 #   above budget is FLAGGED: fix the infrastructure and redo it from scratch. It is never
 #   re-run for any other reason.
-# Files still to be created before the freeze:
-# - data/dataset_test_v2.jsonl (T1);
-# - the *_tuned.yaml copies (scripts/analysis/apply_prompt_selection.py);
-# - config/manifest/*.ids for fixed subsets, when a subset must be fixed.
+#
+# Prompt tracks (docs/prompt-apex.md, config/prompt_selection.yaml): canonical = tuned = P0 for
+# Sonnet 5, Haiku 4.5 and Jev, so track B == track A for them: no *_tuned copy and no duplicate
+# run; the "tuned" reference of H1/H2 is the canonical Sonnet run (same prompt bytes). The
+# cascades (E7-E9) are labelled tuned (their blocks carry prompt_track: tuned, variant P0).
+#
+# Response cache (M8): Sonnet, Haiku, Qwen and Jev decisions are cached per (case, rep, rendered
+# prompt). The shadow pass runs first, so the Sonnet / Jev steps of E4, E5 and E7-E9 are cache
+# hits of the SAME samples (paired by construction; reps stay independent samples). Their
+# latency is therefore the shadow pass's: latency comes from the dedicated benchmark only.
+#
+# Repeat checks (M7): `reps: 2` on a fixed stratified subset; rep 1 is a cache hit of the main
+# run (same case, rep 1), rep 2 is a fresh sample, so the flip rate is rep 1 vs rep 2.
+# Executor variance (M6): `reps: 1` on 60 cases in a second run name: the routers are cache hits
+# of the main e2e run's rep 1, the executor (never cached) samples again.
 version: 1
 split: test_v2
 results_dir: results
@@ -27,68 +40,127 @@ error_budget: 0.02
 max_infra_retries: 2
 
 runs:
-  # ---- 1. free routers at full scale: infrastructure smoke test (and part of the design)
-  - { name: v2-e1-regex-routing-r1, config: config/experiments/e1_regex.yaml, mode: routing-only, reps: 1, priority: 10, purpose: "RQ1 regex, S4" }
-  - { name: v2-e2-bm25-routing-r1, config: config/experiments/e2_bm25.yaml, mode: routing-only, reps: 1, priority: 10, purpose: "RQ1 BM25" }
-  - { name: v2-e3-embedding-routing-r1, config: config/experiments/e3_embedding.yaml, mode: routing-only, reps: 1, priority: 10, purpose: "RQ1 embedding, S4" }
+  # ---- 1. free routers at full scale: infrastructure smoke test (and part of the design, B3)
+  - { name: v2-e1-regex-routing-r1, config_hash: 2da827d0effb, prompt_hash: c61ad0a7b7f8, config: config/experiments/e1_regex.yaml, mode: routing-only, reps: 1, priority: 10, purpose: "RQ1 regex, S3, S4 reference" }
+  - { name: v2-e2-bm25-routing-r1, config_hash: 7bb5a5960490, prompt_hash: c61ad0a7b7f8, config: config/experiments/e2_bm25.yaml, mode: routing-only, reps: 1, priority: 10, purpose: "RQ1 BM25, S3" }
+  - { name: v2-e3-embedding-routing-r1, config_hash: 1899b6f414a5, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding.yaml, mode: routing-only, reps: 1, priority: 10, purpose: "RQ1 embedding, S4" }
+  - { name: v2-e10-classifier-routing-r1, config_hash: 616af886b783, prompt_hash: c61ad0a7b7f8, config: config/experiments/e10_classifier.yaml, mode: routing-only, reps: 1, priority: 10, purpose: "estimation: learned classifier (open Jev replica)" }
+  - { name: v2-e11-hybrid-routing-r1, config_hash: 68cc177d37b0, prompt_hash: c61ad0a7b7f8, config: config/experiments/e11_hybrid.yaml, mode: routing-only, reps: 1, priority: 10, purpose: "estimation: hybrid regex + classifier" }
   - name: v2-e1-regex-routing-repeat20
+    config_hash: 2da827d0effb
+    prompt_hash: c61ad0a7b7f8
     config: config/experiments/e1_regex.yaml
     mode: routing-only
+    reps: 2
     cases: { limit: 20 }
     priority: 11
     purpose: "determinism check (0 flips expected)"
+  - { name: v2-e3-embedding-qwen06b-routing-r1, config_hash: 98ef77240be7, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding_qwen06b.yaml, mode: routing-only, reps: 1, priority: 15, purpose: "estimation: embedder ablation (qwen3-embedding 0.6B)" }
+  - { name: v2-e3-embedding-bgem3-routing-r1, config_hash: 3b95fe4e6beb, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding_bgem3.yaml, mode: routing-only, reps: 1, priority: 15, purpose: "estimation: embedder ablation (bge-m3)" }
 
-  # ---- 2. Jev single (canonical), 3 reps
-  - { name: v2-e4-jev-canonical-routing-r3, config: config/experiments/e4_jev.yaml, prompt_track: canonical, mode: routing-only, reps: 3, priority: 20, purpose: "S2 Jev vs Sonnet" }
-
-  # ---- 3. shadow pass, tuned track (E9 decider), 3 reps: cascade replay + thresholds only
+  # ---- 2. shadow pass (E9 decider, tuned track = P0), 3 reps: pays the Sonnet 5 and Jev
+  #         samples that the E4 / E5 / E7-E9 runs below reuse; cascade replay only, never an
+  #         isolated-strategy headline (B3). Qwen3-8B is left out of the shadow set (not a step of
+  #         any cascade; one resident Ollama model).
   - name: v2-shadow-tuned-routing-r3
+    config_hash: cc01e0b06bb2
+    prompt_hash: c61ad0a7b7f8
     config: config/experiments/e9_regex_jev_llm.yaml
     prompt_track: tuned
     mode: routing-only
     routing_mode: shadow
     reps: 3
-    priority: 30
-    purpose: "cascade replay / threshold analysis (never an isolated-strategy headline, B3)"
+    priority: 20
+    purpose: "cascade replay / threshold sensitivity (never an isolated-strategy headline, B3)"
+    overrides:
+      routing.shadow_strategies: [regex, bm25, embedding, llm, jev, hybrid, classifier]
 
-  # ---- 4. real single / cascade runs on the tuned track: the LLM steps are cache hits of the
-  #         shadow pass (same case, rep, prompt), so their billed cost is ~0 (M8)
-  - { name: v2-e5-sonnet-tuned-routing-r3, config: config/experiments/e5_llm_sonnet_tuned.yaml, prompt_track: tuned, mode: routing-only, reps: 3, priority: 35, purpose: "H1/H2 reference, S1" }
-  - { name: v2-e4-jev-tuned-routing-r3, config: config/experiments/e4_jev_tuned.yaml, prompt_track: tuned, mode: routing-only, reps: 3, priority: 35, purpose: "S1 Jev" }
-  - { name: v2-e7-tuned-routing-r3, config: config/experiments/e7_regex_jev.yaml, prompt_track: tuned, mode: routing-only, reps: 3, priority: 36, purpose: "H2" }
-  - { name: v2-e8-tuned-routing-r3, config: config/experiments/e8_regex_llm.yaml, prompt_track: tuned, mode: routing-only, reps: 3, priority: 36, purpose: "estimation" }
-  - { name: v2-e9-tuned-routing-r3, config: config/experiments/e9_regex_jev_llm.yaml, prompt_track: tuned, mode: routing-only, reps: 3, priority: 36, purpose: "H1" }
+  # ---- 3. LLM / Jev singles, canonical track (= tuned for Sonnet 5 and Jev), 3 reps
+  - { name: v2-e4-jev-canonical-routing-r3, config_hash: acd7ff96155b, prompt_hash: c61ad0a7b7f8, config: config/experiments/e4_jev.yaml, prompt_track: canonical, mode: routing-only, reps: 3, priority: 25, purpose: "S2 Jev vs Sonnet; tuned == canonical" }
+  - { name: v2-e5-sonnet-canonical-routing-r3, config_hash: 40c93f91f270, prompt_hash: c61ad0a7b7f8, config: config/experiments/e5_llm_sonnet.yaml, prompt_track: canonical, mode: routing-only, reps: 3, priority: 25, purpose: "H1/H2 reference (tuned == canonical), S2 reference" }
 
-  # ---- 5. Sonnet canonical, 3 reps
-  - { name: v2-e5-sonnet-canonical-routing-r3, config: config/experiments/e5_llm_sonnet.yaml, prompt_track: canonical, mode: routing-only, reps: 3, priority: 40, purpose: "S1, S2 reference" }
+  # ---- 4. cascades on the tuned track, thresholds frozen from the dev shadow (D5), 3 reps
+  - { name: v2-e7-tuned-routing-r3, config_hash: 4fbfd7133b32, prompt_hash: c61ad0a7b7f8, config: config/experiments/e7_regex_jev.yaml, prompt_track: tuned, mode: routing-only, reps: 3, priority: 30, purpose: "H2" }
+  - { name: v2-e9-tuned-routing-r3, config_hash: 8f5f721c9158, prompt_hash: c61ad0a7b7f8, config: config/experiments/e9_regex_jev_llm.yaml, prompt_track: tuned, mode: routing-only, reps: 3, priority: 30, purpose: "H1" }
+  - { name: v2-e8-tuned-routing-r3, config_hash: 755265ce73e0, prompt_hash: c61ad0a7b7f8, config: config/experiments/e8_regex_llm.yaml, prompt_track: tuned, mode: routing-only, reps: 3, priority: 31, purpose: "estimation" }
 
-  # ---- 6. Haiku: 1 rep + a second rep on 60 stratified cases (flip rate, M7), both tracks
-  - { name: v2-e6-haiku-canonical-routing-r1, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, reps: 1, priority: 50, purpose: "S2" }
-  - { name: v2-e6-haiku-canonical-rep2-60, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, cases: { limit: 60 }, priority: 51, purpose: "flip rate" }
-  - { name: v2-e6-haiku-tuned-routing-r1, config: config/experiments/e6_llm_haiku_tuned.yaml, prompt_track: tuned, mode: routing-only, reps: 1, priority: 50, purpose: "S1 Haiku" }
-  - { name: v2-e6-haiku-tuned-rep2-60, config: config/experiments/e6_llm_haiku_tuned.yaml, prompt_track: tuned, mode: routing-only, cases: { limit: 60 }, priority: 51, purpose: "flip rate" }
+  # ---- 5. Haiku 4.5: 1 rep + rep 2 on 60 stratified cases (flip rate, M7); tuned == canonical
+  - { name: v2-e6-haiku-canonical-routing-r1, config_hash: f6c0edce210b, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, reps: 1, priority: 40, purpose: "S2 Haiku vs Sonnet" }
+  - { name: v2-e6-haiku-canonical-rep2-60, config_hash: f6c0edce210b, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, reps: 2, cases: { limit: 60 }, priority: 41, purpose: "flip rate (rep 1 = cache hit of the r1 run)" }
 
-  # ---- 7. Qwen3-8B local: 1 rep + 50-case determinism check, both tracks
-  - { name: v2-e6b-qwen-canonical-routing-r1, config: config/experiments/e6b_llm_qwen3_local.yaml, prompt_track: canonical, mode: routing-only, reps: 1, priority: 60, concurrency: 1, purpose: "S2" }
-  - { name: v2-e6b-qwen-canonical-repeat50, config: config/experiments/e6b_llm_qwen3_local.yaml, prompt_track: canonical, mode: routing-only, cases: { limit: 50 }, priority: 61, concurrency: 1, purpose: "determinism (0 flips expected)" }
-  - { name: v2-e6b-qwen-tuned-routing-r1, config: config/experiments/e6b_llm_qwen3_local_tuned.yaml, prompt_track: tuned, mode: routing-only, reps: 1, priority: 60, concurrency: 1, purpose: "S1 Qwen" }
-  - { name: v2-e6b-qwen-tuned-repeat50, config: config/experiments/e6b_llm_qwen3_local_tuned.yaml, prompt_track: tuned, mode: routing-only, cases: { limit: 50 }, priority: 61, concurrency: 1, purpose: "determinism" }
+  # ---- 6. Qwen3-8B local: 1 rep + rep 2 on 50 stratified cases (determinism, M7);
+  #         tuned == canonical (P0); concurrency 1, one resident Ollama model
+  - { name: v2-e6b-qwen-canonical-routing-r1, config_hash: 903a4a1e56d3, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6b_llm_qwen3_local.yaml, prompt_track: canonical, mode: routing-only, reps: 1, priority: 50, concurrency: 1, purpose: "S2 Qwen vs Sonnet" }
+  - { name: v2-e6b-qwen-canonical-repeat50, config_hash: 903a4a1e56d3, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6b_llm_qwen3_local.yaml, prompt_track: canonical, mode: routing-only, reps: 2, cases: { limit: 50 }, priority: 51, concurrency: 1, purpose: "determinism: 0 flips expected (rep 1 = cache hit of the r1 run)" }
 
-  # ---- 8. latency benchmark (cache off, interleaved, 100 cases, M8): run by its own script,
-  #         not by this manifest (it needs strategies.<s>.cache=false and round-robin order)
+  # ---- 7. latency benchmark (M8): cache off (response cache disabled per strategy AND a fresh
+  #         cache_dir, so no embedding vector is reused), concurrency 1, 100 stratified cases in
+  #         4 blocks of 25 (scripts/analysis/latency_ids.py); every strategy runs block 1, then
+  #         block 2, ... (block-level interleaving: one time window, drift spread over all).
+  #         The first case of each run is reported as cold, the rest as warm.
+  - { name: lat-regex-b1, config_hash: 91d9efe3e475, prompt_hash: c61ad0a7b7f8, config: config/experiments/e1_regex.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: &lat { cache_dir: .cache/latency, strategies.llm.cache: false, strategies.llm_local.cache: false, strategies.jev.cache: false, strategies.embedding.cache: false }, purpose: "latency benchmark block 1" }
+  - { name: lat-bm25-b1, config_hash: bdbfceae0945, prompt_hash: c61ad0a7b7f8, config: config/experiments/e2_bm25.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 1" }
+  - { name: lat-embedding-b1, config_hash: e6caaa01f721, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 1" }
+  - { name: lat-classifier-b1, config_hash: eb403445836f, prompt_hash: c61ad0a7b7f8, config: config/experiments/e10_classifier.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 1" }
+  - { name: lat-hybrid-b1, config_hash: 499d0b3c58a4, prompt_hash: c61ad0a7b7f8, config: config/experiments/e11_hybrid.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 1" }
+  - { name: lat-jev-b1, config_hash: 5cf75faa33f3, prompt_hash: c61ad0a7b7f8, config: config/experiments/e4_jev.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 1" }
+  - { name: lat-sonnet-b1, config_hash: 23e7f5214522, prompt_hash: c61ad0a7b7f8, config: config/experiments/e5_llm_sonnet.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 1" }
+  - { name: lat-haiku-b1, config_hash: 5535a7588de0, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 1" }
+  - { name: lat-e7-b1, config_hash: b474017898cf, prompt_hash: c61ad0a7b7f8, config: config/experiments/e7_regex_jev.yaml, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 1" }
+  - { name: lat-e8-b1, config_hash: 0f40f0def5a3, prompt_hash: c61ad0a7b7f8, config: config/experiments/e8_regex_llm.yaml, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 1" }
+  - { name: lat-e9-b1, config_hash: 454cd4d5ae85, prompt_hash: c61ad0a7b7f8, config: config/experiments/e9_regex_jev_llm.yaml, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 1" }
+  - { name: lat-qwen-b1, config_hash: 25f836f7b491, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6b_llm_qwen3_local.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 1" }
+  - { name: lat-regex-b2, config_hash: 91d9efe3e475, prompt_hash: c61ad0a7b7f8, config: config/experiments/e1_regex.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 2" }
+  - { name: lat-bm25-b2, config_hash: bdbfceae0945, prompt_hash: c61ad0a7b7f8, config: config/experiments/e2_bm25.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 2" }
+  - { name: lat-embedding-b2, config_hash: e6caaa01f721, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 2" }
+  - { name: lat-classifier-b2, config_hash: eb403445836f, prompt_hash: c61ad0a7b7f8, config: config/experiments/e10_classifier.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 2" }
+  - { name: lat-hybrid-b2, config_hash: 499d0b3c58a4, prompt_hash: c61ad0a7b7f8, config: config/experiments/e11_hybrid.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 2" }
+  - { name: lat-jev-b2, config_hash: 5cf75faa33f3, prompt_hash: c61ad0a7b7f8, config: config/experiments/e4_jev.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 2" }
+  - { name: lat-sonnet-b2, config_hash: 23e7f5214522, prompt_hash: c61ad0a7b7f8, config: config/experiments/e5_llm_sonnet.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 2" }
+  - { name: lat-haiku-b2, config_hash: 5535a7588de0, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 2" }
+  - { name: lat-e7-b2, config_hash: b474017898cf, prompt_hash: c61ad0a7b7f8, config: config/experiments/e7_regex_jev.yaml, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 2" }
+  - { name: lat-e8-b2, config_hash: 0f40f0def5a3, prompt_hash: c61ad0a7b7f8, config: config/experiments/e8_regex_llm.yaml, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 2" }
+  - { name: lat-e9-b2, config_hash: 454cd4d5ae85, prompt_hash: c61ad0a7b7f8, config: config/experiments/e9_regex_jev_llm.yaml, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 2" }
+  - { name: lat-qwen-b2, config_hash: 25f836f7b491, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6b_llm_qwen3_local.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 2" }
+  - { name: lat-regex-b3, config_hash: 91d9efe3e475, prompt_hash: c61ad0a7b7f8, config: config/experiments/e1_regex.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 3" }
+  - { name: lat-bm25-b3, config_hash: bdbfceae0945, prompt_hash: c61ad0a7b7f8, config: config/experiments/e2_bm25.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 3" }
+  - { name: lat-embedding-b3, config_hash: e6caaa01f721, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 3" }
+  - { name: lat-classifier-b3, config_hash: eb403445836f, prompt_hash: c61ad0a7b7f8, config: config/experiments/e10_classifier.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 3" }
+  - { name: lat-hybrid-b3, config_hash: 499d0b3c58a4, prompt_hash: c61ad0a7b7f8, config: config/experiments/e11_hybrid.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 3" }
+  - { name: lat-jev-b3, config_hash: 5cf75faa33f3, prompt_hash: c61ad0a7b7f8, config: config/experiments/e4_jev.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 3" }
+  - { name: lat-sonnet-b3, config_hash: 23e7f5214522, prompt_hash: c61ad0a7b7f8, config: config/experiments/e5_llm_sonnet.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 3" }
+  - { name: lat-haiku-b3, config_hash: 5535a7588de0, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 3" }
+  - { name: lat-e7-b3, config_hash: b474017898cf, prompt_hash: c61ad0a7b7f8, config: config/experiments/e7_regex_jev.yaml, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 3" }
+  - { name: lat-e8-b3, config_hash: 0f40f0def5a3, prompt_hash: c61ad0a7b7f8, config: config/experiments/e8_regex_llm.yaml, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 3" }
+  - { name: lat-e9-b3, config_hash: 454cd4d5ae85, prompt_hash: c61ad0a7b7f8, config: config/experiments/e9_regex_jev_llm.yaml, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 3" }
+  - { name: lat-qwen-b3, config_hash: 25f836f7b491, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6b_llm_qwen3_local.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 3" }
+  - { name: lat-regex-b4, config_hash: 91d9efe3e475, prompt_hash: c61ad0a7b7f8, config: config/experiments/e1_regex.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 4" }
+  - { name: lat-bm25-b4, config_hash: bdbfceae0945, prompt_hash: c61ad0a7b7f8, config: config/experiments/e2_bm25.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 4" }
+  - { name: lat-embedding-b4, config_hash: e6caaa01f721, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 4" }
+  - { name: lat-classifier-b4, config_hash: eb403445836f, prompt_hash: c61ad0a7b7f8, config: config/experiments/e10_classifier.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 4" }
+  - { name: lat-hybrid-b4, config_hash: 499d0b3c58a4, prompt_hash: c61ad0a7b7f8, config: config/experiments/e11_hybrid.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 4" }
+  - { name: lat-jev-b4, config_hash: 5cf75faa33f3, prompt_hash: c61ad0a7b7f8, config: config/experiments/e4_jev.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 4" }
+  - { name: lat-sonnet-b4, config_hash: 23e7f5214522, prompt_hash: c61ad0a7b7f8, config: config/experiments/e5_llm_sonnet.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 4" }
+  - { name: lat-haiku-b4, config_hash: 5535a7588de0, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 4" }
+  - { name: lat-e7-b4, config_hash: b474017898cf, prompt_hash: c61ad0a7b7f8, config: config/experiments/e7_regex_jev.yaml, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 4" }
+  - { name: lat-e8-b4, config_hash: 0f40f0def5a3, prompt_hash: c61ad0a7b7f8, config: config/experiments/e8_regex_llm.yaml, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 4" }
+  - { name: lat-e9-b4, config_hash: 454cd4d5ae85, prompt_hash: c61ad0a7b7f8, config: config/experiments/e9_regex_jev_llm.yaml, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 4" }
+  - { name: lat-qwen-b4, config_hash: 25f836f7b491, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6b_llm_qwen3_local.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat, purpose: "latency benchmark block 4" }
 
-  # ---- 9. end-to-end, 1 rep (the tracks are pre-registered here, M6)
-  - { name: v2-e0-native-e2e-r1, config: config/experiments/e0_native.yaml, mode: e2e, reps: 1, priority: 80, purpose: "H3 reference" }
-  - { name: v2-e1-regex-e2e-r1, config: config/experiments/e1_regex.yaml, mode: e2e, reps: 1, priority: 81, purpose: "estimation" }
-  - { name: v2-e5-sonnet-canonical-e2e-r1, config: config/experiments/e5_llm_sonnet.yaml, prompt_track: canonical, mode: e2e, reps: 1, priority: 81, purpose: "estimation" }
-  - { name: v2-e7-tuned-e2e-r1, config: config/experiments/e7_regex_jev.yaml, prompt_track: tuned, mode: e2e, reps: 1, priority: 81, purpose: "estimation (recommended default, M6)" }
-  - { name: v2-e6b-qwen-canonical-e2e-r1, config: config/experiments/e6b_llm_qwen3_local.yaml, prompt_track: canonical, mode: e2e, reps: 1, priority: 82, concurrency: 1, purpose: "estimation" }
-  - { name: v2-e9-tuned-e2e-r1, config: config/experiments/e9_regex_jev_llm.yaml, prompt_track: tuned, mode: e2e, reps: 1, priority: 80, purpose: "H3" }
-  # executor variance: a second rep of E0 and E9 on 60 stratified cases (M6)
-  - { name: v2-e0-native-e2e-rep2-60, config: config/experiments/e0_native.yaml, mode: e2e, cases: { limit: 60 }, priority: 85, purpose: "executor variance" }
-  - { name: v2-e9-tuned-e2e-rep2-60, config: config/experiments/e9_regex_jev_llm.yaml, prompt_track: tuned, mode: e2e, cases: { limit: 60 }, priority: 85, purpose: "executor variance" }
+  # ---- 8. end-to-end, 1 rep (tracks pre-registered here, M6)
+  - { name: v2-e0-native-e2e-r1, config_hash: 93c7c3ea1e02, prompt_hash: c61ad0a7b7f8, config: config/experiments/e0_native.yaml, mode: e2e, reps: 1, priority: 80, purpose: "H3 reference" }
+  - { name: v2-e9-tuned-e2e-r1, config_hash: 8f5f721c9158, prompt_hash: c61ad0a7b7f8, config: config/experiments/e9_regex_jev_llm.yaml, prompt_track: tuned, mode: e2e, reps: 1, priority: 80, purpose: "H3" }
+  - { name: v2-e1-regex-e2e-r1, config_hash: 2da827d0effb, prompt_hash: c61ad0a7b7f8, config: config/experiments/e1_regex.yaml, mode: e2e, reps: 1, priority: 81, purpose: "estimation" }
+  - { name: v2-e5-sonnet-canonical-e2e-r1, config_hash: 40c93f91f270, prompt_hash: c61ad0a7b7f8, config: config/experiments/e5_llm_sonnet.yaml, prompt_track: canonical, mode: e2e, reps: 1, priority: 81, purpose: "estimation" }
+  - { name: v2-e7-tuned-e2e-r1, config_hash: 4fbfd7133b32, prompt_hash: c61ad0a7b7f8, config: config/experiments/e7_regex_jev.yaml, prompt_track: tuned, mode: e2e, reps: 1, priority: 81, purpose: "estimation (recommended default, M6)" }
+  - { name: v2-e6b-qwen-canonical-e2e-r1, config_hash: 903a4a1e56d3, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6b_llm_qwen3_local.yaml, prompt_track: canonical, mode: e2e, reps: 1, priority: 82, concurrency: 1, purpose: "estimation" }
+  # executor variance: a second run of E0 and E9 on 60 stratified cases (M6)
+  - { name: v2-e0-native-e2e-rep2-60, config_hash: 93c7c3ea1e02, prompt_hash: c61ad0a7b7f8, config: config/experiments/e0_native.yaml, mode: e2e, cases: { limit: 60 }, priority: 83, purpose: "executor variance" }
+  - { name: v2-e9-tuned-e2e-rep2-60, config_hash: 8f5f721c9158, prompt_hash: c61ad0a7b7f8, config: config/experiments/e9_regex_jev_llm.yaml, prompt_track: tuned, mode: e2e, cases: { limit: 60 }, priority: 83, purpose: "executor variance" }
+  # E11 hybrid e2e: estimation, lowest e2e priority ("if cheap": the guard may refuse it)
+  - { name: v2-e11-hybrid-e2e-r1, config_hash: 68cc177d37b0, prompt_hash: c61ad0a7b7f8, config: config/experiments/e11_hybrid.yaml, mode: e2e, reps: 1, priority: 84, purpose: "estimation (free router with the best dev joint)" }
 
-  # ---- 10. RQ5 leave-tools-out (M2, D7; exploratory). Design: docs/rq5-design.md. Table:
+  # ---- 9. RQ5 leave-tools-out (M2, D7; exploratory). Design: docs/rq5-design.md. Table:
   #   uv run study rq5 config/study_manifest.yaml --retrain config/experiments/e10_classifier.yaml
   # Run names rq5-<split>-<strategy>-<condition>; conditions differ only by `overrides`:
   #   base = 3 tools excluded (catalog filter, host side) + regex rules without them;
@@ -96,6 +168,8 @@ runs:
   #   eng  = full catalog + agent-written, timeboxed regex overlay; full = production config.
   # Free routers: all 349 test-v2 cases.
   - name: rq5-test_v2-regex-base
+    config_hash: 094189076dc4
+    prompt_hash: c61ad0a7b7f8
     config: config/experiments/e1_regex.yaml
     mode: routing-only
     priority: 90
@@ -104,6 +178,8 @@ runs:
       catalog.exclude_tools: [get_refund_status, reschedule_delivery, generate_return_label]
       strategies.regex.rules_path: config/rq5/regex_rules_base.yaml
   - name: rq5-test_v2-regex-zero
+    config_hash: 369d4719b479
+    prompt_hash: c61ad0a7b7f8
     config: config/experiments/e1_regex.yaml
     mode: routing-only
     priority: 90
@@ -111,6 +187,8 @@ runs:
     overrides: &rq5_zero
       strategies.regex.rules_path: config/rq5/regex_rules_base.yaml
   - name: rq5-test_v2-regex-eng
+    config_hash: 8136ba8c282c
+    prompt_hash: c61ad0a7b7f8
     config: config/experiments/e1_regex.yaml
     mode: routing-only
     priority: 90
@@ -118,49 +196,69 @@ runs:
     overrides: &rq5_eng
       strategies.regex.rules_path: config/rq5/regex_rules_base.yaml
       strategies.regex.overlay_paths: [config/rq5/regex_overlay_engineered.yaml]
-  - { name: rq5-test_v2-regex-full, config: config/experiments/e1_regex.yaml, mode: routing-only, priority: 90, purpose: "RQ5 reference: production rules" }
-  - { name: rq5-test_v2-bm25-base, config: config/experiments/e2_bm25.yaml, mode: routing-only, priority: 90, overrides: *rq5_base, purpose: "RQ5 base" }
-  - { name: rq5-test_v2-bm25-zero, config: config/experiments/e2_bm25.yaml, mode: routing-only, priority: 90, overrides: *rq5_zero, purpose: "RQ5 zero-effort add (= eng)" }
-  - { name: rq5-test_v2-classifier-base, config: config/experiments/e10_classifier.yaml, mode: routing-only, priority: 90, overrides: *rq5_base, purpose: "RQ5 base" }
-  - { name: rq5-test_v2-classifier-zero, config: config/experiments/e10_classifier.yaml, mode: routing-only, priority: 90, overrides: *rq5_zero, purpose: "RQ5 zero-effort add (= eng)" }
-  - { name: rq5-test_v2-embedding-base, config: config/experiments/e3_embedding.yaml, mode: routing-only, priority: 90, overrides: *rq5_base, purpose: "RQ5 base" }
-  - { name: rq5-test_v2-embedding-zero, config: config/experiments/e3_embedding.yaml, mode: routing-only, priority: 90, overrides: *rq5_zero, purpose: "RQ5 zero-effort add (= eng)" }
-  - { name: rq5-test_v2-hybrid-base, config: config/experiments/e11_hybrid.yaml, mode: routing-only, priority: 90, overrides: *rq5_base, purpose: "RQ5 base" }
-  - { name: rq5-test_v2-hybrid-zero, config: config/experiments/e11_hybrid.yaml, mode: routing-only, priority: 90, overrides: *rq5_zero, purpose: "RQ5 zero-effort add" }
-  - { name: rq5-test_v2-hybrid-eng, config: config/experiments/e11_hybrid.yaml, mode: routing-only, priority: 90, overrides: *rq5_eng, purpose: "RQ5 engineered add" }
-  - { name: rq5-test_v2-hybrid-full, config: config/experiments/e11_hybrid.yaml, mode: routing-only, priority: 90, purpose: "RQ5 reference: production rules" }
+  - { name: rq5-test_v2-regex-full, config_hash: 2da827d0effb, prompt_hash: c61ad0a7b7f8, config: config/experiments/e1_regex.yaml, mode: routing-only, priority: 90, purpose: "RQ5 reference: production rules" }
+  - { name: rq5-test_v2-bm25-base, config_hash: c8d6844e3901, prompt_hash: c61ad0a7b7f8, config: config/experiments/e2_bm25.yaml, mode: routing-only, priority: 90, overrides: *rq5_base, purpose: "RQ5 base" }
+  - { name: rq5-test_v2-bm25-zero, config_hash: 7db75b6e764a, prompt_hash: c61ad0a7b7f8, config: config/experiments/e2_bm25.yaml, mode: routing-only, priority: 90, overrides: *rq5_zero, purpose: "RQ5 zero-effort add (= eng)" }
+  - { name: rq5-test_v2-classifier-base, config_hash: 6194aad1119c, prompt_hash: c61ad0a7b7f8, config: config/experiments/e10_classifier.yaml, mode: routing-only, priority: 90, overrides: *rq5_base, purpose: "RQ5 base" }
+  - { name: rq5-test_v2-classifier-zero, config_hash: 77e7a5a727b2, prompt_hash: c61ad0a7b7f8, config: config/experiments/e10_classifier.yaml, mode: routing-only, priority: 90, overrides: *rq5_zero, purpose: "RQ5 zero-effort add (= eng)" }
+  - { name: rq5-test_v2-embedding-base, config_hash: 5418975870b9, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding.yaml, mode: routing-only, priority: 90, overrides: *rq5_base, purpose: "RQ5 base" }
+  - { name: rq5-test_v2-embedding-zero, config_hash: 46dc0103343b, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding.yaml, mode: routing-only, priority: 90, overrides: *rq5_zero, purpose: "RQ5 zero-effort add (= eng)" }
+  - { name: rq5-test_v2-hybrid-base, config_hash: af686213038b, prompt_hash: c61ad0a7b7f8, config: config/experiments/e11_hybrid.yaml, mode: routing-only, priority: 90, overrides: *rq5_base, purpose: "RQ5 base" }
+  - { name: rq5-test_v2-hybrid-zero, config_hash: c1edc8996a71, prompt_hash: c61ad0a7b7f8, config: config/experiments/e11_hybrid.yaml, mode: routing-only, priority: 90, overrides: *rq5_zero, purpose: "RQ5 zero-effort add" }
+  - { name: rq5-test_v2-hybrid-eng, config_hash: 2eb0483c43a8, prompt_hash: c61ad0a7b7f8, config: config/experiments/e11_hybrid.yaml, mode: routing-only, priority: 90, overrides: *rq5_eng, purpose: "RQ5 engineered add" }
+  - { name: rq5-test_v2-hybrid-full, config_hash: 68cc177d37b0, prompt_hash: c61ad0a7b7f8, config: config/experiments/e11_hybrid.yaml, mode: routing-only, priority: 90, purpose: "RQ5 reference: production rules" }
   # Paid routers (canonical prompt track = catalog text only), 1 rep, on the 48 affected cases
   # + a 60-case stratified regression sample of the others (scripts/analysis/rq5_ids.py).
   # The zero entries are the main canonical runs' rep 1 (same case, rep and prompt): cache
   # hits, ~US$0 when those ran first.
-  - { name: rq5-test_v2-jev-base, config: config/experiments/e4_jev.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/rq5_test_v2.ids }, priority: 95, overrides: *rq5_base, purpose: "RQ5 base (paid)" }
-  - { name: rq5-test_v2-jev-zero, config: config/experiments/e4_jev.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/rq5_test_v2.ids }, priority: 95, overrides: *rq5_zero, purpose: "RQ5 zero-effort add (cache hits of v2-e4-jev-canonical)" }
-  - { name: rq5-test_v2-haiku-base, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/rq5_test_v2.ids }, priority: 95, overrides: *rq5_base, purpose: "RQ5 base (paid)" }
-  - { name: rq5-test_v2-haiku-zero, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/rq5_test_v2.ids }, priority: 95, overrides: *rq5_zero, purpose: "RQ5 zero-effort add (cache hits of v2-e6-haiku-canonical)" }
-  - { name: rq5-test_v2-sonnet-base, config: config/experiments/e5_llm_sonnet.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/rq5_test_v2.ids }, priority: 95, overrides: *rq5_base, purpose: "RQ5 base (paid)" }
-  - { name: rq5-test_v2-sonnet-zero, config: config/experiments/e5_llm_sonnet.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/rq5_test_v2.ids }, priority: 95, overrides: *rq5_zero, purpose: "RQ5 zero-effort add (cache hits of v2-e5-sonnet-canonical)" }
+  - { name: rq5-test_v2-jev-base, config_hash: ea0f9ccdb142, prompt_hash: c61ad0a7b7f8, config: config/experiments/e4_jev.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/rq5_test_v2.ids }, priority: 95, overrides: *rq5_base, purpose: "RQ5 base (paid)" }
+  - { name: rq5-test_v2-jev-zero, config_hash: 888e3c0ba3c8, prompt_hash: c61ad0a7b7f8, config: config/experiments/e4_jev.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/rq5_test_v2.ids }, priority: 95, overrides: *rq5_zero, purpose: "RQ5 zero-effort add (cache hits of v2-e4-jev-canonical)" }
+  - { name: rq5-test_v2-haiku-base, config_hash: 2d76d848e40b, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/rq5_test_v2.ids }, priority: 95, overrides: *rq5_base, purpose: "RQ5 base (paid)" }
+  - { name: rq5-test_v2-haiku-zero, config_hash: 8dd1d7028c32, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/rq5_test_v2.ids }, priority: 95, overrides: *rq5_zero, purpose: "RQ5 zero-effort add (cache hits of v2-e6-haiku-canonical)" }
+  - { name: rq5-test_v2-sonnet-base, config_hash: 9b17371e0cb3, prompt_hash: c61ad0a7b7f8, config: config/experiments/e5_llm_sonnet.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/rq5_test_v2.ids }, priority: 95, overrides: *rq5_base, purpose: "RQ5 base (paid)" }
+  - { name: rq5-test_v2-sonnet-zero, config_hash: dbd6461926df, prompt_hash: c61ad0a7b7f8, config: config/experiments/e5_llm_sonnet.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/rq5_test_v2.ids }, priority: 95, overrides: *rq5_zero, purpose: "RQ5 zero-effort add (cache hits of v2-e5-sonnet-canonical)" }
 
-  # ---- 11. test-v1 (exposed) replication with the free routers only (B1 option A)
-  - { name: v1-e1-regex-routing-r1, config: config/experiments/e1_regex.yaml, split: test_v1, mode: routing-only, reps: 1, priority: 100, purpose: "replication / contamination check" }
-  - { name: v1-e2-bm25-routing-r1, config: config/experiments/e2_bm25.yaml, split: test_v1, mode: routing-only, reps: 1, priority: 100, purpose: "replication" }
-  - { name: v1-e3-embedding-routing-r1, config: config/experiments/e3_embedding.yaml, split: test_v1, mode: routing-only, reps: 1, priority: 100, purpose: "replication" }
 
-# Pre-registered contrasts. Holm runs within each family. Headline: joint (routing-only),
-# e2e_success (e2e).
+  # ---- 10. exploratory (labelled as such; not part of H1-H3 / S1-S4)
+  # Jev P0+P6c (compact ranking) cost variant, decision 2026-10-01 item 1; no calibration map
+  # (the maps were fitted on P0).
+  - name: x-e4-jev-p6c-routing-r1
+    config_hash: 7e8c24a4c406
+    prompt_hash: c61ad0a7b7f8
+    config: config/experiments/e4_jev.yaml
+    prompt_track: tuned
+    mode: routing-only
+    reps: 1
+    priority: 96
+    purpose: "EXPLORATORY: Jev cost variant P0+P6c"
+    overrides:
+      strategies.jev.prompt_track: tuned
+      strategies.jev.prompt_variant: "P0+P6c"
+      strategies.jev.calibration: {}
+  # E12 hybrid -> Jev -> Sonnet (thresholds from the same dev shadow, method (a)); its Jev / Sonnet
+  # steps are cache hits of the shadow pass
+  - { name: x-e12-hybrid-tuned-routing-r3, config_hash: feff62642c5e, prompt_hash: c61ad0a7b7f8, config: config/experiments/e12_hybrid_jev_llm.yaml, prompt_track: tuned, mode: routing-only, reps: 3, priority: 97, purpose: "EXPLORATORY: E9 with the hybrid as free first step" }
+
+  # ---- 11. test-v1 (exposed) replication with the free routers only (B1 option A);
+  #          data/dataset_test_v1.jsonl -> dataset_test.jsonl
+  - { name: v1-e1-regex-routing-r1, config_hash: 2da827d0effb, prompt_hash: c61ad0a7b7f8, config: config/experiments/e1_regex.yaml, split: test_v1, mode: routing-only, reps: 1, priority: 100, purpose: "replication / contamination check" }
+  - { name: v1-e2-bm25-routing-r1, config_hash: 7bb5a5960490, prompt_hash: c61ad0a7b7f8, config: config/experiments/e2_bm25.yaml, split: test_v1, mode: routing-only, reps: 1, priority: 100, purpose: "replication" }
+  - { name: v1-e3-embedding-routing-r1, config_hash: 1899b6f414a5, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding.yaml, split: test_v1, mode: routing-only, reps: 1, priority: 100, purpose: "replication" }
+  - { name: v1-e10-classifier-routing-r1, config_hash: 616af886b783, prompt_hash: c61ad0a7b7f8, config: config/experiments/e10_classifier.yaml, split: test_v1, mode: routing-only, reps: 1, priority: 100, purpose: "replication" }
+  - { name: v1-e11-hybrid-routing-r1, config_hash: 68cc177d37b0, prompt_hash: c61ad0a7b7f8, config: config/experiments/e11_hybrid.yaml, split: test_v1, mode: routing-only, reps: 1, priority: 100, purpose: "replication" }
+
+# Pre-registered contrasts (docs/prereg/prereg-v1.md). Holm runs within each family. Headline:
+# joint (routing-only), e2e_success (e2e). S1 has no test-v2 contrast: tuned == canonical for
+# every LLM-type router (Δ = 0 by construction). S3 compares with the dev CV numbers (not a run
+# contrast).
 contrasts:
-  # confirmatory (Holm across H1-H3)
-  - { run: v2-e9-tuned-routing-r3, reference: v2-e5-sonnet-tuned-routing-r3, family: H, kind: non_inferiority, margin: 0.03 }
-  - { run: v2-e7-tuned-routing-r3, reference: v2-e5-sonnet-tuned-routing-r3, family: H, kind: non_inferiority, margin: 0.03 }
+  # confirmatory (Holm across H1-H3); the E5 reference is the canonical run (= tuned prompt)
+  - { run: v2-e9-tuned-routing-r3, reference: v2-e5-sonnet-canonical-routing-r3, family: H, kind: non_inferiority, margin: 0.03 }
+  - { run: v2-e7-tuned-routing-r3, reference: v2-e5-sonnet-canonical-routing-r3, family: H, kind: non_inferiority, margin: 0.03 }
   - { run: v2-e9-tuned-e2e-r1, reference: v2-e0-native-e2e-r1, family: H, kind: two_sided }
-  # S1: prompt tuning gain >= 0 per LLM router (one-sided)
-  - { run: v2-e5-sonnet-tuned-routing-r3, reference: v2-e5-sonnet-canonical-routing-r3, family: S1, kind: greater }
-  - { run: v2-e6-haiku-tuned-routing-r1, reference: v2-e6-haiku-canonical-routing-r1, family: S1, kind: greater }
-  - { run: v2-e6b-qwen-tuned-routing-r1, reference: v2-e6b-qwen-canonical-routing-r1, family: S1, kind: greater }
-  - { run: v2-e4-jev-tuned-routing-r3, reference: v2-e4-jev-canonical-routing-r3, family: S1, kind: greater }
   # S2: model vs model on the canonical track, TOST equivalence at +-3 pp
   - { run: v2-e6-haiku-canonical-routing-r1, reference: v2-e5-sonnet-canonical-routing-r3, family: S2, kind: equivalence, margin: 0.03 }
   - { run: v2-e6b-qwen-canonical-routing-r1, reference: v2-e5-sonnet-canonical-routing-r3, family: S2, kind: equivalence, margin: 0.03 }
   - { run: v2-e4-jev-canonical-routing-r3, reference: v2-e5-sonnet-canonical-routing-r3, family: S2, kind: equivalence, margin: 0.03 }
-  # S3 (dev -> test gap of regex / BM25) compares with the dev CV numbers: not a run contrast
   # S4: lexical vs semantic
   - { run: v2-e3-embedding-routing-r1, reference: v2-e1-regex-routing-r1, family: S4, kind: two_sided }

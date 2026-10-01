@@ -70,9 +70,11 @@ def test_template_manifest_validates_and_is_ordered_by_priority():
     names = {r.name for r in m.runs}
     for c in m.contrasts:
         assert c.run in names and c.reference in names, c
-    assert {c.family for c in m.contrasts} >= {"H", "S1", "S2", "S4"}
-    for r in m.runs:  # every config exists, or is a tuned copy made by apply_prompt_selection
-        assert r.config.exists() or r.config.stem.endswith("_tuned"), r.config
+    # prereg-v1: S1 has no test contrast (tuned == canonical for every LLM-type router)
+    assert {c.family for c in m.contrasts} >= {"H", "S2", "S4"}
+    for r in m.runs:  # frozen: every config exists and every entry carries its hashes
+        assert r.config.exists(), r.config
+        assert r.config_hash and r.prompt_hash, r.name
 
 
 def test_case_filter_is_a_seeded_stratified_subset(tmp_path):
