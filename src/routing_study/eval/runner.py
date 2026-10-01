@@ -87,6 +87,15 @@ def stratified_sample(
     return [r for r in rows if id(r) in picked]
 
 
+# Splits that are aliases of an already-uploaded split (same file, same case ids). Langfuse dataset
+# item ids are unique per project, so an alias must reuse the original dataset (deviation D-003).
+_DATASET_ALIASES = {"test_v1": "test"}
+
+
+def langfuse_dataset_split(split: str) -> str:
+    return _DATASET_ALIASES.get(split, split)
+
+
 def dataset_sha256(split: str, data_dir: Path = DATA_DIR) -> str:
     """sha256 of the split file; "n/a" for in-memory cases (e.g. the integration split)."""
     path = data_dir / f"dataset_{split}.jsonl"
@@ -566,7 +575,7 @@ class Runner:
         if not tracing.enabled():
             return False
         lf = tracing.client()
-        name = f"routing-study-{self.split}"
+        name = f"routing-study-{langfuse_dataset_split(self.split)}"
         ds = tracing.with_retry(
             lambda: lf.create_dataset(name=name, description=f"routing study, split {self.split}"),
             what="create_dataset",

@@ -317,3 +317,11 @@ def test_run_scores_are_itt_means_on_the_dataset_run(tmp_path: Path, monkeypatch
     got = {c["name"]: c["value"] for c in calls}
     assert got == {"error_rate": 0.5, "joint_correct": 0.5}  # the error row counts 0
     assert all(c["dataset_run_id"] == "run123" for c in calls)
+
+
+def test_test_v1_reuses_the_original_langfuse_dataset() -> None:
+    """test_v1 is the old test split (same ids): Langfuse item ids are project-unique (D-003)."""
+    from routing_study.eval.runner import langfuse_dataset_split
+
+    assert langfuse_dataset_split("test_v1") == "test"
+    assert langfuse_dataset_split("test_v2") == "test_v2"
