@@ -35,6 +35,12 @@ best grid point on the data that chose it):
 - `--calibrate`: per fold, fit an isotonic map raw confidence -> P(correct) per level on the
   train folds and apply it to the held-out fold (ECE before/after, precision at thresholds);
   finally the best grid point and maps are refit on all of dev and printed as config YAML.
+  `--calibrator isotonic|platt|both`: with `both`, both maps are fitted per fold and the one
+  with the lower pooled held-out Brier score is chosen per level for the final YAML.
+`--grid-list key.path=<YAML list>`: a grid axis whose values contain commas (e.g. instruction
+prefixes): `--grid-list 'strategies.embedding.query_instruction=[null, "Instruct: a, b\nQuery:"]'`.
+`--summary PATH`: the nested-CV estimate (mean ± std per metric, ECE/Brier raw and calibrated,
+p50/p95 latency, chosen point and calibration) as JSON.
 The test split is never read.
 """
 
@@ -59,7 +65,7 @@ from routing_study.catalog import Catalog, fetch_catalog
 from routing_study.eval.scorers import routing_failure, routing_scores
 from routing_study.graph.nodes import _routing_input as routing_input
 from routing_study.routers.base import RoutingInput
-from routing_study.routers.calibration import Calibration, ece, fit_isotonic
+from routing_study.routers.calibration import Calibration, brier, ece, fit_isotonic, fit_platt
 from routing_study.routers.pipeline import build_pipeline, build_routers
 from routing_study.settings import (
     RoutingConfig,
@@ -329,7 +335,14 @@ def main() -> None:
     ap.add_argument("--subset", type=int, default=0, help="stratified n-case dev subset")
     ap.add_argument("--preload", action="store_true", help="load the local models first")
     ap.add_argument("--out", help="write per-point metrics + records as JSON")
+    ap.add_argument(
+        "--grid-list", action="append", default=[], help="key.path=<YAML list> grid axis"
+    )
+    ap.add_argument("--calibrator", choices=("isotonic", "platt", "both"), default="isotonic")
+    ap.add_argument("--summary", help="write the nested-CV summary as JSON")
     args = ap.parse_args()
+    fitters = {"isotonic": fit_isotonic, "platt": fit_platt}
+    cal_names = ["isotonic", "platt"] if args.calibrator == "both" else [args.calibrator]
 
     base = load_settings(args.config)
     fixed = [(p, v[0]) for p, v in map(parse_assign, args.set)]
@@ -337,6 +350,12 @@ def main() -> None:
         router = args.strategy or base.routing.skill.pipeline[0].strategy
         args.grid.append(f"strategies.{router}.prompt_variant={args.prompt_variant}")
     grid_axes = [(".".join(p), vs) for p, vs in map(parse_assign, args.grid)]
+    for raw in args.grid_list:
+        key, _, vals = raw.partition("=")
+        values = yaml.safe_load(vals)
+        if not key or not isinstance(values, list) or not values:
+            raise SystemExit(f"bad --grid-list {raw!r}: expected key.path=[v1, v2, ...]")
+        grid_axes.append((key.strip(), values))
     points = [
         tuple(zip([k for k, _ in grid_axes], combo, strict=True))
         for combo in itertools.product(*(vs for _, vs in grid_axes))
@@ -429,10 +448,14 @@ def main() -> None:
             train = [results[best][c] for c in train_ids]
             for lv in LEVELS:
                 xs, ys = pairs(train, lv)
-                cal = fit_isotonic(xs, ys) if xs else None
-                for r in test:
-                    if r[f"{lv}_conf"] is not None:
-                        r[f"{lv}_cal"] = cal(r[f"{lv}_conf"]) if cal else r[f"{lv}_conf"]
+                for k, name in enumerate(cal_names):
+                    cal = fitters[name](xs, ys) if xs else None
+                    for r in test:
+                        if r[f"{lv}_conf"] is not None:
+                            v = cal(r[f"{lv}_conf"]) if cal else r[f"{lv}_conf"]
+                            r[f"{lv}_cal_{name}"] = v
+                            if k == 0:
+                                r[f"{lv}_cal"] = v
         held.extend(test)
 
     print(f"\n## {args.folds}-fold CV (held-out; mean ± std over folds)")
@@ -454,15 +477,48 @@ def main() -> None:
             )
 
     print("\n## calibration (pooled held-out; decisions made, abstentions excluded)")
+    chosen_cal: dict[str, str] = {}
+    cal_stats: dict[str, dict[str, float]] = {}
+    for lv in LEVELS:
+        conf, ok = pairs(held, lv)
+        cal_stats[lv] = {"n": len(conf), "ece_raw": ece(conf, ok), "brier_raw": brier(conf, ok)}
+        if args.calibrate:
+            briers = {}
+            for name in cal_names:
+                got = [r for r in held if r.get(f"{lv}_cal_{name}") is not None]
+                cc = [r[f"{lv}_cal_{name}"] for r in got]
+                co = [r[f"{lv}_correct"] for r in got]
+                briers[name] = brier(cc, co)
+                cal_stats[lv][f"ece_{name}"] = ece(cc, co)
+                cal_stats[lv][f"brier_{name}"] = briers[name]
+            chosen_cal[lv] = min(briers, key=lambda k: (briers[k], cal_names.index(k)))
+            if len(cal_names) > 1:
+                print(
+                    f"{lv:5s} Brier raw={brier(conf, ok):.4f} "
+                    + " ".join(
+                        f"{k}={v:.4f} (ECE {cal_stats[lv][f'ece_{k}']:.3f})"
+                        for k, v in briers.items()
+                    )
+                    + f" -> {chosen_cal[lv]}"
+                )
+                for r in held:
+                    if r.get(f"{lv}_cal_{chosen_cal[lv]}") is not None:
+                        r[f"{lv}_cal"] = r[f"{lv}_cal_{chosen_cal[lv]}"]
     for lv in LEVELS:
         conf, ok = pairs(held, lv)
         accuracy = 100 * mean(ok) if ok else 0.0
-        line = f"{lv:5s} n={len(conf):3d} acc={accuracy:5.1f}  ECE raw={ece(conf, ok):.3f}"
+        line = (
+            f"{lv:5s} n={len(conf):3d} acc={accuracy:5.1f}  ECE raw={ece(conf, ok):.3f}"
+            f"  Brier raw={brier(conf, ok):.4f}"
+        )
         if args.calibrate:
             got = [r for r in held if r.get(f"{lv}_cal") is not None]
             cal_conf = [r[f"{lv}_cal"] for r in got]
             cal_ok = [r[f"{lv}_correct"] for r in got]
-            line += f"  calibrated={ece(cal_conf, cal_ok):.3f}"
+            line += (
+                f"  calibrated={ece(cal_conf, cal_ok):.3f} Brier={brier(cal_conf, cal_ok):.4f}"
+                f" ({chosen_cal.get(lv, cal_names[0])})"
+            )
             prec = []
             for t in THRESHOLDS:
                 sel = [o for c, o in zip(cal_conf, cal_ok, strict=True) if c >= t]
@@ -482,9 +538,44 @@ def main() -> None:
         for lv in LEVELS:
             xs, ys = pairs(all_recs, lv)
             if xs:
-                c: Calibration = fit_isotonic(xs, ys)
+                c: Calibration = fitters[chosen_cal.get(lv, cal_names[0])](xs, ys)
                 cal_cfg[lv] = c.model_dump()
+        print(f"# calibrator per level: {chosen_cal}")
         print(yaml.safe_dump({"calibration": cal_cfg}, default_flow_style=None, sort_keys=False))
+    if args.summary:
+        m = metrics[best]
+        summary = {
+            "config": args.config,
+            "fixed": args.set,
+            "grid_points": len(points),
+            "best_point": dict(points[best]),
+            "selected_per_fold": dict(picks),
+            "nested": {k: {"mean": mean(v), "std": pstdev(v)} for k, v in per_fold.items()},
+            "best_fixed": {k: m[k] for k in m if k.endswith(("_mean", "_std", "_all"))},
+            "calibration_stats": cal_stats,
+            "calibrator": chosen_cal,
+            "calibration": cal_cfg if args.calibrate else None,
+            "p50_ms": m["p50_ms"],
+            "p95_ms": m["p95_ms"],
+            "errors": m.get("errors", 0),
+            "points": [
+                {
+                    "label": label(points[i]),
+                    **{
+                        k: metrics[i][k]
+                        for k in (
+                            "joint_correct_mean",
+                            "skill_correct_mean",
+                            "tool_correct_mean",
+                            "p50_ms",
+                        )
+                    },
+                }
+                for i in order
+            ],
+        }
+        Path(args.summary).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.summary).write_text(json.dumps(summary, indent=1, default=float), "utf-8")
     if args.errors:
         print("## wrong joint (all dev, best point)")
         for cid, r in sorted(results[best].items(), key=lambda kv: kv[1]["category"]):

@@ -20,9 +20,17 @@ from pydantic_settings import (
     YamlConfigSettingsSource,
 )
 
-from routing_study.routers.calibration import Calibration
+from routing_study.routers.calibration import Calibration, LogisticModel
 
-FIXED_STRATEGIES: tuple[str, ...] = ("regex", "bm25", "embedding", "llm", "jev", "hybrid")
+FIXED_STRATEGIES: tuple[str, ...] = (
+    "regex",
+    "bm25",
+    "embedding",
+    "llm",
+    "jev",
+    "hybrid",
+    "classifier",
+)
 # Extra LLM routers: any `strategies.llm_<suffix>` block (e.g. llm_local) is
 # one more LLMRouter with its own model/provider; the name is the strategy name everywhere.
 _EXTRA_LLM = re.compile(r"^llm(_[a-z0-9]+)+$")
@@ -188,14 +196,33 @@ class BM25Strategy(_Config):
     field_repeats: BM25FieldRepeats = Field(default_factory=BM25FieldRepeats)
     history_turns: int = Field(default=0, ge=0)
     history_weight: float = Field(default=0.5, ge=0.0)
+    # utterance-level indexing (one document per catalog utterance; option score = max or
+    # sum of its best `agg_k`), char n-gram analyzer, accent folding, deterministic
+    # catalog-only expansion (shots = catalog examples resolved to the option; quotes = the
+    # description's WHEN TO USE quotes)
+    index: Literal["option", "utterance"] = "option"
+    aggregate: Literal["max", "topk_sum"] = "max"
+    agg_k: int = Field(default=2, ge=1)
+    analyzer: Literal["word", "char"] = "word"
+    ngram_min: int = Field(default=3, ge=1)
+    ngram_max: int = Field(default=5, ge=1)
+    fold_accents: bool = True
+    shots: bool = False
+    quotes: bool = False
     calibration: dict[Level, Calibration] = Field(default_factory=dict)
 
 
 class EmbeddingStrategy(ModelEndpoint):
-    similarity: Literal["max_example", "centroid"] = "max_example"
+    similarity: Literal["max_example", "centroid", "topk_vote"] = "max_example"
+    top_k: int = Field(default=5, ge=1)  # topk_vote only
     confidence: Literal["margin", "softmax"] = "softmax"
     softmax_temperature: float = Field(default=0.05, gt=0.0)
     margin_scale: float = Field(default=0.1, gt=0.0)
+    # query = last `history_turns` messages + the message, concatenated
+    history_turns: int = Field(default=0, ge=0)
+    # option utterances also include the catalog examples resolved to the option
+    shots: bool = False
+    calibration: dict[Level, Calibration] = Field(default_factory=dict)
     # Instruction-aware embedders (e.g. Qwen3-Embedding) want the QUERY prefixed with the
     # task instruction and documents (option texts) embedded as-is. `{instruction}` is not
     # templated: the whole prefix is given, e.g. "Instruct: ...\nQuery:".
@@ -259,7 +286,44 @@ class JevStrategy(ModelEndpoint, _RouterPrompt):
 
 
 class HybridStrategy(_Config):
+    """Fusion of cheap routers (routers/hybrid.py). `convex`: weighted mean of calibrated
+    per-option distributions (`alpha` = weight of members[0] with two members, or `weights`);
+    `stacker`: per-level logistic model fitted on dev folds; `rrf`: rank fusion baseline."""
+
+    fusion: Literal["rrf", "convex", "stacker"] = "convex"
+    members: list[Literal["regex", "bm25", "embedding", "classifier"]] = Field(
+        default_factory=lambda: ["bm25", "embedding"], min_length=1
+    )
+    alpha: float = Field(default=0.5, ge=0.0, le=1.0)
+    weights: dict[str, float] = Field(default_factory=dict)
     rrf_k: int = Field(default=60, ge=1)
+    stacker: dict[Level, LogisticModel] = Field(default_factory=dict)
+    calibration: dict[Level, Calibration] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _stacker_fitted(self) -> HybridStrategy:
+        if self.fusion == "stacker" and not self.stacker:
+            raise ValueError("hybrid fusion 'stacker' needs `stacker` models (fit_hybrid.py)")
+        return self
+
+
+class ClassifierStrategy(_Config):
+    """Learned classifier on catalog text (routers/classifier.py): TF-IDF + LR, or a linear
+    probe on the `embedding` strategy's frozen vectors."""
+
+    model: Literal["tfidf_lr", "probe"] = "tfidf_lr"
+    features: Literal["word", "char", "word+char"] = "word+char"
+    word_ngrams: int = Field(default=2, ge=1)
+    char_min: int = Field(default=2, ge=1)
+    char_max: int = Field(default=5, ge=1)
+    c: float = Field(default=10.0, gt=0.0)
+    shots: bool = True
+    quotes: bool = True
+    description: bool = True
+    history_turns: int = Field(default=0, ge=0)
+    history_weight: float = Field(default=0.5, ge=0.0)
+    probe_instruction: bool = False
+    calibration: dict[Level, Calibration] = Field(default_factory=dict)
 
 
 class StrategiesConfig(_Config):
@@ -275,6 +339,7 @@ class StrategiesConfig(_Config):
     llm: LLMStrategy | None = None
     jev: JevStrategy | None = None
     hybrid: HybridStrategy | None = None
+    classifier: ClassifierStrategy | None = None
 
     @model_validator(mode="after")
     def _extra_llm_strategies(self) -> StrategiesConfig:

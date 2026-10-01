@@ -248,6 +248,7 @@ def build_routers(
     """Instantiate the configured strategies (all, or only `strategies`)."""
     from routing_study.llm import EmbeddingsClient, chat_model_for
     from routing_study.routers.bm25 import BM25Router
+    from routing_study.routers.classifier import ClassifierRouter
     from routing_study.routers.embedding import EmbeddingRouter
     from routing_study.routers.hybrid import HybridRouter
     from routing_study.routers.jev import JevRouter
@@ -270,9 +271,18 @@ def build_routers(
         return c
 
     out: dict[str, Router] = {}
-    if "regex" in wanted:
+    hyb = cfg.hybrid if "hybrid" in wanted else None
+    members = set(hyb.members) if hyb is not None else set()
+    clf_cfg = cfg.classifier if ("classifier" in wanted or "classifier" in members) else None
+    need_emb = (
+        "embedding" in wanted
+        or "hybrid" in wanted  # the RRF/convex baseline pair is bm25 + embedding
+        or (clf_cfg is not None and clf_cfg.model == "probe")
+    )
+    built: dict[str, Any] = {}
+    if "regex" in wanted or "regex" in members:
         c = _need("regex")
-        out["regex"] = RegexRouter.from_path(
+        built["regex"] = RegexRouter.from_path(
             c.rules_path,
             dict(c.calibration),
             history_turns=c.history_turns,
@@ -280,7 +290,7 @@ def build_routers(
         )
     if "bm25" in wanted or "hybrid" in wanted:
         c = cfg.bm25 or _need("bm25")
-        bm25 = BM25Router(
+        built["bm25"] = BM25Router(
             k1=c.k1,
             b=c.b,
             calibration=dict(c.calibration),
@@ -292,24 +302,64 @@ def build_routers(
             history_weight=c.history_weight,
             variant=c.variant,
             delta=c.delta,
+            index=c.index,
+            aggregate=c.aggregate,
+            agg_k=c.agg_k,
+            analyzer=c.analyzer,
+            ngram_min=c.ngram_min,
+            ngram_max=c.ngram_max,
+            fold_accents=c.fold_accents,
+            shots=c.shots,
+            quotes=c.quotes,
         )
-        if "bm25" in wanted:
-            out["bm25"] = bm25
-    if "embedding" in wanted or "hybrid" in wanted:
+    if need_emb:
         c = _need("embedding")
-        emb = EmbeddingRouter(
+        built["embedding"] = EmbeddingRouter(
             EmbeddingsClient.for_config(settings, c),
             vector_cache_dir=str(cache_dir / "embeddings"),
             similarity=c.similarity,
+            top_k=c.top_k,
             confidence=c.confidence,
             softmax_temperature=c.softmax_temperature,
             margin_scale=c.margin_scale,
+            history_turns=c.history_turns,
+            shots=c.shots,
             cache=_cache(c.cache),
+            calibration=dict(c.calibration),
         )
-        if "embedding" in wanted:
-            out["embedding"] = emb
-    if "hybrid" in wanted:
-        out["hybrid"] = HybridRouter(bm25, emb, rrf_k=_need("hybrid").rrf_k)
+    if clf_cfg is not None:
+        c = _need("classifier")
+        built["classifier"] = ClassifierRouter(
+            model=c.model,
+            features=c.features,
+            word_ngrams=c.word_ngrams,
+            char_min=c.char_min,
+            char_max=c.char_max,
+            c=c.c,
+            shots=c.shots,
+            quotes=c.quotes,
+            description=c.description,
+            history_turns=c.history_turns,
+            history_weight=c.history_weight,
+            probe_instruction=c.probe_instruction,
+            embedding=built.get("embedding"),
+            calibration=dict(c.calibration),
+        )
+    for n in ("regex", "bm25", "embedding", "classifier"):
+        if n in wanted and n in built:
+            out[n] = built[n]
+    if hyb is not None:
+        out["hybrid"] = HybridRouter(
+            built["bm25"],
+            built["embedding"],
+            rrf_k=hyb.rrf_k,
+            fusion=hyb.fusion,
+            alpha=hyb.alpha,
+            weights=dict(hyb.weights),
+            members={m: built[m] for m in hyb.members},
+            stacker=dict(hyb.stacker),
+            calibration=dict(hyb.calibration),
+        )
     for name in sorted(n for n in wanted if is_llm_strategy(n)):  # one LLMRouter per LLM
         c = _need(name)
         out[name] = LLMRouter(
@@ -347,7 +397,9 @@ def local_models(settings: Settings, names: list[str]) -> set[str]:
     cfg = settings.strategies
     out: set[str] = set()
     for n in names:
-        c = cfg.get("embedding" if n == "hybrid" else n)
+        c = cfg.get("embedding" if n in ("hybrid", "classifier") else n)
+        if n == "classifier" and (cfg.classifier is None or cfg.classifier.model != "probe"):
+            continue
         if c is not None and getattr(c, "provider", None) == "ollama":
             out.add(c.model)
     return out

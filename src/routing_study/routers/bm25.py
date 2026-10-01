@@ -13,6 +13,14 @@
   original document, 0 drops the field).
 - History: score(message) + history_weight * score(last `history_turns` messages), so a short
   follow-up ("sim, faz isso") inherits the intent of the conversation.
+- Index (`index`): `option` = one document per option (above); `utterance` = one document per
+  catalog utterance (each example, each description sentence without the PARAMETERS line, the
+  keywords), option score = `max` or `topk_sum` (sum of its best `agg_k`) over its utterances.
+  With 4-9 options the per-option corpus makes IDF degenerate; ~30-70 utterances do not.
+- Analyzer (`analyzer`): `word` tokens or `char` n-grams (`ngram_min`..`ngram_max`, inside
+  word boundaries; robust to typos/informal spellings). `fold_accents` switches accent folding.
+- Expansion (deterministic, catalog only, no LLM): `shots` adds the catalog example messages
+  resolved to the option (a skill's tool examples), `quotes` the quoted WHEN TO USE phrases.
 Confidence = normalized margin (top1 - top2) / top1 (then the level's calibration, if set);
 abstains when nothing scores.
 """
@@ -30,7 +38,10 @@ from routing_study.routers.common import (
     Stemmer,
     Stopwords,
     abstain,
+    char_ngrams,
     clamp01,
+    description_quotes,
+    option_utterances,
     tokenize,
     turns_text,
 )
@@ -61,6 +72,15 @@ class BM25Router(BaseRouter):
         history_weight: float = 0.5,
         variant: Literal["okapi", "l"] = "okapi",
         delta: float = 0.5,
+        index: Literal["option", "utterance"] = "option",
+        aggregate: Literal["max", "topk_sum"] = "max",
+        agg_k: int = 2,
+        analyzer: Literal["word", "char"] = "word",
+        ngram_min: int = 3,
+        ngram_max: int = 5,
+        fold_accents: bool = True,
+        shots: bool = False,
+        quotes: bool = False,
     ) -> None:
         super().__init__(cache=None, calibration=calibration)
         self.k1 = k1
@@ -73,10 +93,22 @@ class BM25Router(BaseRouter):
         self.history_weight = history_weight
         self.variant = variant
         self.delta = delta
-        self._index: dict[tuple[str, ...], BM25Okapi | BM25L] = {}
+        self.index = index
+        self.aggregate = aggregate
+        self.agg_k = agg_k
+        self.analyzer = analyzer
+        self.ngram_min = ngram_min
+        self.ngram_max = ngram_max
+        self.fold_accents = fold_accents
+        self.shots = shots
+        self.quotes = quotes
+        # options key -> (index, owner option position of each document)
+        self._index: dict[tuple[str, ...], tuple[BM25Okapi | BM25L, list[int]]] = {}
 
     def _tok(self, text: str) -> list[str]:
-        return tokenize(text, self.stemmer, self.stopwords, self.prefix_len)
+        if self.analyzer == "char":
+            return char_ngrams(text, self.ngram_min, self.ngram_max, self.fold_accents)
+        return tokenize(text, self.stemmer, self.stopwords, self.prefix_len, self.fold_accents)
 
     def _new_index(self, corpus: list[list[str]]) -> BM25Okapi | BM25L:
         if self.variant == "l":
@@ -84,22 +116,46 @@ class BM25Router(BaseRouter):
         return BM25Okapi(corpus, k1=self.k1, b=self.b)
 
     def _document(self, opt: RouteOption) -> list[str]:
-        return [
-            t for f in FIELDS for t in self._tok(_field_text(opt, f)) * self.field_repeats[f]
-        ] or ["_"]
+        doc = [t for f in FIELDS for t in self._tok(_field_text(opt, f)) * self.field_repeats[f]]
+        extra = [
+            *(t for t in opt.shots if self.shots and t not in opt.examples),
+            *(description_quotes(opt.description) if self.quotes else []),
+        ]
+        for text in extra:
+            doc += self._tok(text) * self.field_repeats["examples"]
+        return doc or ["_"]
 
-    def _bm25(self, options: list[RouteOption]) -> BM25Okapi | BM25L:
-        key = tuple(o.model_dump_json() for o in options)
-        idx = self._index.get(key)
-        if idx is None:
-            idx = self._index[key] = self._new_index([self._document(o) for o in options])
-        return idx
+    def _bm25(self, options: list[RouteOption]) -> tuple[BM25Okapi | BM25L, list[int]]:
+        key = tuple(o.model_dump_json() + "\x00" + "\x00".join(o.shots) for o in options)
+        hit = self._index.get(key)
+        if hit is None:
+            if self.index == "utterance":
+                docs: list[list[str]] = []
+                owner: list[int] = []
+                for i, o in enumerate(options):
+                    for text in option_utterances(o, shots=self.shots, quotes=self.quotes):
+                        docs.append(self._tok(text) or ["_"])
+                        owner.append(i)
+            else:
+                docs = [self._document(o) for o in options]
+                owner = list(range(len(options)))
+            hit = self._index[key] = (self._new_index(docs), owner)
+        return hit
 
     def _raw(self, text: str, options: list[RouteOption]) -> list[float]:
         query = self._tok(text)
         if not query:
             return [0.0] * len(options)
-        return [float(s) for s in self._bm25(options).get_scores(query)]
+        idx, owner = self._bm25(options)
+        doc_scores = [float(s) for s in idx.get_scores(query)]
+        if self.index == "option":
+            return doc_scores
+        per: list[list[float]] = [[] for _ in options]
+        for i, s in zip(owner, doc_scores, strict=True):
+            per[i].append(s)
+        if self.aggregate == "max":
+            return [max(v, default=0.0) for v in per]
+        return [sum(sorted(v, reverse=True)[: self.agg_k]) for v in per]
 
     def scores(
         self, text: str, options: list[RouteOption], history: str = ""

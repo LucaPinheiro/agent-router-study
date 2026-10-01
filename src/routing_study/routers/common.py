@@ -103,20 +103,78 @@ def tokenize(
     stemmer: Stemmer = "none",
     stopwords: Stopwords = "basic",
     prefix_len: int = 5,
+    fold_accents: bool = True,
 ) -> list[str]:
     """Accent-free word tokens without stopwords; optionally stemmed (`light` suffix
-    stripper or `prefix` truncation to `prefix_len` characters)."""
-    text = normalize(text)
+    stripper or `prefix` truncation to `prefix_len` characters). `fold_accents=False` keeps
+    accents (stopwords are still matched on the folded form)."""
+    text = normalize(text) if fold_accents else text.lower()
     stop = _PT_STOPWORDS
     if stopwords == "extended":
         text = _GREETING.sub(" ", text)
         stop = _PT_STOPWORDS | _PT_EXTRA_STOPWORDS
-    tokens = [t for t in re.findall(r"\w+", text) if t not in stop]
+    tokens = [t for t in re.findall(r"\w+", text) if strip_accents(t) not in stop]
     if stemmer == "light":
         return [stem_pt(t) for t in tokens]
     if stemmer == "prefix":
         return [t[:prefix_len] for t in tokens]
     return tokens
+
+
+def char_ngrams(text: str, lo: int = 3, hi: int = 5, fold_accents: bool = True) -> list[str]:
+    """Character n-grams (lo..hi) inside word boundaries (`char_wb`-style: each word padded
+    with spaces), lowercased and optionally accent-folded; robust to typos and informal
+    spellings ("tá", "q", "vc")."""
+    text = normalize(text) if fold_accents else text.lower()
+    out: list[str] = []
+    for word in re.findall(r"\w+", text):
+        padded = f" {word} "
+        for n in range(lo, hi + 1):
+            out.extend(padded[i : i + n] for i in range(max(1, len(padded) - n + 1)))
+    return out
+
+
+_QUOTE = re.compile(r'"([^"]{3,})"')
+_PARAMS_LINE = re.compile(r"^\s*PARAMETERS:", re.IGNORECASE)
+_SENTENCE = re.compile(r"(?<=[.!?;])\s+|\n+")
+
+
+def description_sentences(description: str) -> list[str]:
+    """Description split into sentences/lines, without the PARAMETERS line (argument format,
+    not intent) and without the `WHEN TO USE:` label."""
+    out: list[str] = []
+    for line in description.splitlines():
+        if _PARAMS_LINE.match(line):
+            continue
+        line = re.sub(r"^\s*WHEN TO USE:\s*", "", line)
+        out.extend(s.strip() for s in _SENTENCE.split(line) if len(s.strip()) > 2)
+    return out
+
+
+def description_quotes(description: str) -> list[str]:
+    """Quoted phrases of a description (the catalog's WHEN TO USE example quotes)."""
+    return _QUOTE.findall(description)
+
+
+def option_utterances(
+    opt: RouteOption, *, shots: bool = False, quotes: bool = False, description: bool = True
+) -> list[str]:
+    """Utterance-level texts of an option, deterministic and from the catalog only:
+    examples, description sentences, keywords (one utterance), and optionally
+    - `shots`: the catalog example messages resolved to this option (a skill's tool
+      examples; for a tool the same as its examples),
+    - `quotes`: quoted phrases of the description ("WHEN TO USE" quotes).
+    Duplicates are dropped, order kept."""
+    texts = list(opt.examples)
+    if shots:
+        texts += opt.shots
+    if description:
+        texts += description_sentences(opt.description)
+    if quotes:
+        texts += description_quotes(opt.description)
+    if opt.keywords:
+        texts.append(" ".join(opt.keywords))
+    return list(dict.fromkeys(t for t in texts if t.strip()))
 
 
 def turns_text(inp: RoutingInput, turns: int) -> str:

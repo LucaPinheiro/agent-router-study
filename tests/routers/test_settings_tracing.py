@@ -22,8 +22,12 @@ HAIKU = "global.anthropic.claude-haiku-4-5-20251001-v1:0"
 
 def test_all_experiments_load():
     names = [p.stem.split("_")[0] for p in EXPERIMENTS]
-    assert names == ["e0", "e1", "e2", "e3", "e4", "e5", "e6", "e6b", "e7", "e8", "e9"]
+    core = ["e0", "e1", "e2", "e3", "e4", "e5", "e6", "e6b", "e7", "e8", "e9"]
+    assert set(core) <= set(names)
+    # phase-2 additions: e10 classifier, e11 hybrid, e3 alt-embedder ablations
+    assert set(names) - set(core) <= {"e10", "e11"}
     for path in EXPERIMENTS:
+        alt_embedder = path.stem.startswith("e3_embedding_")
         s = load_settings(path)
         ex = s.executor
         assert ex is not None and (ex.provider, ex.model, ex.temperature) == (
@@ -35,11 +39,10 @@ def test_all_experiments_load():
         if s.routing.mode != "native":
             st = s.strategies
             assert s.routing.skill.pipeline and s.routing.tool.pipeline
-            assert (st.embedding.provider, st.embedding.model) == (
-                "ollama",
-                "qwen3-embedding:8b-q8_0",
-            )
-            assert st.embedding.query_instruction.startswith("Instruct: ")
+            assert st.embedding.provider == "ollama"
+            if not alt_embedder:
+                assert st.embedding.model == "qwen3-embedding:8b-q8_0"
+                assert st.embedding.query_instruction.startswith("Instruct: ")
             assert (st.jev.provider, st.jev.model) == ("openrouter", "typesafe/jev-router")
             assert (st.llm_local.provider, st.llm_local.model) == ("ollama", "qwen3:8b-q8_0")
             assert st.llm_local.reasoning.enabled is False  # Qwen3 thinking off
