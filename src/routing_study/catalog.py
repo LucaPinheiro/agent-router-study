@@ -14,6 +14,8 @@
 - `Catalog`: skill RouteOptions (3 skills + `__global__`), per-skill tool RouteOptions
   (5 skill tools + 3 globals) and OpenAI-format tool schemas, verbatim from the server.
 - `McpTools`: `tools/call` with `X-Customer-Id` and the current `traceparent` in `_meta`.
+- Every HTTP request also carries the W3C `traceparent` HEADER of the current span, so the
+  server's HTTP span joins the turn trace instead of opening a root trace of its own.
 """
 
 from __future__ import annotations
@@ -30,6 +32,7 @@ import mcp.types as mt
 import yaml
 from fastmcp import Client
 from fastmcp.client.transports import StreamableHttpTransport
+from mcp.shared._httpx_utils import create_mcp_http_client
 from mcp.shared.exceptions import MCPError
 from mcp_types.version import MODERN_PROTOCOL_VERSIONS
 
@@ -284,13 +287,34 @@ def _normalize(value: Any, *, keep_order: bool = False) -> Any:
 # ---------------------------------------------------------------- MCP client
 
 
+async def _inject_traceparent(request: Any) -> None:
+    """httpx request hook: W3C context of the current span as HTTP headers. The MCP transport
+    sends each POST in the sender's context (inside `MCP send <method>`)."""
+    for key, value in traceparent().items():
+        request.headers[key] = value
+
+
+def traced_http_client(
+    headers: dict[str, str] | None = None,
+    timeout: Any = None,
+    auth: Any = None,
+    **_: Any,  # fastmcp passes follow_redirects=True; the MCP SDK default (off) is kept
+) -> Any:
+    """`create_mcp_http_client` + the traceparent request hook."""
+    client = create_mcp_http_client(headers=headers, timeout=timeout, auth=auth)
+    client.event_hooks["request"].append(_inject_traceparent)
+    return client
+
+
 def mcp_client(settings: Settings, customer_id: str | None = None) -> Client:
     headers: dict[str, str] = {}
     if settings.mcp_token:
         headers["Authorization"] = f"Bearer {settings.mcp_token.get_secret_value()}"
     if customer_id:
         headers["X-Customer-Id"] = customer_id
-    transport = StreamableHttpTransport(settings.mcp_url, headers=headers)
+    transport = StreamableHttpTransport(
+        settings.mcp_url, headers=headers, httpx_client_factory=traced_http_client
+    )
     # pinned, never "auto": no silent fallback to the 2025-11-25 handshake
     return Client(transport, timeout=settings.request_timeout_s, mode=PROTOCOL_VERSION)
 

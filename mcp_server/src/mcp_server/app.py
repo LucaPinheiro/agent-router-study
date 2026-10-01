@@ -8,8 +8,9 @@ from __future__ import annotations
 import hmac
 import logging
 import os
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, MutableMapping
 from contextlib import asynccontextmanager
+from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -34,6 +35,14 @@ def check_token(token: str) -> None:
         )
 
 
+UNTRACED_PATHS = frozenset({"/healthz", "/readyz"})  # probes: no HTTP span, nothing exported
+
+
+def untraced(scope: MutableMapping[str, Any]) -> bool:
+    """FastAPI telemetry `exclude`: skip instrumentation of the health/readiness probes."""
+    return scope.get("path") in UNTRACED_PATHS
+
+
 mcp_app = mcp.http_app(path="/mcp", stateless_http=True, transport="http")
 
 
@@ -51,7 +60,14 @@ app = FastAPI(
     title="routing-study MCP server",
     lifespan=lifespan,
     # Export is owned by telemetry.setup_tracing (Langfuse auth); no env auto-exporters/metrics.
-    telemetry={"auto_configure": False, "metrics": False, "logs": False, "operation_spans": False},
+    # The HTTP span parents from the client's `traceparent` header (joins the turn trace).
+    telemetry={
+        "auto_configure": False,
+        "metrics": False,
+        "logs": False,
+        "operation_spans": False,
+        "exclude": untraced,
+    },
 )
 
 

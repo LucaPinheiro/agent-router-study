@@ -385,3 +385,26 @@ async def test_fetch_catalog_pinned_reads_instructions_from_discover(
 ) -> None:
     assert live_catalog.protocol_version == "2026-07-28"
     assert live_catalog.instructions  # a pinned client adopts no server instructions itself
+
+
+async def test_mcp_http_requests_carry_the_current_traceparent_header() -> None:
+    """The server's HTTP span parents from the header: without it each POST is a root trace."""
+    import httpx2
+    from opentelemetry import trace
+    from opentelemetry.trace import NonRecordingSpan, SpanContext, TraceFlags
+
+    client = catalog_mod.traced_http_client(headers={"X-Customer-Id": "C001"})
+    request = httpx2.Request("POST", "http://mcp.test/mcp")
+    span = NonRecordingSpan(
+        SpanContext(trace_id=0xABC, span_id=0xDEF, is_remote=False, trace_flags=TraceFlags.SAMPLED)
+    )
+    with trace.use_span(span):
+        for hook in client.event_hooks["request"]:
+            await hook(request)
+    assert request.headers["traceparent"] == f"00-{0xABC:032x}-{0xDEF:016x}-01"
+
+    untraced = httpx2.Request("POST", "http://mcp.test/mcp")
+    for hook in client.event_hooks["request"]:
+        await hook(untraced)
+    assert "traceparent" not in untraced.headers
+    await client.aclose()
