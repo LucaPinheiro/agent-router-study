@@ -1,14 +1,14 @@
-# E5 — LLM Sonnet: accuracy reference
+# E10 — learned classifier ("open Jev replica"): linear probe on frozen qwen3 vectors, catalog text only
 routing:
   mode: single
   skill:
     pipeline:
-      - { strategy: llm }
+      - { strategy: classifier }
     on_abstain: escalate
   tool:
     expose_top_k: 2
     pipeline:
-      - { strategy: llm }
+      - { strategy: classifier }
 
 strategies:
   regex:

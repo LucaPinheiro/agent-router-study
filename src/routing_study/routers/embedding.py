@@ -171,17 +171,20 @@ class EmbeddingRouter(BaseRouter):
             i += len(ts)
         return out, res
 
-    def query_string(self, inp: RoutingInput) -> str:
-        """The text that is embedded as the query (history concatenated, instruction added)."""
+    def query_string(self, inp: RoutingInput, instruct: bool = True) -> str:
+        """The text that is embedded as the query (history concatenated, instruction added
+        unless `instruct=False`)."""
         past = turns_text(inp, self.history_turns)
         text = f"{past}\n{inp.message}" if past else inp.message
         query_text = getattr(self.embedder, "query_text", None)
-        return query_text(text) if query_text else text
+        return query_text(text) if query_text and instruct else text
 
-    async def embed_query(self, inp: RoutingInput) -> tuple[np.ndarray, dict[str, Any]]:
+    async def embed_query(
+        self, inp: RoutingInput, instruct: bool = True
+    ) -> tuple[np.ndarray, dict[str, Any]]:
         """(unit query vector, call info). A cached query vector keeps its original call
         latency/tokens and has `cached=True`."""
-        text = self.query_string(inp)
+        text = self.query_string(inp, instruct)
         key = "q\x00" + self._vkey(text)
         hit = self._get(key)
         if isinstance(hit, dict) and "v" in hit:

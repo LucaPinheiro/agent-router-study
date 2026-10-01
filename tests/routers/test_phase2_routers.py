@@ -277,3 +277,16 @@ def test_classifier_training_set_has_no_dataset_text(skill_options):
     texts, labels = ClassifierRouter().training_set(skill_options)
     catalog = {t for o in skill_options for t in option_utterances(o, shots=True, quotes=True)}
     assert set(texts) <= catalog and set(labels) == {o.id for o in skill_options}
+
+
+async def test_probe_latency_counts_the_original_query_call_when_cached(tmp_path, skill_options):
+    emb = FakeEmbedder()
+    msg = skill_input("quero devolver o produto")
+    for _ in range(2):  # second router: query vector served from the disk cache
+        r = ClassifierRouter(
+            model="probe",
+            probe_instruction=True,
+            embedding=EmbeddingRouter(emb, vector_cache_dir=str(tmp_path / "v")),
+        )
+        d = await r.route(msg, skill_options)
+    assert d.cached and d.latency_ms >= 1.0 and d.usage["calls"] == 1

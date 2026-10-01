@@ -16,6 +16,7 @@ P(correct). Deterministic (lbfgs, fixed data order).
 
 from __future__ import annotations
 
+import time
 from typing import Any, ClassVar, Literal
 
 import numpy as np
@@ -139,17 +140,17 @@ class ClassifierRouter(BaseRouter):
         self._fitted[key] = out
         return out
 
-    async def _proba(self, text: str, vec: Any, clf: LogisticRegression) -> np.ndarray:
+    async def _proba(
+        self, text: str, vec: Any, clf: LogisticRegression
+    ) -> tuple[np.ndarray, dict[str, Any] | None]:
+        """(class probabilities, embedding call info of the probe's query or None)."""
         if self.model_kind == "probe":
             assert self.embedding is not None
-            if self.probe_instruction:
-                qv, _ = await self.embedding.embed_query(RoutingInput(message=text, level="skill"))
-                x = qv[None, :]
-            else:
-                x, _ = await self.embedding.text_vectors([text])
-        else:
-            x = vec.transform([text])
-        return clf.predict_proba(x)[0]
+            qv, info = await self.embedding.embed_query(
+                RoutingInput(message=text, level="skill"), instruct=self.probe_instruction
+            )
+            return clf.predict_proba(qv[None, :])[0], info
+        return clf.predict_proba(vec.transform([text]))[0], None
 
     async def _decide(self, inp: RoutingInput, options: list[RouteOption]) -> RouteDecision:
         if not options or not inp.message.strip():
@@ -162,15 +163,39 @@ class ClassifierRouter(BaseRouter):
                 strategy=self.name,
             )
         vec, clf, classes = await self._fit(options)
-        p = await self._proba(inp.message, vec, clf)
+        t0 = time.perf_counter()
+        p, info = await self._proba(inp.message, vec, clf)
+        calls = [info] if info else []
         past = turns_text(inp, self.history_turns)
         if past and self.history_weight > 0:
-            p = p + self.history_weight * await self._proba(past, vec, clf)
-            p = p / p.sum()
+            ph, info = await self._proba(past, vec, clf)
+            calls += [info] if info else []
+            p = (p + self.history_weight * ph) / (1.0 + self.history_weight)
         order = np.argsort(-p, kind="stable")
+        # wall time, but a probe query served from the vector cache counts its original call
+        # latency (and queue/retry waits are excluded), so warm and cold runs report alike
+        wall = (time.perf_counter() - t0) * 1000
+        waits = sum(c["queue_ms"] + c["retry_ms"] for c in calls if not c["cached"])
+        cached_ms = sum(c["call_ms"] for c in calls if c["cached"])
+        extra: dict[str, Any] = {}
+        if calls:
+            extra = {
+                "latency_ms": max(1e-3, wall - waits + cached_ms),
+                "cost_usd": sum(c["cost_usd"] for c in calls),
+                "cached": all(c["cached"] for c in calls),
+                "usage": {
+                    "calls": len(calls),
+                    "prompt_tokens": sum(c["prompt_tokens"] for c in calls),
+                    "served_model": calls[0]["served_model"],
+                    "provider": calls[0]["provider"],
+                    "queue_ms": sum(c["queue_ms"] for c in calls if not c["cached"]),
+                    "retry_ms": sum(c["retry_ms"] for c in calls if not c["cached"]),
+                },
+            }
         return RouteDecision(
             choice=classes[int(order[0])],
             confidence=clamp01(float(p[order[0]])),
             candidates=[(classes[int(i)], round(float(p[i]), 4)) for i in order],
             strategy=self.name,
+            **extra,
         )

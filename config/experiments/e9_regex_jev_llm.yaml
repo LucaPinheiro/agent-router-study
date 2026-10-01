@@ -62,6 +62,22 @@ strategies:
   llm_local: { provider: ollama, model: "qwen3:8b-q8_0", num_ctx: 8192, temperature: 0, confidence: self_reported }  # thinking off (reasoning.enabled=false)
   jev:       { provider: openrouter, model: typesafe/jev-router, parse_retries: 1 }
   hybrid:    { rrf_k: 60 }
+  classifier:
+    # "open Jev replica" (D4): linear probe (logistic regression) on frozen qwen3-embedding
+    # vectors of catalog utterances (examples + description sentences + keywords + a skill's
+    # tool examples); query embedded with the task instruction. Selected by 5-fold CV on dev
+    # over TF-IDF+LR (144 points, nested 39.1) and the probe (72 points, nested 76.8).
+    model: probe
+    c: 3
+    shots: true
+    quotes: false
+    description: true
+    probe_instruction: true
+    history_turns: 2
+    history_weight: 0.3
+    calibration:            # raw p(top) -> P(correct), fitted on dev; Platt (both levels) by CV Brier
+      skill: { x: [0.304854, 0.330362, 0.355869, 0.381376, 0.406883, 0.432391, 0.457898, 0.483405, 0.508912, 0.534419, 0.559927, 0.585434, 0.610941, 0.636448, 0.661956, 0.687463, 0.71297, 0.738477, 0.763985, 0.789492, 0.814999], y: [0.493194, 0.547637, 0.600964, 0.651998, 0.699767, 0.743558, 0.782942, 0.817761, 0.848078, 0.874127, 0.896257, 0.914875, 0.930411, 0.943287, 0.953899, 0.962604, 0.969717, 0.975512, 0.980221, 0.984039, 0.987129] }
+      tool:  { x: [0.184803, 0.20798, 0.231157, 0.254333, 0.27751, 0.300687, 0.323864, 0.347041, 0.370218, 0.393394, 0.416571, 0.439748, 0.462925, 0.486102, 0.509279, 0.532455, 0.555632, 0.578809, 0.601986, 0.625163, 0.64834], y: [0.577013, 0.606606, 0.635437, 0.663328, 0.690126, 0.715705, 0.739968, 0.762847, 0.784299, 0.804308, 0.822881, 0.840041, 0.855831, 0.870302, 0.883518, 0.895549, 0.90647, 0.916355, 0.925281, 0.933324, 0.940557] }
 
 executor:
   provider: bedrock
