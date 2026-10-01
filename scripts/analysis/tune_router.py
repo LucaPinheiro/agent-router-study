@@ -52,6 +52,7 @@ import itertools
 import json
 import random
 import sys
+import time
 from collections import defaultdict
 from pathlib import Path
 from statistics import mean, median, pstdev
@@ -64,6 +65,7 @@ from routing_study.budget import BudgetExceededError
 from routing_study.catalog import PROTOCOL_VERSION, Catalog, fetch_catalog
 from routing_study.eval.scorers import routing_failure, routing_scores
 from routing_study.graph.nodes import _routing_input as routing_input
+from routing_study.hangdump import Watchdog, install_sigusr1
 from routing_study.routers.base import RoutingInput
 from routing_study.routers.calibration import Calibration, brier, ece, fit_isotonic, fit_platt
 from routing_study.routers.pipeline import build_pipeline, build_routers
@@ -198,9 +200,20 @@ def call_usage(steps: list[Any]) -> dict[str, Any]:
 
 
 async def evaluate(
-    settings: Settings, rows: list[dict[str, Any]], catalog: Catalog, concurrency: int = 4
+    settings: Settings,
+    rows: list[dict[str, Any]],
+    catalog: Catalog,
+    concurrency: int = 4,
+    *,
+    stall_dump_s: float = 0.0,
+    progress_every: int = 0,
+    tag: str = "",
 ) -> dict[str, dict[str, Any]]:
-    """case id -> {category, scores, per-level (choice, raw confidence)} for one config."""
+    """case id -> {category, scores, per-level (choice, raw confidence)} for one config.
+
+    `progress_every`: a `# progress` line (stderr) every N finished cases, so a long point
+    is visibly alive; `stall_dump_s`: dump all tasks/threads if no case finishes for that
+    long (`routing_study.hangdump`; `kill -USR1 <pid>` dumps on demand)."""
     stages = (settings.routing.skill, settings.routing.tool)
     wanted = {s.strategy for st in stages for s in st.pipeline}
     routers = build_routers(settings, wanted)
@@ -244,9 +257,22 @@ async def evaluate(
             scores = routing_scores(skill, rec["tool"], case["expected"])
             if error:  # ITT: a failed stage is wrong, whatever the gold
                 scores = dict.fromkeys(scores, 0.0)
+            done.append(case["id"])
+            watchdog.beat()
+            if progress_every and len(done) % progress_every == 0:
+                print(
+                    f"# progress {tag} {len(done)}/{len(rows)} {time.strftime('%H:%M:%S')}",
+                    file=sys.stderr,
+                    flush=True,
+                )
             return case["id"], rec | scores | {"error": error}
 
-    return dict(await asyncio.gather(*(one(c) for c in rows)))
+    done: list[str] = []
+    watchdog = Watchdog(stall_dump_s).start()
+    try:
+        return dict(await asyncio.gather(*(one(c) for c in rows)))
+    finally:
+        watchdog.stop()
 
 
 def acc(recs: list[dict[str, Any]], metric: str) -> float:
@@ -340,6 +366,13 @@ def main() -> None:
     )
     ap.add_argument("--calibrator", choices=("isotonic", "platt", "both"), default="isotonic")
     ap.add_argument("--summary", help="write the nested-CV summary as JSON")
+    ap.add_argument(
+        "--stall-dump-s",
+        type=float,
+        default=600.0,
+        help="dump asyncio tasks + thread stacks if no case finishes for this long (0=off)",
+    )
+    ap.add_argument("--progress", type=int, default=10, help="progress line every N cases")
     args = ap.parse_args()
     fitters = {"isotonic": fit_isotonic, "platt": fit_platt}
     cal_names = ["isotonic", "platt"] if args.calibrator == "both" else [args.calibrator]
@@ -372,12 +405,22 @@ def main() -> None:
         wanted = {st.strategy for stg in stages for st in stg.pipeline}
         print("# preloaded:", asyncio.run(preload_ollama(base, wanted)))
 
+    install_sigusr1()  # `kill -USR1 <pid>`: live task + thread stacks on stderr
     results: list[dict[str, dict[str, Any]]] = []
     metrics: list[dict[str, Any]] = []
     for pt in points:
         s = patched(base, fixed + [(k.split("."), v) for k, v in pt])
         try:
-            results.append(asyncio.run(evaluate(s, rows, catalog, args.concurrency)))
+            run = evaluate(
+                s,
+                rows,
+                catalog,
+                args.concurrency,
+                stall_dump_s=args.stall_dump_s,
+                progress_every=args.progress,
+                tag=label(pt),
+            )
+            results.append(asyncio.run(run))
         except BudgetExceededError as exc:
             print(f"# BUDGET GUARD at {label(pt)}: {exc}; stopping the grid", file=sys.stderr)
             points = points[: len(results)]

@@ -445,6 +445,11 @@ class Settings(BaseSettings):
     throttle_backoff_initial_s: float = Field(default=1.0, gt=0.0)
     throttle_backoff_max_s: float = Field(default=30.0, gt=0.0)
     request_timeout_s: float = 60.0
+    # Overall deadline of ONE model-call attempt (asyncio.wait_for around it, on top of the
+    # per-read HTTP timeout): no await inside a call can block forever. A deadline hit is
+    # retried like a transport timeout. 0 disables. Local (Ollama) and API calls apart.
+    call_deadline_s: float = Field(default=90.0, ge=0.0)
+    local_call_deadline_s: float = Field(default=120.0, ge=0.0)
 
     routing: RoutingConfig = Field(default_factory=RoutingConfig)
     strategies: StrategiesConfig = Field(default_factory=StrategiesConfig)

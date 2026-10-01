@@ -636,6 +636,10 @@ def rpm_limiter(model: str, settings: Settings) -> RpmLimiter | None:
     return lim
 
 
+class CallDeadlineError(TimeoutError):
+    """One call attempt exceeded `call_deadline_s` / `local_call_deadline_s` (retried)."""
+
+
 class OpenRouterBodyError(RuntimeError):
     """HTTP 200 whose body is `{"error": {"code", "message", "metadata"}}` (OpenRouter reports
     upstream failures this way); retried like the equivalent HTTP status."""
@@ -704,6 +708,8 @@ def _is_throttle(exc: BaseException | None) -> bool:
 
 
 def _is_retryable(exc: BaseException) -> bool:
+    if isinstance(exc, CallDeadlineError):
+        return True
     if isinstance(exc, botocore.exceptions.ClientError):
         return exc.response.get("Error", {}).get("Code") in _BEDROCK_RETRY
     if isinstance(exc, botocore.exceptions.ConnectionError | botocore.exceptions.ReadTimeoutError):
@@ -746,6 +752,9 @@ async def call_with_retry[T](
     provider: str | None = None,
 ) -> T:
     """Run `fn` under the provider semaphore with tenacity backoff on transient errors.
+
+    Each attempt is bounded by `call_deadline_s` (`local_call_deadline_s` for Ollama); the
+    semaphore is held by `async with`, so it is released on success, error and cancellation.
 
     `provider="ollama"`: one semaphore for the whole local server, sized to its request
     slots (`ollama_num_parallel`), so waiting for a slot is `queue_ms`, not model latency."""
@@ -800,6 +809,19 @@ async def call_with_retry[T](
         else provider_semaphore(model, settings.max_concurrency_per_provider)
     )
     t_call = t_start
+    deadline = settings.local_call_deadline_s if provider == "ollama" else settings.call_deadline_s
+
+    async def _attempt() -> T:
+        if not deadline:
+            return await fn()
+        cm = asyncio.timeout(deadline)
+        try:
+            async with cm:
+                return await fn()
+        except TimeoutError as exc:
+            if not cm.expired():  # fn's own TimeoutError (e.g. the ledger lock): as is
+                raise
+            raise CallDeadlineError(f"{model}: no reply within {deadline:.0f}s") from exc
 
     def _split(t_end: float) -> None:
         """call_ms = the last attempt; retry_ms = everything else that was not queueing."""
@@ -817,7 +839,7 @@ async def call_with_retry[T](
                         stats.queue_ms += (time.perf_counter() - t_q) * 1000
                     stats.attempts += 1
                     t_call = time.perf_counter()
-                    result = await fn()
+                    result = await _attempt()
                     _split(time.perf_counter())
                     return result
         except BaseException:  # a failed call still reports its attempts and timing

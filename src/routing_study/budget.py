@@ -120,9 +120,12 @@ class SpendLedger:
     the in-flight reservations of every process (`<ledger>.reservations.json`: entries of dead
     processes are dropped), so two processes can never both spend the same headroom."""
 
-    def __init__(self, path: str | Path, caps: dict[str, float]) -> None:
+    def __init__(
+        self, path: str | Path, caps: dict[str, float], *, lock_timeout_s: float = 60.0
+    ) -> None:
         self.path = Path(path)
         self.caps = caps
+        self.lock_timeout_s = lock_timeout_s
         self._lock = threading.Lock()
         self._offset = 0
         self.spent: dict[str, float] = {}
@@ -138,12 +141,28 @@ class SpendLedger:
         with self._lock:
             self.path.parent.mkdir(parents=True, exist_ok=True)
             with self.lock_path.open("a") as fh:
-                fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
+                self._flock(fh.fileno())
                 try:
                     self._refresh()
                     yield
                 finally:
                     fcntl.flock(fh.fileno(), fcntl.LOCK_UN)
+
+    def _flock(self, fd: int) -> None:
+        """Exclusive flock, polled (never an unbounded block of the event-loop thread): a
+        holder stuck for `lock_timeout_s` raises TimeoutError naming the lock file."""
+        deadline = time.monotonic() + self.lock_timeout_s
+        while True:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                return
+            except BlockingIOError:
+                if time.monotonic() >= deadline:
+                    raise TimeoutError(
+                        f"spend ledger lock {self.lock_path} held for > {self.lock_timeout_s}s "
+                        "(check holders with `lsof`)"
+                    ) from None
+                time.sleep(0.01)
 
     def _refresh(self) -> None:
         """Add the rows appended since `_offset` (from any process) to `spent`."""
