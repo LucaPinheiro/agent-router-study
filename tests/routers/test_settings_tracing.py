@@ -24,8 +24,9 @@ def test_all_experiments_load():
     names = [p.stem.split("_")[0] for p in EXPERIMENTS]
     core = ["e0", "e1", "e2", "e3", "e4", "e5", "e6", "e6b", "e7", "e8", "e9"]
     assert set(core) <= set(names)
-    # phase-2 additions: e10 classifier, e11 hybrid, e3 alt-embedder ablations
-    assert set(names) - set(core) <= {"e10", "e11"}
+    # phase-2 additions: e10 classifier, e11 hybrid, e3 alt-embedder ablations; freeze: e12
+    # (exploratory hybrid -> Jev -> LLM cascade)
+    assert set(names) - set(core) <= {"e10", "e11", "e12"}
     for path in EXPERIMENTS:
         alt_embedder = path.stem.startswith("e3_embedding_")
         s = load_settings(path)
