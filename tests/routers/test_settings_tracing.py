@@ -142,7 +142,12 @@ SCRIPT = textwrap.dedent(
                                  usage={"served_model": "vendor/served", "prompt_tokens": 5,
                                         "completion_tokens": 2})
 
-    asyncio.run(Paid().route(RoutingInput(message="x", level="skill"), opts))
+    import tempfile
+    from routing_study.routers.common import ResponseCache
+
+    paid = Paid(cache=ResponseCache(tempfile.mkdtemp()))
+    asyncio.run(paid.route(RoutingInput(message="x", level="skill"), opts))
+    asyncio.run(paid.route(RoutingInput(message="x", level="skill"), opts))  # cache hit
     lf.flush()
     spans = [{"name": s.name, "attrs": dict(s.attributes)} for s in exporter.get_finished_spans()]
     print(json.dumps({"choice": d.choice, "spans": spans}, default=str))
@@ -164,6 +169,14 @@ def test_route_span_named_and_annotated_when_langfuse_enabled():
     gen = next(s for s in data["spans"] if s["name"] == "route.skill.llm")
     gblob = json.dumps(gen["attrs"])
     assert "generation" in gblob and "vendor/served" in gblob and "0.0123" in gblob
+    assert "original_latency_ms" not in gblob
+    hit = next(s for s in data["spans"] if s["name"] == "route.skill.llm [cache]")
+    meta = {
+        k.rsplit(".", 1)[-1]: v
+        for k, v in hit["attrs"].items()
+        if k.startswith("langfuse.observation.metadata.")
+    }
+    assert meta["cached"] in (True, "true") and float(meta["original_latency_ms"]) > 0
 
 
 def test_unit_tests_are_hermetic():

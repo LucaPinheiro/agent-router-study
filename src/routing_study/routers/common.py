@@ -279,12 +279,17 @@ def tracing_active() -> bool:
         return False
 
 
+CACHED_SUFFIX = " [cache]"
+
+
 async def _annotate(
     inp: RoutingInput, decision: RouteDecision, *, generation: bool, model: str | None
 ) -> None:
     decides = DECIDES.get()
     decisive = bool(decides and await decides(decision))
     name = f"route.{inp.level}.{decision.strategy}"
+    if decision.cached:  # served from the response cache: the span itself lasts ~0 s
+        name += CACHED_SUFFIX
     metadata = {
         "choice": decision.choice,
         "confidence": decision.confidence,
@@ -294,6 +299,8 @@ async def _annotate(
         "cost_usd": decision.cost_usd,
         "level": inp.level,
         "loaded_skill": inp.loaded_skill,
+        # the latency the decision took when it was computed (what the study reports)
+        **({"original_latency_ms": decision.latency_ms} if decision.cached else {}),
         "decisive": decisive,
         "shadow": not decisive,
         **{

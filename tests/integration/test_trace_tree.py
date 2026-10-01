@@ -102,7 +102,7 @@ def test_trace_tree_has_every_node_and_the_mcp_server_span(run_results: list[dic
     meta = route_skill.get("metadata") or {}
     for key in ("choice", "confidence", "candidates", "resolved_by", "cascade_step", "abstained"):
         assert key in meta, f"route_skill metadata lacks {key}: {sorted(meta)}"
-    strategies = {o["name"]: o for o in _children(obs, route_skill)}
+    strategies = {o["name"].removesuffix(" [cache]"): o for o in _children(obs, route_skill)}
     for s in ("regex", "bm25", "embedding", "llm", "jev", "hybrid"):
         assert f"route.skill.{s}" in strategies
     decider = rec["skill"]["resolved_by"]
