@@ -31,11 +31,18 @@ strategies:
     provider: ollama
     model: qwen3-embedding:8b-q8_0     # local, 4096-d
     num_ctx: 8192
-    similarity: max_example
+    # tuned by 5-fold CV on dev (D1, docs/tuning-effort.md): 324-point grid over similarity x
+    # top_k x temperature x instruction x history x shots; nested CV joint 77.5 (was 66.2)
+    similarity: centroid
     confidence: softmax
-    softmax_temperature: 0.05
+    softmax_temperature: 0.02         # chosen by CV Brier after calibration (accuracy-neutral)
+    history_turns: 2                  # query = last 2 turns + message
+    shots: true                       # + the catalog examples resolved to the option
     # Qwen3-Embedding model card: queries carry the task instruction, documents do not
     query_instruction: "Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:"
+    calibration:                      # isotonic raw -> P(correct), fitted on dev (lower CV Brier than Platt)
+      skill: { x: [0.361615, 0.518244, 0.60742, 0.832673, 0.94852, 0.96687, 0.988528, 0.997242], y: [0.333333, 0.444444, 0.75, 0.860465, 0.862069, 0.862069, 0.930233, 0.930233] }
+      tool:  { x: [0.277759, 0.457729, 0.779592, 0.982974, 0.998994], y: [0.333333, 0.625, 0.710145, 0.860465, 0.973684] }
   llm:       { provider: bedrock, model: global.anthropic.claude-sonnet-5, temperature: null, confidence: self_reported }  # Bedrock Sonnet 5 rejects temperature
   llm_local: { provider: ollama, model: "qwen3:8b-q8_0", num_ctx: 8192, temperature: 0, confidence: self_reported }  # thinking off (reasoning.enabled=false)
   jev:       { provider: openrouter, model: typesafe/jev-router, parse_retries: 1 }
