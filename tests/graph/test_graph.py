@@ -335,3 +335,57 @@ async def test_executor_sees_structured_content_of_tool_results() -> None:
         "recoverable": True,
         "details": {"options": ["O0002</x>"]},
     }
+
+
+def _record_node_spans(monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, dict[str, Any]]]:
+    """Captures (name, metadata) of every node span (Langfuse itself stays off)."""
+    from contextlib import contextmanager
+
+    from routing_study.tracing import langfuse as tracing
+
+    seen: list[tuple[str, dict[str, Any]]] = []
+
+    @contextmanager
+    def fake_span(name: str, **kwargs: Any) -> Any:
+        seen.append((name, dict(kwargs.get("metadata") or {})))
+        yield tracing._NoopSpan()
+
+    monkeypatch.setattr(tracing, "span", fake_span)
+    return seen
+
+
+async def test_every_node_span_carries_langgraph_node_and_step(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Langfuse's Graph view draws only observations with `langgraph_node`/`langgraph_step`."""
+    seen = _record_node_spans(monkeypatch)
+    router = FixedRouter("pedidos_logistica", "get_order_status")
+    chat = FakeChat(
+        [
+            tool_call("get_order_status", {"order_id": "O0001"}),
+            AIMessage("Seu pedido O0001 está a caminho."),
+        ]
+    )
+    await _run(chat, FakeTools(), **_pipelines(router))
+
+    assert [n for n, _ in seen] == [
+        "ingest",
+        "route_skill",
+        "route_tool",
+        "agent",
+        "tools",
+        "agent",
+    ]
+    for name, meta in seen:
+        assert meta["langgraph_node"] == name
+    steps = [meta["langgraph_step"] for _, meta in seen]
+    assert steps == sorted(steps) and len(set(steps)) == len(steps)
+
+
+async def test_native_route_nodes_still_open_a_graph_span(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen = _record_node_spans(monkeypatch)
+    await _run(FakeChat([AIMessage("Olá!")]), FakeTools())
+
+    assert [n for n, _ in seen] == ["ingest", "route_skill", "route_tool", "agent"]
+    assert all(meta["langgraph_node"] == n for n, meta in seen)
+    assert seen[1][1]["skipped"] == "native"

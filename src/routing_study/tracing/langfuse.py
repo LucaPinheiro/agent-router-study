@@ -189,6 +189,30 @@ def span(name: str, *, as_type: str = "span", **kwargs: Any) -> Iterator[Any]:
         yield obs
 
 
+def graph_node_metadata() -> dict[str, Any]:
+    """`langgraph_node` / `langgraph_step` of the running LangGraph node ({} outside one).
+
+    Langfuse's Graph view reads exactly these two observation-metadata keys (the ones the
+    LangChain CallbackHandler copies from the runnable config); a trace with any of them only
+    draws the observations that carry them."""
+    from langgraph.config import get_config
+
+    try:
+        meta = get_config().get("metadata") or {}
+    except RuntimeError:  # not inside a runnable context
+        return {}
+    return {k: meta[k] for k in ("langgraph_node", "langgraph_step") if k in meta}
+
+
+@contextmanager
+def node_span(
+    name: str, *, metadata: Mapping[str, Any] | None = None, **kwargs: Any
+) -> Iterator[Any]:
+    """`span` for a graph node, tagged with the node/step so it is drawn in the Graph view."""
+    with span(name, metadata={**graph_node_metadata(), **(metadata or {})}, **kwargs) as obs:
+        yield obs
+
+
 @contextmanager
 def turn(
     *, session_id: str, tags: list[str], metadata: Mapping[str, str], input: Any

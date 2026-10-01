@@ -1,7 +1,8 @@
 """The 5 nodes (plan §4.3). One executor serves native (E0) and routed (E1–E9) runs; the only
 difference is the exposure policy. Each node opens its own Langfuse span so router spans, the
 executor generation and MCP calls nest under it (LangGraph's callback spans do not become the
-OTel current span inside a node, so they are not used)."""
+OTel current span inside a node, so they are not used); `node_span` tags it with
+`langgraph_node`/`langgraph_step`, which is what Langfuse's Graph view draws."""
 
 from __future__ import annotations
 
@@ -17,7 +18,7 @@ from routing_study.prompts import PROMPT_HASH, system_blocks, tool_result
 from routing_study.routers.base import GLOBAL_OPTION, Message, RoutingInput
 from routing_study.routers.pipeline import summary
 from routing_study.settings import Settings
-from routing_study.tracing.langfuse import span
+from routing_study.tracing.langfuse import node_span, span
 
 LOAD_SKILL = "load_skill"
 ESCALATION_TEXT = (
@@ -87,7 +88,7 @@ async def call_mcp(ctx: RunContext, name: str, args: dict[str, Any]) -> ToolOutc
 async def ingest(state: TurnState, runtime: Runtime[RunContext]) -> dict[str, Any]:
     """Gold history -> messages; catalog (cached); customer profile for the context layer."""
     ctx = runtime.context
-    with span("ingest") as sp:
+    with node_span("ingest") as sp:
         catalog, source = await ctx.catalog.get()
         turns = state["case"]["turns"]
         messages: list[AnyMessage] = [
@@ -117,10 +118,11 @@ async def ingest(state: TurnState, runtime: Runtime[RunContext]) -> dict[str, An
 async def route_skill(state: TurnState, runtime: Runtime[RunContext]) -> dict[str, Any]:
     ctx = runtime.context
     if ctx.skill_pipeline is None:  # native: the executor loads skills itself
-        return {}
+        with node_span("route_skill", metadata={"skipped": "native"}):
+            return {}
     catalog, _ = await ctx.catalog.get()
     inp, options = _routing_input(state, "skill"), catalog.skill_options()
-    with span(
+    with node_span(
         "route_skill", input={"message": inp.message, "options": [o.id for o in options]}
     ) as sp:
         res = await ctx.skill_pipeline.run(inp, options)
@@ -137,12 +139,13 @@ async def route_tool(state: TurnState, runtime: Runtime[RunContext]) -> dict[str
     """Tool stage over the chosen skill's tools + globals; exposes top-k + globals."""
     ctx = runtime.context
     if ctx.tool_pipeline is None:
-        return {}
+        with node_span("route_tool", metadata={"skipped": "native"}):
+            return {}
     catalog, _ = await ctx.catalog.get()
     skill = state.get("loaded_skill") or GLOBAL_OPTION
     inp, options = _routing_input(state, "tool", loaded_skill=skill), catalog.tool_options(skill)
     k = ctx.tool_pipeline.stage.expose_top_k
-    with span(
+    with node_span(
         "route_tool", input={"message": inp.message, "options": [o.id for o in options]}
     ) as sp:
         res = await ctx.tool_pipeline.run(inp, options)
@@ -221,7 +224,7 @@ async def agent(state: TurnState, runtime: Runtime[RunContext]) -> dict[str, Any
     )
     messages = [system, *state["messages"]]
     model = ctx.settings.executor.model if ctx.settings.executor else "executor"
-    with span(
+    with node_span(
         "agent",
         metadata={
             "exposed_tools": exposed,
@@ -252,7 +255,7 @@ async def tools(state: TurnState, runtime: Runtime[RunContext]) -> dict[str, Any
     exposed = set(state.get("exposed_tools") or [])
     update: dict[str, Any] = {}
     out: list[ToolMessage] = []
-    with span("tools"):
+    with node_span("tools"):
         for tc in ai.tool_calls:
             name, args, tid = tc["name"], tc.get("args") or {}, tc["id"]
             if name == LOAD_SKILL and ctx.native:
