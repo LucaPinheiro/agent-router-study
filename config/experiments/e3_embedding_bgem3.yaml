@@ -41,7 +41,7 @@ strategies:
       tool:  { x: [0.000842, 0.022289, 0.128491, 0.253802, 0.364955, 0.469964, 0.523546, 0.626912], y: [0.333333, 0.4375, 0.462963, 0.5, 0.594595, 0.631579, 0.666667, 0.928571] }
   embedding:
     provider: ollama
-    model: bge-m3     # local, 1024-d, not instruction-aware (D1 ablation row)
+    model: bge-m3     # local, 1024-d, not instruction-aware (D1 ablation row; nested CV joint: see docs/tuning-effort.md)
     num_ctx: 8192
     similarity: centroid
     confidence: softmax
@@ -49,6 +49,9 @@ strategies:
     history_turns: 2
     shots: true
     query_instruction: null
+    calibration:            # fitted on dev (CV-Brier-chosen calibrator per level)
+      skill: { x: [0.455559, 0.633178, 0.807027, 0.946897], y: [0.516129, 0.740741, 0.875, 0.972973] }
+      tool:  { x: [0.282739, 0.318548, 0.354357, 0.390166, 0.425976, 0.461785, 0.497594, 0.533403, 0.569212, 0.605021, 0.64083, 0.676639, 0.712449, 0.748258, 0.784067, 0.819876, 0.855685, 0.891494, 0.927303, 0.963112, 0.998922], y: [0.211196, 0.240476, 0.272414, 0.306879, 0.343646, 0.382387, 0.422683, 0.464035, 0.505888, 0.547658, 0.588767, 0.628674, 0.666899, 0.703048, 0.736821, 0.768022, 0.796544, 0.822371, 0.845555, 0.866205, 0.884472] }
   llm:       { provider: bedrock, model: global.anthropic.claude-sonnet-5, temperature: null, confidence: self_reported }  # Bedrock Sonnet 5 rejects temperature
   llm_local: { provider: ollama, model: "qwen3:8b-q8_0", num_ctx: 8192, temperature: 0, confidence: self_reported }  # thinking off (reasoning.enabled=false)
   jev:       { provider: openrouter, model: typesafe/jev-router, parse_retries: 1 }

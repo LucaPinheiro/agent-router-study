@@ -41,7 +41,7 @@ strategies:
       tool:  { x: [0.000842, 0.022289, 0.128491, 0.253802, 0.364955, 0.469964, 0.523546, 0.626912], y: [0.333333, 0.4375, 0.462963, 0.5, 0.594595, 0.631579, 0.666667, 0.928571] }
   embedding:
     provider: ollama
-    model: qwen3-embedding:0.6b     # local, 1024-d (D1 ablation row)
+    model: qwen3-embedding:0.6b     # local, 1024-d (D1 ablation row; nested CV joint: see docs/tuning-effort.md)
     num_ctx: 8192
     similarity: centroid
     confidence: softmax
@@ -49,6 +49,9 @@ strategies:
     history_turns: 2
     shots: true
     query_instruction: "Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:"
+    calibration:            # fitted on dev (CV-Brier-chosen calibrator per level)
+      skill: { x: [0.321453, 0.355366, 0.389279, 0.423191, 0.457104, 0.491017, 0.52493, 0.558843, 0.592756, 0.626669, 0.660582, 0.694495, 0.728408, 0.762321, 0.796234, 0.830147, 0.86406, 0.897973, 0.931886, 0.965799, 0.999712], y: [0.379602, 0.407596, 0.436202, 0.465239, 0.494513, 0.523825, 0.552974, 0.581763, 0.610006, 0.63753, 0.664181, 0.689825, 0.714354, 0.73768, 0.759743, 0.780501, 0.799939, 0.818056, 0.834872, 0.850417, 0.864736] }
+      tool:  { x: [0.328724, 0.362287, 0.39585, 0.429413, 0.462976, 0.496539, 0.530103, 0.563666, 0.597229, 0.630792, 0.664355, 0.697919, 0.731482, 0.765045, 0.798608, 0.832171, 0.865734, 0.899298, 0.932861, 0.966424, 0.999987], y: [0.152122, 0.171806, 0.193455, 0.217118, 0.242803, 0.270477, 0.300055, 0.331399, 0.364313, 0.398547, 0.433803, 0.469741, 0.505996, 0.542189, 0.577941, 0.612895, 0.646723, 0.679143, 0.709922, 0.738884, 0.765908] }
   llm:       { provider: bedrock, model: global.anthropic.claude-sonnet-5, temperature: null, confidence: self_reported }  # Bedrock Sonnet 5 rejects temperature
   llm_local: { provider: ollama, model: "qwen3:8b-q8_0", num_ctx: 8192, temperature: 0, confidence: self_reported }  # thinking off (reasoning.enabled=false)
   jev:       { provider: openrouter, model: typesafe/jev-router, parse_retries: 1 }
