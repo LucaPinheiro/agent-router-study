@@ -16,9 +16,8 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).parent))
-from overlap import PHASE2_EMBED_MODEL, Embedder, semantic_text  # noqa: E402
-
 from common import Case  # noqa: E402
+from overlap import PHASE2_EMBED_MODEL, Embedder, semantic_text  # noqa: E402
 
 QWEN_CACHE = Path.home() / ".cache" / "routing_study" / "embed_qwen3-embedding_8b-q8_0.npz"
 QWEN_THRESHOLD = 0.9
