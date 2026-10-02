@@ -1,3 +1,7 @@
+> **SUPERSEDED (2026-10-01).** This dev-only, preliminary write-up is replaced by the
+> pre-registered test-v2 study: [estudos/](../estudos/README.md) (pt-BR) and
+> [docs/results/final/](results/final/). Its numbers are kept for history only.
+
 # Routing study — results on the dev split
 
 **Date:** 2026-09-29 · **Split:** dev (151 cases, pt-BR) · **Repetitions:** 1 ·

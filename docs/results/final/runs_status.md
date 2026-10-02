@@ -73,34 +73,34 @@
 | v2-e1-regex-e2e-r1 | COMPLETE | yes | analysed |
 | v2-e5-sonnet-canonical-e2e-r1 | COMPLETE | yes | analysed |
 | v2-e7-tuned-e2e-r1 | COMPLETE | yes | analysed |
-| v2-e6b-qwen-canonical-e2e-r1 | RUN | no | pending |
-| v2-e0-native-e2e-rep2-60 | not started | no | pending |
-| v2-e9-tuned-e2e-rep2-60 | not started | no | pending |
-| v2-e11-hybrid-e2e-r1 | not started | no | pending |
-| rq5-test_v2-regex-base | not started | no | pending |
-| rq5-test_v2-regex-zero | not started | no | pending |
-| rq5-test_v2-regex-eng | not started | no | pending |
-| rq5-test_v2-regex-full | not started | no | pending |
-| rq5-test_v2-bm25-base | not started | no | pending |
-| rq5-test_v2-bm25-zero | not started | no | pending |
-| rq5-test_v2-classifier-base | not started | no | pending |
-| rq5-test_v2-classifier-zero | not started | no | pending |
-| rq5-test_v2-embedding-base | not started | no | pending |
-| rq5-test_v2-embedding-zero | not started | no | pending |
-| rq5-test_v2-hybrid-base | not started | no | pending |
-| rq5-test_v2-hybrid-zero | not started | no | pending |
-| rq5-test_v2-hybrid-eng | not started | no | pending |
-| rq5-test_v2-hybrid-full | not started | no | pending |
-| rq5-test_v2-jev-base | not started | no | pending |
-| rq5-test_v2-jev-zero | not started | no | pending |
-| rq5-test_v2-haiku-base | not started | no | pending |
-| rq5-test_v2-haiku-zero | not started | no | pending |
-| rq5-test_v2-sonnet-base | not started | no | pending |
-| rq5-test_v2-sonnet-zero | not started | no | pending |
-| x-e4-jev-p6c-routing-r1 | not started | no | pending |
-| x-e12-hybrid-tuned-routing-r3 | not started | no | pending |
-| v1-e1-regex-routing-r1 | not started | no | pending |
-| v1-e2-bm25-routing-r1 | not started | no | pending |
-| v1-e3-embedding-routing-r1 | not started | no | pending |
-| v1-e10-classifier-routing-r1 | not started | no | pending |
-| v1-e11-hybrid-routing-r1 | not started | no | pending |
+| v2-e6b-qwen-canonical-e2e-r1 | COMPLETE | yes | analysed |
+| v2-e0-native-e2e-rep2-60 | COMPLETE | yes | analysed |
+| v2-e9-tuned-e2e-rep2-60 | COMPLETE | yes | analysed |
+| v2-e11-hybrid-e2e-r1 | COMPLETE | yes | analysed |
+| rq5-test_v2-regex-base | COMPLETE | yes | analysed |
+| rq5-test_v2-regex-zero | COMPLETE | yes | analysed |
+| rq5-test_v2-regex-eng | COMPLETE | yes | analysed |
+| rq5-test_v2-regex-full | COMPLETE | yes | analysed |
+| rq5-test_v2-bm25-base | COMPLETE | yes | analysed |
+| rq5-test_v2-bm25-zero | COMPLETE | yes | analysed |
+| rq5-test_v2-classifier-base | COMPLETE | yes | analysed |
+| rq5-test_v2-classifier-zero | COMPLETE | yes | analysed |
+| rq5-test_v2-embedding-base | COMPLETE | yes | analysed |
+| rq5-test_v2-embedding-zero | COMPLETE | yes | analysed |
+| rq5-test_v2-hybrid-base | COMPLETE | yes | analysed |
+| rq5-test_v2-hybrid-zero | COMPLETE | yes | analysed |
+| rq5-test_v2-hybrid-eng | COMPLETE | yes | analysed |
+| rq5-test_v2-hybrid-full | COMPLETE | yes | analysed |
+| rq5-test_v2-jev-base | COMPLETE | yes | analysed |
+| rq5-test_v2-jev-zero | COMPLETE | yes | analysed |
+| rq5-test_v2-haiku-base | COMPLETE | yes | analysed |
+| rq5-test_v2-haiku-zero | COMPLETE | yes | analysed |
+| rq5-test_v2-sonnet-base | COMPLETE | yes | analysed |
+| rq5-test_v2-sonnet-zero | COMPLETE | yes | analysed |
+| x-e4-jev-p6c-routing-r1 | COMPLETE | yes | analysed |
+| x-e12-hybrid-tuned-routing-r3 | COMPLETE | yes | analysed |
+| v1-e1-regex-routing-r1 | COMPLETE | yes | analysed |
+| v1-e2-bm25-routing-r1 | COMPLETE | yes | analysed |
+| v1-e3-embedding-routing-r1 | COMPLETE | yes | analysed |
+| v1-e10-classifier-routing-r1 | COMPLETE | yes | analysed |
+| v1-e11-hybrid-routing-r1 | COMPLETE | yes | analysed |

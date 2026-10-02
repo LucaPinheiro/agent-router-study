@@ -1,0 +1,1035 @@
+{
+  "d002": {
+    "runs": {
+      "E0": {
+        "label": "E0 native (no router)",
+        "e2e_success": {
+          "point": 0.5558739255014327,
+          "lo": 0.501432664756447,
+          "hi": 0.6074498567335244
+        },
+        "first_call_success": {
+          "point": 0.5329512893982808,
+          "lo": 0.4785100286532951,
+          "hi": 0.5845272206303725
+        },
+        "clarification_credited": {
+          "point": 0.014326647564469915,
+          "lo": 0.0028653295128939827,
+          "hi": 0.02865329512893983
+        },
+        "recovered_credited": {
+          "point": 0.008595988538681949,
+          "lo": 0.0,
+          "hi": 0.02005730659025788
+        },
+        "skill_correct": {
+          "point": 0.8882521489971347,
+          "lo": 0.8538681948424068,
+          "hi": 0.9197707736389685
+        },
+        "tool_correct": {
+          "point": 0.7507163323782235,
+          "lo": 0.7048710601719198,
+          "hi": 0.7965616045845272
+        },
+        "args_valid": {
+          "point": 0.6848137535816619,
+          "lo": 0.6332378223495702,
+          "hi": 0.7335243553008596
+        },
+        "cost_turn": {
+          "point": 0.00903103782234957,
+          "lo": 0.008532942693409741,
+          "hi": 0.009575545737822348
+        },
+        "cost_routing": {
+          "point": 0.0,
+          "lo": 0.0,
+          "hi": 0.0
+        },
+        "cost_executor": {
+          "point": 0.00903103782234957,
+          "lo": 0.008532942693409741,
+          "hi": 0.009575545737822348
+        },
+        "prompt_tokens": {
+          "point": 14736.69340974212,
+          "lo": 13993.953151862464,
+          "hi": 15516.122206303724
+        },
+        "completion_tokens": {
+          "point": 366.55014326647563,
+          "lo": 346.7075214899714,
+          "hi": 388.10064469914045
+        },
+        "executor_calls": 2.793696275071633,
+        "exposed_tools": 6.796561604584527,
+        "errors": 0,
+        "rows": 349,
+        "loop_limit": 23
+      },
+      "E9": {
+        "label": "E9 regex->Jev->Sonnet",
+        "e2e_success": {
+          "point": 0.4584527220630373,
+          "lo": 0.4040114613180516,
+          "hi": 0.5100286532951289
+        },
+        "first_call_success": {
+          "point": 0.4498567335243553,
+          "lo": 0.3982808022922636,
+          "hi": 0.501432664756447
+        },
+        "clarification_credited": {
+          "point": 0.008595988538681949,
+          "lo": 0.0,
+          "hi": 0.02005730659025788
+        },
+        "recovered_credited": {
+          "point": 0.0,
+          "lo": 0.0,
+          "hi": 0.0
+        },
+        "skill_correct": {
+          "point": 0.8538681948424068,
+          "lo": 0.8166189111747851,
+          "hi": 0.8911174785100286
+        },
+        "tool_correct": {
+          "point": 0.7392550143266475,
+          "lo": 0.6934097421203438,
+          "hi": 0.7851002865329513
+        },
+        "args_valid": {
+          "point": 0.66189111747851,
+          "lo": 0.6103151862464183,
+          "hi": 0.7106017191977078
+        },
+        "cost_turn": {
+          "point": 0.008206111985673352,
+          "lo": 0.007721646936962752,
+          "hi": 0.008733837166833808
+        },
+        "cost_routing": {
+          "point": 0.0010097280315186246,
+          "lo": 0.0008815495101002866,
+          "hi": 0.0011448685327363896
+        },
+        "cost_executor": {
+          "point": 0.007196383954154727,
+          "lo": 0.0067382029226361025,
+          "hi": 0.007693257929799427
+        },
+        "prompt_tokens": {
+          "point": 8733.994269340974,
+          "lo": 8340.030085959886,
+          "hi": 9141.583309455587
+        },
+        "completion_tokens": {
+          "point": 332.7994269340974,
+          "lo": 310.56733524355303,
+          "hi": 356.76310888252146
+        },
+        "executor_calls": 1.9742120343839542,
+        "exposed_tools": 4.610315186246418,
+        "errors": 0,
+        "rows": 349,
+        "loop_limit": 1
+      },
+      "E7": {
+        "label": "E7 regex->Jev",
+        "e2e_success": {
+          "point": 0.4498567335243553,
+          "lo": 0.3982808022922636,
+          "hi": 0.501432664756447
+        },
+        "first_call_success": {
+          "point": 0.4355300859598854,
+          "lo": 0.3839541547277937,
+          "hi": 0.4871060171919771
+        },
+        "clarification_credited": {
+          "point": 0.011461318051575931,
+          "lo": 0.0028653295128939827,
+          "hi": 0.022922636103151862
+        },
+        "recovered_credited": {
+          "point": 0.0028653295128939827,
+          "lo": 0.0,
+          "hi": 0.008595988538681949
+        },
+        "skill_correct": {
+          "point": 0.836676217765043,
+          "lo": 0.7965616045845272,
+          "hi": 0.8739255014326648
+        },
+        "tool_correct": {
+          "point": 0.7392550143266475,
+          "lo": 0.6905444126074498,
+          "hi": 0.7851002865329513
+        },
+        "args_valid": {
+          "point": 0.670487106017192,
+          "lo": 0.6189111747851003,
+          "hi": 0.7191977077363897
+        },
+        "cost_turn": {
+          "point": 0.007869741266475643,
+          "lo": 0.0074019651114613175,
+          "hi": 0.008366246714541547
+        },
+        "cost_routing": {
+          "point": 0.0007594429856733525,
+          "lo": 0.000682002460243553,
+          "hi": 0.0008412266648280802
+        },
+        "cost_executor": {
+          "point": 0.007110298280802292,
+          "lo": 0.006659455393982808,
+          "hi": 0.0075918080157593125
+        },
+        "prompt_tokens": {
+          "point": 8858.361031518625,
+          "lo": 8460.850859598853,
+          "hi": 9278.026504297994
+        },
+        "completion_tokens": {
+          "point": 346.9971346704871,
+          "lo": 323.21755014326646,
+          "hi": 372.5881805157593
+        },
+        "executor_calls": 1.991404011461318,
+        "exposed_tools": 4.621776504297994,
+        "errors": 0,
+        "rows": 349,
+        "loop_limit": 1
+      },
+      "E9-full": {
+        "label": "E9 regex->Jev->Sonnet, all skill tools exposed (D-002)",
+        "e2e_success": {
+          "point": 0.4813753581661891,
+          "lo": 0.4297994269340974,
+          "hi": 0.5329512893982808
+        },
+        "first_call_success": {
+          "point": 0.47564469914040114,
+          "lo": 0.42399713467048716,
+          "hi": 0.5272206303724928
+        },
+        "clarification_credited": {
+          "point": 0.0057306590257879654,
+          "lo": 0.0,
+          "hi": 0.014326647564469915
+        },
+        "recovered_credited": {
+          "point": 0.0,
+          "lo": 0.0,
+          "hi": 0.0
+        },
+        "skill_correct": {
+          "point": 0.8510028653295129,
+          "lo": 0.8137535816618912,
+          "hi": 0.8882521489971347
+        },
+        "tool_correct": {
+          "point": 0.7507163323782235,
+          "lo": 0.7048710601719198,
+          "hi": 0.7936962750716332
+        },
+        "args_valid": {
+          "point": 0.6762177650429799,
+          "lo": 0.6275071633237822,
+          "hi": 0.7249283667621776
+        },
+        "cost_turn": {
+          "point": 0.008330124020057306,
+          "lo": 0.00785641438137536,
+          "hi": 0.008845545864828079
+        },
+        "cost_routing": {
+          "point": 0.0010097280315186246,
+          "lo": 0.0008815495101002866,
+          "hi": 0.0011448685327363896
+        },
+        "cost_executor": {
+          "point": 0.007320395988538681,
+          "lo": 0.0068833188467048705,
+          "hi": 0.007804973724928368
+        },
+        "prompt_tokens": {
+          "point": 11092.363896848137,
+          "lo": 10582.10293696275,
+          "hi": 11631.224283667623
+        },
+        "completion_tokens": {
+          "point": 339.26361031518627,
+          "lo": 316.527005730659,
+          "hi": 363.9844555873925
+        },
+        "executor_calls": 2,
+        "exposed_tools": 7.025787965616046,
+        "errors": 0,
+        "rows": 349,
+        "loop_limit": 2
+      },
+      "E7-full": {
+        "label": "E7 regex->Jev, all skill tools exposed (D-002)",
+        "e2e_success": {
+          "point": 0.4469914040114613,
+          "lo": 0.3954154727793696,
+          "hi": 0.498567335243553
+        },
+        "first_call_success": {
+          "point": 0.4355300859598854,
+          "lo": 0.3839541547277937,
+          "hi": 0.4871060171919771
+        },
+        "clarification_credited": {
+          "point": 0.008595988538681949,
+          "lo": 0.0,
+          "hi": 0.02005730659025788
+        },
+        "recovered_credited": {
+          "point": 0.0028653295128939827,
+          "lo": 0.0,
+          "hi": 0.008595988538681949
+        },
+        "skill_correct": {
+          "point": 0.839541547277937,
+          "lo": 0.7994269340974212,
+          "hi": 0.8767908309455588
+        },
+        "tool_correct": {
+          "point": 0.7134670487106017,
+          "lo": 0.664756446991404,
+          "hi": 0.7593123209169055
+        },
+        "args_valid": {
+          "point": 0.6561604584527221,
+          "lo": 0.6045845272206304,
+          "hi": 0.7048710601719198
+        },
+        "cost_turn": {
+          "point": 0.007969451581661891,
+          "lo": 0.007502923029584527,
+          "hi": 0.00845884021747851
+        },
+        "cost_routing": {
+          "point": 0.0007594429856733525,
+          "lo": 0.000682002460243553,
+          "hi": 0.0008412266648280802
+        },
+        "cost_executor": {
+          "point": 0.007210008595988539,
+          "lo": 0.0067677344555873925,
+          "hi": 0.007684614598853869
+        },
+        "prompt_tokens": {
+          "point": 11061.742120343839,
+          "lo": 10532.129083094556,
+          "hi": 11610.445845272206
+        },
+        "completion_tokens": {
+          "point": 341.88538681948427,
+          "lo": 317.39777936962753,
+          "hi": 367.5703438395415
+        },
+        "executor_calls": 1.9828080229226361,
+        "exposed_tools": 7.054441260744985,
+        "errors": 0,
+        "rows": 349,
+        "loop_limit": 2
+      }
+    },
+    "contrasts": {
+      "E9-full-E9:e2e_success": {
+        "delta": {
+          "point": 0.022922636103151862,
+          "lo": 0.0,
+          "hi": 0.045845272206303724
+        },
+        "n": 349,
+        "a_only": 12,
+        "b_only": 4,
+        "mcnemar_p": 0.076812744140625,
+        "sign_flip_p": 0.076812744140625
+      },
+      "E9-full-E9:first_call_success": {
+        "delta": {
+          "point": 0.025787965616045846,
+          "lo": 0.0057306590257879654,
+          "hi": 0.04871060171919771
+        },
+        "n": 349,
+        "a_only": 12,
+        "b_only": 3,
+        "mcnemar_p": 0.03515625,
+        "sign_flip_p": 0.03515625
+      },
+      "E9-full-E9:tool_correct": {
+        "delta": {
+          "point": 0.011461318051575931,
+          "lo": -0.014326647564469915,
+          "hi": 0.03724928366762178
+        },
+        "n": 349,
+        "a_only": 12,
+        "b_only": 8,
+        "mcnemar_p": 0.5034446716308594,
+        "sign_flip_p": 0.5034446716308594
+      },
+      "E9-full-E0:e2e_success": {
+        "delta": {
+          "point": -0.07449856733524356,
+          "lo": -0.11461318051575932,
+          "hi": -0.034383954154727794
+        },
+        "n": 349,
+        "a_only": 13,
+        "b_only": 39,
+        "mcnemar_p": 0.00040954145378258033,
+        "sign_flip_p": 0.00029997000299970003
+      },
+      "E9-full-E0:first_call_success": {
+        "delta": {
+          "point": -0.05730659025787966,
+          "lo": -0.09742120343839542,
+          "hi": -0.017191977077363897
+        },
+        "n": 349,
+        "a_only": 15,
+        "b_only": 35,
+        "mcnemar_p": 0.006600447966810918,
+        "sign_flip_p": 0.0065993400659934
+      },
+      "E9-full-E0:tool_correct": {
+        "delta": {
+          "point": 0.0,
+          "lo": -0.034383954154727794,
+          "hi": 0.034383954154727794
+        },
+        "n": 349,
+        "a_only": 18,
+        "b_only": 18,
+        "mcnemar_p": 1.0,
+        "sign_flip_p": 1.0
+      },
+      "E7-full-E7:e2e_success": {
+        "delta": {
+          "point": -0.0028653295128939827,
+          "lo": -0.022922636103151862,
+          "hi": 0.02005730659025788
+        },
+        "n": 349,
+        "a_only": 7,
+        "b_only": 8,
+        "mcnemar_p": 1.0,
+        "sign_flip_p": 1.0
+      },
+      "E7-full-E7:first_call_success": {
+        "delta": {
+          "point": 0.0,
+          "lo": -0.02005730659025788,
+          "hi": 0.02005730659025788
+        },
+        "n": 349,
+        "a_only": 7,
+        "b_only": 7,
+        "mcnemar_p": 1.0,
+        "sign_flip_p": 1.0
+      },
+      "E7-full-E7:tool_correct": {
+        "delta": {
+          "point": -0.025787965616045846,
+          "lo": -0.05157593123209169,
+          "hi": 0.0
+        },
+        "n": 349,
+        "a_only": 7,
+        "b_only": 16,
+        "mcnemar_p": 0.0931396484375,
+        "sign_flip_p": 0.08999100089991001
+      },
+      "E7-full-E0:e2e_success": {
+        "delta": {
+          "point": -0.10888252148997135,
+          "lo": -0.1489971346704871,
+          "hi": -0.06876790830945559
+        },
+        "n": 349,
+        "a_only": 8,
+        "b_only": 46,
+        "mcnemar_p": 1.3843354973452904e-07,
+        "sign_flip_p": 9.999000099990002e-05
+      },
+      "E7-full-E0:first_call_success": {
+        "delta": {
+          "point": -0.09742120343839542,
+          "lo": -0.13753581661891118,
+          "hi": -0.05730659025787966
+        },
+        "n": 349,
+        "a_only": 10,
+        "b_only": 44,
+        "mcnemar_p": 3.385685953372075e-06,
+        "sign_flip_p": 9.999000099990002e-05
+      },
+      "E7-full-E0:tool_correct": {
+        "delta": {
+          "point": -0.03724928366762178,
+          "lo": -0.07163323782234957,
+          "hi": -0.0028653295128939827
+        },
+        "n": 349,
+        "a_only": 11,
+        "b_only": 24,
+        "mcnemar_p": 0.04095959151163697,
+        "sign_flip_p": 0.0362963703629637
+      },
+      "E9-E0:e2e_success": {
+        "delta": {
+          "point": -0.09742120343839542,
+          "lo": -0.1346704871060172,
+          "hi": -0.06017191977077364
+        },
+        "n": 349,
+        "a_only": 6,
+        "b_only": 40,
+        "mcnemar_p": 3.1028037028590916e-07,
+        "sign_flip_p": 9.999000099990002e-05
+      },
+      "E9-E0:first_call_success": {
+        "delta": {
+          "point": -0.0830945558739255,
+          "lo": -0.12034383954154727,
+          "hi": -0.045845272206303724
+        },
+        "n": 349,
+        "a_only": 8,
+        "b_only": 37,
+        "mcnemar_p": 1.5374090196473844e-05,
+        "sign_flip_p": 9.999000099990002e-05
+      },
+      "E9-E0:tool_correct": {
+        "delta": {
+          "point": -0.011461318051575931,
+          "lo": -0.045845272206303724,
+          "hi": 0.022922636103151862
+        },
+        "n": 349,
+        "a_only": 16,
+        "b_only": 20,
+        "mcnemar_p": 0.617719317029696,
+        "sign_flip_p": 0.6195380461953804
+      },
+      "E7-E0:e2e_success": {
+        "delta": {
+          "point": -0.10601719197707736,
+          "lo": -0.14613180515759314,
+          "hi": -0.06876790830945559
+        },
+        "n": 349,
+        "a_only": 8,
+        "b_only": 45,
+        "mcnemar_p": 2.3683513772354559e-07,
+        "sign_flip_p": 9.999000099990002e-05
+      },
+      "E7-E0:first_call_success": {
+        "delta": {
+          "point": -0.09742120343839542,
+          "lo": -0.13753581661891118,
+          "hi": -0.05730659025787966
+        },
+        "n": 349,
+        "a_only": 10,
+        "b_only": 44,
+        "mcnemar_p": 3.385685953372075e-06,
+        "sign_flip_p": 9.999000099990002e-05
+      },
+      "E7-E0:tool_correct": {
+        "delta": {
+          "point": -0.011461318051575931,
+          "lo": -0.05157593123209169,
+          "hi": 0.025787965616045846
+        },
+        "n": 349,
+        "a_only": 21,
+        "b_only": 25,
+        "mcnemar_p": 0.6587380770236564,
+        "sign_flip_p": 0.6553344665533447
+      },
+      "E9-full/E0:total": {
+        "ratio": 0.9223883438337864,
+        "lo": 0.8785201979178138,
+        "hi": 0.9691607450149134,
+        "n": 349
+      },
+      "E9-full/E0:prompt": {
+        "ratio": 0.7527037163923901,
+        "lo": 0.7277437026565226,
+        "hi": 0.7782888363704533,
+        "n": 349
+      },
+      "E9-full/E9:total": {
+        "ratio": 1.0151121547695743,
+        "lo": 0.9702887781789619,
+        "hi": 1.0627276771161787,
+        "n": 349
+      },
+      "E9-full/E9:prompt": {
+        "ratio": 1.2700218885860473,
+        "lo": 1.2362697059183927,
+        "hi": 1.3066153157584897,
+        "n": 349
+      },
+      "E7-full/E0:total": {
+        "ratio": 0.8824513570233846,
+        "lo": 0.8378830321056376,
+        "hi": 0.9290197252858635,
+        "n": 349
+      },
+      "E7-full/E0:prompt": {
+        "ratio": 0.7506257891632021,
+        "lo": 0.7242143276725254,
+        "hi": 0.77837540744847,
+        "n": 349
+      },
+      "E7-full/E7:total": {
+        "ratio": 1.012670088102007,
+        "lo": 0.9629419753102944,
+        "hi": 1.0661601307838413,
+        "n": 349
+      },
+      "E7-full/E7:prompt": {
+        "ratio": 1.2487346226898455,
+        "lo": 1.2108151677663481,
+        "hi": 1.2874031523613425,
+        "n": 349
+      }
+    },
+    "same_skill_choice": {
+      "E9-full": 349,
+      "E7-full": 349
+    }
+  },
+  "error_analysis": {
+    "E9": {
+      "n_cases": 349,
+      "native_only": 40,
+      "routed_only": 6,
+      "routed_loss_classes": {
+        "G": 1,
+        "A1": 17,
+        "B": 7,
+        "D": 2,
+        "E": 1,
+        "F": 6,
+        "A2": 5,
+        "C": 1
+      },
+      "native_loss_classes": {
+        "N1": 3,
+        "N4": 2,
+        "N3": 1
+      },
+      "native_multi_load_in_native_only": 1,
+      "native_multi_load_in_routed_only": 1,
+      "native_only_by_category": {
+        "adversarial": 2,
+        "ambiguo": 7,
+        "direto": 1,
+        "fora_escopo": 16,
+        "multiturno": 2,
+        "parafrase": 12
+      },
+      "examples": {
+        "G": [
+          "v2-adversarial-001"
+        ],
+        "A1": [
+          "v2-adversarial-007",
+          "v2-fora_escopo-008",
+          "v2-fora_escopo-011",
+          "v2-fora_escopo-012"
+        ],
+        "B": [
+          "v2-ambiguo-002",
+          "v2-ambiguo-035",
+          "v2-parafrase-051",
+          "v2-parafrase-052"
+        ],
+        "D": [
+          "v2-ambiguo-013",
+          "v2-parafrase-031"
+        ],
+        "E": [
+          "v2-ambiguo-016"
+        ],
+        "F": [
+          "v2-ambiguo-023",
+          "v2-ambiguo-055",
+          "v2-ambiguo-066",
+          "v2-multiturno-027"
+        ],
+        "A2": [
+          "v2-direto-011",
+          "v2-multiturno-003",
+          "v2-parafrase-006",
+          "v2-parafrase-009"
+        ],
+        "C": [
+          "v2-parafrase-020"
+        ]
+      },
+      "rescued_by_full_skill": {
+        "G": [
+          1,
+          1
+        ],
+        "A1": [
+          0,
+          17
+        ],
+        "B": [
+          0,
+          7
+        ],
+        "D": [
+          0,
+          2
+        ],
+        "E": [
+          0,
+          1
+        ],
+        "F": [
+          3,
+          6
+        ],
+        "A2": [
+          0,
+          5
+        ],
+        "C": [
+          1,
+          1
+        ]
+      },
+      "label_agnostic_sensitivity": {
+        "n_reclassified": 22,
+        "routed_e2e": 0.5214899713467048,
+        "delta_vs_e0": {
+          "point": -0.034383954154727794,
+          "lo": -0.06303724928366762,
+          "hi": -0.008595988538681949
+        }
+      }
+    },
+    "E9-full": {
+      "n_cases": 349,
+      "native_only": 39,
+      "routed_only": 13,
+      "routed_loss_classes": {
+        "A1": 18,
+        "B": 7,
+        "D": 3,
+        "E": 1,
+        "F": 5,
+        "A2": 5
+      },
+      "native_loss_classes": {
+        "N1": 4,
+        "N4": 6,
+        "N5": 2,
+        "N3": 1
+      },
+      "native_multi_load_in_native_only": 1,
+      "native_multi_load_in_routed_only": 1,
+      "native_only_by_category": {
+        "adversarial": 1,
+        "ambiguo": 8,
+        "direto": 1,
+        "fora_escopo": 17,
+        "multiturno": 2,
+        "parafrase": 10
+      },
+      "examples": {
+        "A1": [
+          "v2-adversarial-007",
+          "v2-fora_escopo-008",
+          "v2-fora_escopo-010",
+          "v2-fora_escopo-011"
+        ],
+        "B": [
+          "v2-ambiguo-002",
+          "v2-ambiguo-035",
+          "v2-parafrase-051",
+          "v2-parafrase-052"
+        ],
+        "D": [
+          "v2-ambiguo-013",
+          "v2-parafrase-031",
+          "v2-parafrase-075"
+        ],
+        "E": [
+          "v2-ambiguo-016"
+        ],
+        "F": [
+          "v2-ambiguo-023",
+          "v2-ambiguo-026",
+          "v2-ambiguo-042",
+          "v2-ambiguo-055"
+        ],
+        "A2": [
+          "v2-direto-011",
+          "v2-multiturno-003",
+          "v2-parafrase-006",
+          "v2-parafrase-009"
+        ]
+      },
+      "rescued_by_full_skill": {},
+      "label_agnostic_sensitivity": {
+        "n_reclassified": 23,
+        "routed_e2e": 0.5472779369627507,
+        "delta_vs_e0": {
+          "point": -0.008595988538681949,
+          "lo": -0.04011461318051576,
+          "hi": 0.022922636103151862
+        }
+      }
+    },
+    "E7": {
+      "n_cases": 349,
+      "native_only": 45,
+      "routed_only": 8,
+      "routed_loss_classes": {
+        "A1": 21,
+        "B": 8,
+        "F": 8,
+        "C": 2,
+        "A2": 5,
+        "D": 1
+      },
+      "native_loss_classes": {
+        "N1": 2,
+        "N5": 1,
+        "N4": 4,
+        "N3": 1
+      },
+      "native_multi_load_in_native_only": 2,
+      "native_multi_load_in_routed_only": 1,
+      "native_only_by_category": {
+        "adversarial": 2,
+        "ambiguo": 9,
+        "direto": 1,
+        "fora_escopo": 20,
+        "multiturno": 2,
+        "parafrase": 11
+      },
+      "examples": {
+        "A1": [
+          "v2-adversarial-007",
+          "v2-adversarial-008",
+          "v2-fora_escopo-004",
+          "v2-fora_escopo-008"
+        ],
+        "B": [
+          "v2-ambiguo-002",
+          "v2-ambiguo-044",
+          "v2-fora_escopo-027",
+          "v2-parafrase-051"
+        ],
+        "F": [
+          "v2-ambiguo-010",
+          "v2-ambiguo-017",
+          "v2-ambiguo-023",
+          "v2-ambiguo-024"
+        ],
+        "C": [
+          "v2-ambiguo-051",
+          "v2-parafrase-020"
+        ],
+        "A2": [
+          "v2-direto-011",
+          "v2-multiturno-001",
+          "v2-parafrase-006",
+          "v2-parafrase-009"
+        ],
+        "D": [
+          "v2-parafrase-031"
+        ]
+      },
+      "rescued_by_full_skill": {},
+      "label_agnostic_sensitivity": {
+        "n_reclassified": 26,
+        "routed_e2e": 0.5243553008595988,
+        "delta_vs_e0": {
+          "point": -0.03151862464183381,
+          "lo": -0.06017191977077364,
+          "hi": -0.0028653295128939827
+        }
+      }
+    },
+    "E7-full": {
+      "n_cases": 349,
+      "native_only": 46,
+      "routed_only": 8,
+      "routed_loss_classes": {
+        "A1": 18,
+        "B": 10,
+        "F": 11,
+        "D": 2,
+        "A2": 5
+      },
+      "native_loss_classes": {
+        "N1": 1,
+        "N4": 6,
+        "N3": 1
+      },
+      "native_multi_load_in_native_only": 2,
+      "native_multi_load_in_routed_only": 1,
+      "native_only_by_category": {
+        "adversarial": 2,
+        "ambiguo": 11,
+        "direto": 1,
+        "fora_escopo": 19,
+        "multiturno": 3,
+        "parafrase": 10
+      },
+      "examples": {
+        "A1": [
+          "v2-adversarial-007",
+          "v2-adversarial-008",
+          "v2-fora_escopo-008",
+          "v2-fora_escopo-009"
+        ],
+        "B": [
+          "v2-ambiguo-002",
+          "v2-ambiguo-044",
+          "v2-fora_escopo-004",
+          "v2-fora_escopo-023"
+        ],
+        "F": [
+          "v2-ambiguo-010",
+          "v2-ambiguo-017",
+          "v2-ambiguo-023",
+          "v2-ambiguo-024"
+        ],
+        "D": [
+          "v2-ambiguo-013",
+          "v2-parafrase-031"
+        ],
+        "A2": [
+          "v2-direto-011",
+          "v2-multiturno-001",
+          "v2-parafrase-006",
+          "v2-parafrase-009"
+        ]
+      },
+      "rescued_by_full_skill": {},
+      "label_agnostic_sensitivity": {
+        "n_reclassified": 23,
+        "routed_e2e": 0.5128939828080229,
+        "delta_vs_e0": {
+          "point": -0.04297994269340974,
+          "lo": -0.07449856733524356,
+          "hi": -0.011461318051575931
+        }
+      }
+    },
+    "native_load_skill": {
+      "twice": 21,
+      "twice_success": 10.0,
+      "once": 244,
+      "never": 84,
+      "never_success": 58.0
+    }
+  },
+  "confusions": {
+    "E1": {
+      "get_order_status -> __abstain__": 11,
+      "cancel_order -> __abstain__": 8,
+      "escalate_to_human -> __abstain__": 7,
+      "create_return_request -> __abstain__": 6,
+      "search_help_center -> __abstain__": 5,
+      "reschedule_delivery -> __abstain__": 5,
+      "dispute_charge -> get_payment_status": 5,
+      "get_customer_profile -> __abstain__": 4,
+      "track_shipment -> __abstain__": 4,
+      "__abstain__ -> __abstain__ [skill pedidos_logistica]": 4
+    },
+    "E3": {
+      "get_order_status -> track_shipment": 8,
+      "cancel_order -> check_return_eligibility": 5,
+      "request_refund -> create_return_request": 5,
+      "search_help_center -> create_return_request": 4,
+      "search_help_center -> cancel_order": 3,
+      "__abstain__ -> search_help_center": 3,
+      "create_exchange -> create_return_request": 3,
+      "search_help_center -> open_warranty_claim": 2,
+      "search_help_center -> dispute_charge": 2,
+      "__abstain__ -> get_customer_profile": 2
+    },
+    "E10": {
+      "get_order_status -> track_shipment": 6,
+      "search_help_center -> create_return_request": 5,
+      "request_refund -> create_return_request": 4,
+      "get_order_status -> get_customer_profile": 3,
+      "__abstain__ -> search_help_center": 3,
+      "create_return_request -> escalate_to_human": 3,
+      "create_return_request -> create_exchange": 3,
+      "__abstain__ -> get_customer_profile": 2,
+      "cancel_order -> check_return_eligibility": 2,
+      "__abstain__ -> track_shipment": 2
+    },
+    "E6b": {
+      "escalate_to_human -> escalate_to_human [skill pedidos_logistica]": 5,
+      "request_refund -> create_return_request": 4,
+      "get_order_status -> track_shipment": 3,
+      "search_help_center -> search_help_center [skill trocas_devolucoes]": 3,
+      "track_shipment -> get_order_status": 3,
+      "get_payment_status -> request_refund": 3,
+      "search_help_center -> dispute_charge": 2,
+      "__abstain__ -> get_customer_profile": 2,
+      "search_help_center -> cancel_order": 2,
+      "__abstain__ -> search_help_center": 2
+    },
+    "E4": {
+      "request_refund -> create_return_request": 5,
+      "track_shipment -> get_order_status": 4,
+      "create_return_request -> check_return_eligibility": 4,
+      "search_help_center -> search_help_center [skill trocas_devolucoes]": 3,
+      "get_order_status -> track_shipment": 3,
+      "__abstain__ -> search_help_center": 2,
+      "dispute_charge -> escalate_to_human": 2,
+      "check_return_eligibility -> create_exchange": 2,
+      "search_help_center -> create_return_request": 2,
+      "open_warranty_claim -> check_return_eligibility": 2
+    },
+    "E5": {
+      "get_order_status -> track_shipment": 5,
+      "request_refund -> create_return_request": 4,
+      "open_warranty_claim -> create_return_request": 3,
+      "search_help_center -> search_help_center [skill trocas_devolucoes]": 2,
+      "__abstain__ -> get_customer_profile": 2,
+      "__abstain__ -> search_help_center": 2,
+      "dispute_charge -> get_payment_status": 2,
+      "get_order_status -> create_return_request": 2,
+      "search_help_center -> create_return_request": 2,
+      "check_return_eligibility -> create_exchange": 2
+    },
+    "E9": {
+      "search_help_center -> search_help_center [skill trocas_devolucoes]": 4,
+      "track_shipment -> get_order_status": 4,
+      "create_return_request -> check_return_eligibility": 3,
+      "get_order_status -> track_shipment": 3,
+      "request_refund -> create_return_request": 3,
+      "open_warranty_claim -> create_return_request": 2,
+      "__abstain__ -> search_help_center": 2,
+      "__abstain__ -> escalate_to_human [skill pagamentos_reembolsos]": 2,
+      "dispute_charge -> get_payment_status": 2,
+      "create_return_request -> request_refund": 2
+    }
+  }
+}

@@ -2,82 +2,95 @@
 
 # agent-router-study
 
-**How should an agent decide which skill and which tool to use?**
-An empirical, reproducible comparison of six routing strategies — regex, BM25, dense embeddings,
-hybrid RRF, LLM and the Jev decision model — and their cascades, on one agent, one MCP server
-and one labelled dataset.
+**How should an agent decide which skill and which tool to use, and does it need a router at all?**
+A pre-registered, reproducible comparison of regex, BM25, dense embeddings, a trained classifier,
+a hybrid, general-purpose LLMs (Bedrock and local) and the Jev decision model, alone and in
+cascades, on one LangGraph agent, one MCP server and one labelled pt-BR dataset.
 
 ![Python](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)
-![LangGraph](https://img.shields.io/badge/LangGraph-1.2-1C3C3C)
-![MCP](https://img.shields.io/badge/MCP-FastMCP%204-6E56CF)
+![LangGraph](https://img.shields.io/badge/LangGraph-agent-1C3C3C)
+![MCP](https://img.shields.io/badge/MCP-FastMCP-6E56CF)
 ![Langfuse](https://img.shields.io/badge/observability-Langfuse%20v4-0A0A0A)
 ![uv](https://img.shields.io/badge/deps-uv-DE5FE9)
-![tests](https://img.shields.io/badge/tests-160%20passed-2EA44F)
 
-[Results](#results-at-a-glance) · [Architecture](#architecture) · [Quickstart](#quickstart) ·
-[Experiments](#experiments) · [Full study](docs/study-results.md)
+[Results](#headline-results) · [Architecture](#architecture) · [Quickstart](#quickstart) ·
+[Reproduce the study](#reproduce-the-study) · [Full study (pt-BR)](estudos/README.md) ·
+[Português](README.pt-BR.md)
 
 </div>
 
 ---
 
-## Why this exists
+## What this is
 
-The *agent-skill* pattern keeps an agent's context small: a handful of **global tools** are
-always visible, and each **skill** (a bundle of domain tools + a playbook) is loaded on demand.
-That moves the hard question out of the executor LLM and into a **router**:
+The *agent-skill* pattern keeps an agent's context small: a few **global tools** are always
+visible and each **skill** (a bundle of domain tools plus a playbook) is loaded on demand. Routing
+can then happen in two stages, outside the executor LLM:
 
-1. **Skill stage** — which skill does this message belong to (or none: abstain / escalate)?
-2. **Tool stage** — within the loaded skill (+ globals), which tool(s) should the executor see?
+1. **Skill stage**: which skill does the message belong to (or none: abstain / escalate)?
+2. **Tool stage**: within that skill (plus globals), which tools should the executor see?
 
-Routers range from free and brittle (regex) to accurate and expensive (a frontier LLM). This
-repo measures, on the same agent and the same data, **accuracy × cost × latency × engineering
-effort** for each strategy and for cascades of them ("the first confident router decides").
+This repository measures, on the same agent and data, **accuracy × cost × latency × maintenance
+effort** for each routing strategy and for cascades ("the first confident router decides"), and
+compares the routed agent with a **native** agent that calls `load_skill` by itself.
 
-## Results at a glance
+The confirmatory run was pre-registered (git tag `prereg-v1`) and executed once on a fresh split
+(`test_v2`, 349 cases) that no router, prompt or threshold had seen. The full write-up, in
+Portuguese, is in [`estudos/`](estudos/README.md).
 
-Dev split, 151 pt-BR cases, both routing stages (skill → tool). Cascades replayed offline from
-one `shadow` run; E6 is a separate real run. **Total spend for the study: US$ 0.93.**
+## Headline results
 
-| Config | Router | Skill acc. | Joint acc. | US$ / 1k req. | Verdict |
-| --- | --- | ---: | ---: | ---: | --- |
-| E1 | regex | 62.3 % | 46.9 % | 0.00 | brittle on paraphrase / multi-turn |
-| E2 | BM25 | 55.6 % | 53.4 % | 0.00 | worst overall |
-| E3 | embeddings | 70.2 % | 72.5 %* | 0.0005 | best free-ish option, blind to history |
-| E4 | Jev | 84.1 % | 71.6 % | 0.43 | LLM-level accuracy at ~1/5 of the cost |
-| E5 | LLM Sonnet 5 | 83.4 % | 70.5 % | 2.31 | best-calibrated confidence |
-| E6 | LLM Haiku 4.5 | 83.4 % | 70.9 % | 3.40 | *not* cheaper than Sonnet 5 per billed call |
-| **E7** | **regex → Jev** | **84.1 %** | **71.5 %** | **0.42** | **Pareto-optimal: 22 % of traffic free via regex** |
-| E8 | regex → LLM | 84.1 % | 70.7 % | 2.17 | same accuracy, 5× the cost of E7 |
-| E9 | regex → Jev → LLM | 84.1 % | 70.2 % | 0.62 | LLM step decided 4/151 cases: +46 % cost, +0 pp |
+test-v2, 349 cases, intention to treat, 95% paired cluster-bootstrap CIs (10k resamples).
+Routing-only joint accuracy = skill and tool both correct at top-1.
 
-<sub>* measured on the subset where its skill matched the recorded one (n = 120); see the study, §3.</sub>
+| Config | Router | Joint accuracy % [95% CI] | Routing US$ / 1k cases | Warm p95 latency |
+|---|---|---|---|---|
+| E1 | regex | 52.7 [47.3, 57.9] | 0 | 0.4 ms |
+| E2 | BM25 | 49.0 [43.8, 54.2] | 0 | 7 ms |
+| E3 | embeddings (qwen3-embedding 8B, local) | 73.6 [68.8, 78.2] | 0 | 0.7 s |
+| E10 | linear probe classifier (local) | 74.8 [70.2, 79.4] | 0 | 1.0 s |
+| E11 | hybrid regex + classifier (local) | 72.8 [67.9, 77.4] | 0 | 1.0 s |
+| E6b | Qwen3-8B (local, Ollama) | 79.9 [75.6, 84.0] | 0 | 12.0 s |
+| E4 | Jev (`typesafe/jev-router` via OpenRouter) | **84.7** [81.0, 88.2] | **0.82** | 6.9 s |
+| E5 | Claude Sonnet 5 (Bedrock) | 84.1 [80.3, 87.8] | 4.98 | 11.0 s |
+| E6 | Claude Haiku 4.5 (Bedrock) | 84.5 [80.5, 88.3] | 5.23 | 5.9 s |
+| E7 | regex → Jev | 79.9 [75.8, 84.0] | 0.73 | 7.1 s |
+| E9 | regex → Jev → Sonnet | 81.8 [77.8, 85.6] | 0.99 | 9.9 s |
 
-**Key findings**
+Pre-registered hypotheses ([primary.md](docs/results/final/primary.md),
+[secondary.md](docs/results/final/secondary.md)):
 
-- 🥇 **Jev ≈ frontier LLM on accuracy, ~5× cheaper.** Cascade it behind a high-precision regex
-  (E7) and a fifth of requests cost nothing.
-- 🧠 **Multi-turn is the dividing line**: routers that read history (Jev, LLMs) score 86.7 %;
-  lexical and embedding routers score 20–27 %.
-- 🎯 **Use the LLM's confidence, not Jev's, as a gate**: Sonnet at ≥ 0.9 confidence was right
-  75/76 times (ECE 0.068); Jev reports ≥ 0.9 on 86 % of cases regardless.
-- 🚪 **No router abstains**: out-of-scope messages go to global scope → `escalate_to_human`.
-  Counted as abstention (the study's policy), Jev/LLM skill accuracy is ~90–91 %.
-- 💸 **Routed agent turns were ~3.5× cheaper than the native agent** in the e2e smoke run
-  (small n, directional only).
+- **H1** cascade E9 vs Sonnet 5: −2.4 pp [−5.4, 0.7]; non-inferiority (margin 3 pp) **not shown**.
+  Routing cost ratio 0.199 [0.174, 0.224].
+- **H2** cascade E7 vs Sonnet 5: −4.2 pp [−7.8, −0.6]; non-inferiority **not shown**.
+- **H3** end to end, routed E9 vs native E0 (Sonnet 5 executor): e2e_success 45.8% vs 55.6%,
+  **−9.7 pp [−13.5, −6.0]**, Holm p 0.0003. **The native agent beats the routed one**, and the
+  router saves only ~9% per turn (cost ratio 0.909 [0.859, 0.960]).
+- Prompt engineering: the pre-declared one-SE rule kept the base prompt P0 for all four LLMs, so
+  no tuning gain was found. Model equivalence (±3 pp vs Sonnet) was not established after Holm.
+- Regex rules written on the dev split dropped from 84.8% (dev) to 52.7% (test): **−32.1 pp**.
 
-> Full numbers, per-category breakdowns, calibration, error analysis and caveats:
-> **[docs/study-results.md](docs/study-results.md)**.
+Exploratory (post hoc, same split): exposing all tools of the routed skill instead of the top-2
+lifted E9 to 48.1% (still −7.4 pp vs native). In 22 of the 40 cases only the native agent solved,
+the routed executor made exactly the same tool calls and failed only because the router's skill
+label was scored; see [estudos/07](estudos/07-ponta-a-ponta.md).
+
+![Accuracy vs routing cost](estudos/figuras/final-pareto-accuracy-cost.png)
+
+**Practical reading for this catalog (18 tools):** do not put a router in front of the agent;
+if you need one (governance, audit, a growing catalog), Jev alone is as accurate as Sonnet 5 at
+about one sixth of the cost; no tested router reaches 75% joint accuracy under a 2 s p95.
+Decision matrix by use case: [estudos/11](estudos/11-matriz-enterprise.md).
 
 ## Architecture
 
 ```mermaid
 flowchart LR
     U["User message<br/>+ short history"] --> I[ingest]
-    I --> RS["route_skill<br/>pipeline: regex → Jev → LLM"]
+    I --> RS["route_skill<br/>pipeline, e.g. regex → Jev → Sonnet"]
     RS -- abstain --> ESC["escalate_to_human"]
-    RS -- skill --> RT["route_tool<br/>pipeline: Jev → LLM<br/>expose top-k"]
-    RT --> A["agent (executor LLM)<br/>sees top-k + globals only"]
+    RS -- skill --> RT["route_tool<br/>pipeline, expose top-k"]
+    RT --> A["agent (Sonnet 5 executor)<br/>sees top-k + globals"]
     A <--> T["tools<br/>MCP server (mock data)"]
     A --> R[answer]
 
@@ -86,164 +99,87 @@ flowchart LR
 ```
 
 | Component | What it is | Where |
-| --- | --- | --- |
-| **Host agent** | LangGraph `StateGraph` (`ingest → route_skill → route_tool → agent ⇄ tools`), Redis checkpointer, layered cacheable system prompt | [`src/routing_study/graph`](src/routing_study/graph) |
-| **Routers** | One contract (`RouteOption → RouteDecision{choice, confidence, candidates, cost, latency}`) implemented by 6 strategies; used by both stages | [`src/routing_study/routers`](src/routing_study/routers) |
-| **Pipeline** | `single` · `cascade` (first router above its threshold decides) · `shadow` (all run in parallel, one decides, the rest are logged) | [`routers/pipeline.py`](src/routing_study/routers/pipeline.py) |
-| **MCP server** | FastMCP over streamable HTTP: 3 skills × 5 tools + 3 globals, skill/policy resources, deterministic mock DB, OTel tracing | [`mcp_server/`](mcp_server) |
-| **Dataset** | 500 pt-BR post-sales cases (104 hand-written + 396 synthetic), 6 categories, multi-label gold, 30/70 dev/test | [`data/`](data) |
-| **Eval harness** | Runner → Langfuse dataset runs, scorers (skill/tool/args/e2e/grounding/abstention), offline cascade simulation, cost estimate | [`src/routing_study/eval`](src/routing_study/eval) |
-| **Observability** | Every turn is a trace; every router decision a span with strategy, confidence, candidates, latency and real `usage.cost` | [`src/routing_study/tracing`](src/routing_study/tracing) |
+|---|---|---|
+| **MCP server** | FastMCP: 3 skills × 5 tools + 3 global tools, skill and policy resources, deterministic mock DB; the single source of the catalog every router reads | [`mcp_server/`](mcp_server) |
+| **Host agent** | LangGraph `StateGraph` (`ingest → route_skill → route_tool → agent ⇄ tools`) with a Redis checkpointer; native mode (E0) lets the executor call `load_skill` itself | [`src/routing_study/graph`](src/routing_study/graph) |
+| **Routers** | One contract (choice, confidence, candidates, cost, latency) for both stages: regex, BM25, embedding, classifier, hybrid, LLM (Bedrock / Ollama), Jev; pipelines `single`, `cascade`, `shadow` | [`src/routing_study/routers`](src/routing_study/routers) |
+| **Providers** | AWS Bedrock (Claude Sonnet 5, Haiku 4.5), OpenRouter (Jev, dataset generation, label audit), Ollama (Qwen3-8B, qwen3-embedding) | [`src/routing_study/llm.py`](src/routing_study/llm.py) |
+| **Observability** | Langfuse v4: a trace per turn, spans per graph node and router step, MCP calls as child spans; each run is a Langfuse dataset experiment | [`src/routing_study/tracing`](src/routing_study/tracing) |
+| **Eval harness** | Runner, offline rescoring (the only source of numbers), pre-registered manifest runner with version guard and budget ledger, stats (paired cluster bootstrap, McNemar, sign-flip, Holm, TOST) | [`src/routing_study/eval`](src/routing_study/eval) |
+| **Dataset** | pt-BR e-commerce post-sales: dev 151, test-v1 349 (exposed), test-v2 349 (confirmatory, generated by a non-Claude model, blind-audited by two other families) | [`data/`](data), [dataset card](docs/dataset-card.md) |
 
-### Domain: e-commerce post-sales (pt-BR)
-
-| Scope | Tools |
-| --- | --- |
-| Globals (always visible) | `load_skill`, `get_customer_profile`, `search_help_center`, `escalate_to_human` |
-| `pedidos_logistica` | `get_order_status`, `track_shipment`, `update_delivery_address`, `reschedule_delivery`, `cancel_order` |
-| `pagamentos_reembolsos` | `get_payment_status`, `generate_boleto_second_copy`, `request_refund`, `get_refund_status`, `dispute_charge` |
-| `trocas_devolucoes` | `check_return_eligibility`, `create_return_request`, `generate_return_label`, `create_exchange`, `open_warranty_claim` |
-
-Confusable on purpose: `cancel_order × request_refund × create_return_request` (crosses all three
-skills), `get_order_status × track_shipment`, `get_payment_status × get_refund_status`, and
-`search_help_center` as a permanent distractor.
-
-### Routing strategies
-
-| Strategy | How it decides | Confidence | Cost per call | Effort to add a tool |
-| --- | --- | --- | --- | --- |
-| `regex` | Weighted pt-BR patterns per option ([`config/regex_rules.yaml`](config/regex_rules.yaml)) | heuristic, reduced on ties | free, ~0 ms | high — patterns per paraphrase |
-| `bm25` | `rank_bm25` over description + examples + keywords | normalized top-1/top-2 margin | free, local | low |
-| `embedding` | `qwen/qwen3-embedding-8b` cosine vs. example vectors (cached) | softmax, T = 0.05 | ~US$ 10⁻⁷ | low |
-| `hybrid` | Reciprocal Rank Fusion of BM25 + embedding | fused score | ~US$ 10⁻⁷ | low |
-| `llm` | Structured output with an `enum` of option ids, T = 0 (Sonnet 5 / Haiku 4.5) | self-reported | ~US$ 10⁻³ | low — description only |
-| `jev` | `typesafe/jev-router` via OpenRouter, JSON `{choice, confidence}` with a tolerant parser | model-reported | ~US$ 10⁻⁴ | low — description only |
-
-All strategies read the **same catalog** served by the MCP server (descriptions, examples,
-keywords), so none has privileged information.
+Domain: `pedidos_logistica`, `pagamentos_reembolsos`, `trocas_devolucoes` (5 tools each) plus
+`get_customer_profile`, `search_help_center`, `escalate_to_human`; confusable pairs on purpose
+(`cancel_order × request_refund × create_return_request`, `get_order_status × track_shipment`,
+`get_payment_status × get_refund_status`).
 
 ## Quickstart
 
-**Requirements:** Python 3.12, [uv](https://docs.astral.sh/uv/), Docker, an
-[OpenRouter](https://openrouter.ai) API key.
+Requirements: Python 3.12, [uv](https://docs.astral.sh/uv/), Docker, an OpenRouter API key, AWS
+credentials with Bedrock access (default boto3 chain, region `sa-east-1`) and, for local routers,
+[Ollama](https://ollama.com) with `qwen3:8b-q8_0` and `qwen3-embedding:8b-q8_0`.
 
 ```bash
 git clone https://github.com/LucaPinheiro/agent-router-study.git
 cd agent-router-study
 uv sync
-cp .env.example .env            # set OPENROUTER_API_KEY
+cp .env.example .env            # OPENROUTER_API_KEY, Langfuse keys, MCP_TOKEN, REDIS_URL
 
 make up                         # Langfuse v4 (http://localhost:3300) + Redis
 make up-app                     # + MCP server on :8765
 make health
-```
 
-Local Langfuse login: `admin@local.dev` / `admin12345` (throwaway, local only).
-
-### Run an experiment
-
-```bash
-# cost estimate before spending
 uv run study estimate -c config/experiments/e9_regex_jev_llm.yaml --split dev --mode routing-only
-
-# one config, routing only (no executor)
-uv run study run -c config/experiments/e9_regex_jev_llm.yaml --split dev --mode routing-only
-
-# every strategy in one pass, then replay any cascade offline for free
-uv run study run -c config/experiments/e9_regex_jev_llm.yaml --split dev \
-  --mode routing-only --routing-mode shadow --run-name shadow-dev
-uv run study rescore results/shadow-dev.jsonl             # -> results/rescored/ (+ provenance)
-uv run study simulate results/rescored/shadow-dev.jsonl -c config/experiments/e7_regex_jev.yaml
-
-# full agent with tools (executor fills args and answers)
+uv run study run -c config/experiments/e9_regex_jev_llm.yaml --split dev --mode routing-only --limit 10
 uv run study run -c config/experiments/e0_native.yaml --split dev --mode e2e --limit 10
-
-uv run study rescore results/*.jsonl       # offline, deterministic: the ONLY source of numbers
-uv run study report                        # tables + 95% CIs over results/rescored/*.jsonl
-uv run python scripts/analysis/study_report.py results/rescored/shadow-dev.jsonl   # per strategy
-uv run study trace <trace_id>              # print a trace tree from Langfuse
+uv run study budget             # spend ledger by provider and model
+make test && make lint
 ```
 
-Any setting can be overridden by env var, e.g.
-`ROUTING__SKILL__PIPELINE__0__MIN_CONFIDENCE=0.95`. Model slugs live only in YAML.
+Any setting can be overridden with an env var, e.g.
+`ROUTING__SKILL__PIPELINE__0__MIN_CONFIDENCE=0.95`. Model ids live only in the YAML configs.
 
-### Tests & lint
+## Reproduce the study
 
 ```bash
-make test     # 160 unit tests: routers, pipeline, graph, scorers, MCP server, dataset
-make e2e      # integration: trace-tree shape against the live stack (needs make up-app)
-make lint
+BUDGET__AWS_USD_CAP=85 uv run study run-manifest config/study_manifest.yaml   # 102 pre-registered runs
+uv run study run-manifest config/study_manifest_explore.yaml                  # 2 exploratory runs (D-002)
+uv run python scripts/analysis/final_all.py                                   # every table and figure
 ```
 
-## Experiments
-
-| ID | Skill pipeline | Tool pipeline | Question |
-| --- | --- | --- | --- |
-| E0 | native — the agent calls `load_skill` itself | native | Is a router worth it at all? |
-| E1 | regex | regex | Floor/ceiling without a model |
-| E2 | BM25 | BM25 | Lexical, zero API cost |
-| E3 | embeddings | embeddings | Cheap semantics |
-| E4 | Jev | Jev | Decision model in isolation |
-| E5 | LLM Sonnet 5 | LLM Sonnet 5 | Accuracy reference |
-| E6 | LLM Haiku 4.5 | LLM Haiku 4.5 | How much a cheap LLM loses |
-| E7 | regex → Jev | Jev | Cascade without an LLM |
-| E8 | regex → LLM | LLM | Classic cascade |
-| E9 | regex → Jev → LLM | Jev → LLM | Best cost/benefit? |
-
-Configs: [`config/experiments/`](config/experiments). Metrics: skill accuracy, conditional
-tool accuracy, joint accuracy, abstention, coverage per cascade step, calibration (ECE),
-latency p50/p95, US$ per 1,000 requests, argument validity and grounding (e2e).
+The manifest pins each run's `config_hash` and `prompt_hash`, checks the budget before each run,
+resumes by (case, repetition) and flags runs with more than 2% errors. Frozen hashes, the
+deviation log (D-001 to D-003) and the per-table commands are in
+[`docs/prereg/`](docs/prereg/prereg-v1.md) and [estudos/13](estudos/13-reprodutibilidade.md).
+Analysis outputs: [`docs/results/final/`](docs/results/final/). Spend for the final study:
+US$ 34.48 Bedrock + US$ 1.43 OpenRouter (whole-project ledger: US$ 52.11 Bedrock, US$ 5.83
+OpenRouter).
 
 ## Repository layout
 
 ```text
-agent-router-study/
-├─ config/
-│  ├─ experiments/          # e0_native.yaml … e9_regex_jev_llm.yaml
-│  └─ regex_rules.yaml      # written from the catalog only, never from test data
-├─ data/                    # seed, synthetic, dev/test splits + dataset card
-├─ docs/
-│  ├─ study-results.md      # the study: results, analysis, recommendations
-│  ├─ projeto.md            # original study plan (pt-BR)
-│  ├─ graph.md              # generated LangGraph topology
-│  └─ results/              # raw run files used by the study (jsonl)
-├─ infra/                   # docker compose: Langfuse v4, Redis, MCP server
-├─ mcp_server/              # FastMCP server, mock DB, skills, tests
-├─ scripts/
-│  ├─ dataset/              # generate + split
-│  └─ analysis/             # study_report.py
-├─ spikes/                  # Langfuse v4 SDK spike
-├─ src/routing_study/
-│  ├─ routers/              # contract, 6 strategies, pipeline
-│  ├─ graph/                # LangGraph host agent
-│  ├─ eval/                 # runner, scorers, simulate, report, estimate
-│  ├─ tracing/              # Langfuse + cost capture
-│  ├─ prompts/              # layered system prompt
-│  ├─ catalog.py · llm.py · settings.py · cli.py
-└─ tests/
+config/          experiments/ (E0–E12), study manifests, prompt selection, prices, regex rules, rq5/
+data/            dev, test-v1, test-v2, audit/, dataset card inputs
+docs/            prereg/ (pre-registration, hashes, deviations), results/final/ (analysis), method notes
+estudos/         the study write-up (pt-BR) and figures
+infra/           docker compose: Langfuse v4, Redis, MCP server
+mcp_server/      FastMCP server, mock DB, skills, tests
+scripts/         dataset generation and audit; analysis (final_*.py, tuning, prompt selection)
+src/routing_study/  routers/, graph/, eval/, tracing/, prompts/, catalog, llm, settings, cli
+tests/
 ```
 
-## Methodology guardrails
+## Limitations
 
-- **No leakage:** regex rules, option examples and thresholds are tuned on **dev** only; the
-  test split (349 cases) is held out.
-- **Different generator family:** synthetic cases come from `google/gemini-2.5-flash`, not from
-  any router model.
-- **Multi-label gold:** ambiguous cases list every acceptable skill/tool; forcing one label
-  would punish routers that pick a valid alternative.
-- **Real cost:** OpenRouter's `usage.cost` per call, not list-price arithmetic.
-- **Reproducible offline:** `shadow` mode records every strategy's decision, so any cascade and
-  threshold can be replayed with `study simulate` without new API calls.
+One domain, one language, 18 tools: the native agent is strong at this size and the conclusions
+do not automatically extend to catalogs with hundreds of tools. Data are synthetic and labels were
+audited by models, not humans. "Jev" here is `typesafe/jev-router` via OpenRouter, a meta-router
+whose served model varies per call, not Jev's native typed API. Full list:
+[estudos/12](estudos/12-limitacoes.md).
 
-## Status and limitations
-
-- Human review of the dataset is **pending** (`reviewed: false` everywhere) — see
-  [`data/README.md`](data/README.md).
-- Current results are on the **dev split, 1 repetition**; the held-out test run with 3
-  repetitions is the next step.
-- Jev is early-access; `typesafe/jev-router` is a meta-router whose served model varies per
-  call (recorded in every trace).
+The previous dev-only write-up ([docs/study-results.md](docs/study-results.md)) is **superseded**
+by this study.
 
 ## License
 
-No license file yet — all rights reserved by the author until one is added.
+No license file yet: all rights reserved by the author until one is added.

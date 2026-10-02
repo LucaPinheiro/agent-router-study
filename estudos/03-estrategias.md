@@ -1,8 +1,9 @@
 # 03 · Estratégias de roteamento e estado da arte
 
-> Rascunho. As configurações finais de cada estratégia são congeladas no pré-registro. As
-> referências vêm da auditoria de estado da arte (`.omc/reviews/sota-final.md`, 2026-09-30).
-> "Não verificado" indica afirmação que não conseguimos confirmar em fonte pública.
+> Versão final. As configurações estão congeladas na tag `prereg-v1`; o esforço de ajuste de
+> cada uma está em [tuning-effort.md](../docs/tuning-effort.md). As referências vêm da auditoria
+> de estado da arte (2026-09-30). "Não verificado" indica afirmação que não conseguimos confirmar
+> em fonte pública. Cada seção termina com o resultado no test-v2 (capítulo [05](05-resultados-roteamento.md)).
 
 Todas as estratégias implementam o mesmo contrato: recebem a mensagem, o histórico curto e a
 lista de opções, e devolvem uma escolha, uma confiança e os candidatos ranqueados. Vale para os
@@ -20,6 +21,8 @@ informação privilegiada.
   seletivo (curva risco × cobertura).
 - **Cuidado metodológico:** as regras foram escritas lendo os erros do split de dev. O número
   no dev é otimista, e só o test-v2 mede de verdade. Reportamos a distância entre dev e teste.
+- **No test-v2:** 52,7% de acurácia conjunta, contra 84,8% no dev (−32,1 pp [−37,5; −26,9]).
+  Nenhum ponto de operação com risco ≤ 5%. O superajuste ao dev é o maior efeito do estudo.
 
 ## 2. Busca léxica (BM25)
 
@@ -34,6 +37,10 @@ informação privilegiada.
   expansão de documentos com paráfrases geradas a partir do catálogo (o ganho principal no
   ToolRet) e n-gramas de caracteres para português informal. Entram como variantes avaliadas no
   dev.
+- **Configuração final** (946 configurações avaliadas no dev): índice por exemplo do catálogo
+  (soma dos 4 melhores), n-gramas de caracteres 3–5, expansão determinística com os exemplos do
+  catálogo. Com esse índice o IDF do Okapi deixa de degenerar.
+- **No test-v2:** 49,0% conjunta (dev 55,7%; gap −6,7 pp), o pior roteador.
 
 ## 3. Busca semântica (embeddings)
 
@@ -42,8 +49,11 @@ informação privilegiada.
   brasileiro** (0,670). Não verificamos quanto a quantização Q8 custa em qualidade.
 - **Agregação:** máximo por exemplo, centroide ou votação entre os k vizinhos mais próximos,
   escolhida por validação cruzada. Confiança por softmax com temperatura, calibrada.
-- **Ablação:** 1–2 embedders alternativos (menores ou comuns como padrão) como pontos de custo e
-  latência.
+- **Configuração final:** similaridade com o centroide, instrução de tarefa na consulta, as
+  duas últimas mensagens do histórico na consulta.
+- **Ablação:** `qwen3-embedding:0.6b` e `bge-m3`.
+- **No test-v2:** 73,6% conjunta (as duas ablações: 64,5%); p50 de 427 ms. Supera o regex em
+  +20,9 pp [15,2; 26,6] (S4).
 
 ## 4. Fusão (híbrido)
 
@@ -52,6 +62,11 @@ informação privilegiada.
 - **Estado da arte:** combinação convexa das confianças calibradas (peso por validação cruzada)
   e um empilhador logístico pequeno sobre as confianças de regex, BM25 e embedding, mais a
   concordância entre eles.
+- **Configuração final (E11):** combinação convexa de regex e classificador com α = 0,5. O BM25
+  não somou nada à fusão, e o empilhador logístico ficou abaixo da combinação convexa no dev.
+  Todo o ganho da fusão no dev (+6 pp aninhado) vinha do regex.
+- **No test-v2:** 72,8% conjunta, abaixo do classificador sozinho (74,8%): o ganho do regex no dev
+  não se transferiu.
 
 ## 5. Classificador treinado
 
@@ -63,9 +78,14 @@ cruzada no dev:
 - sonda linear sobre os vetores congelados do embedder;
 - SetFit ou equivalente.
 
-É também o análogo aberto mais próximo de um modelo de decisão como o Jev: milissegundos, custo
-de API zero, confiança calibrada. O fine-tune completo de um encoder multilíngue (por exemplo,
-mmBERT) fica como trabalho futuro.
+É também o análogo aberto mais próximo de um modelo de decisão como o Jev: custo de API zero e
+confiança calibrada. O fine-tune completo de um encoder multilíngue (por exemplo, mmBERT) fica
+como trabalho futuro.
+
+- **Resultado no dev:** TF-IDF com regressão logística foi fraco (39% aninhado). A sonda linear
+  sobre os vetores do `qwen3-embedding-8b` empatou com o roteador de embedding e virou o E10.
+  SetFit não foi avaliado.
+- **No test-v2:** 74,8% conjunta, o melhor roteador local abaixo de 2 s de p95 (p50 419 ms).
 
 ## 6. LLMs como roteadores
 
@@ -79,9 +99,13 @@ mmBERT) fica como trabalho futuro.
   probabilidade de acerto.
 - **Variantes de prompt P0–P6** (capítulo [04](04-prompts.md)): guia de desambiguação,
   exemplos do catálogo, regras de escopo, justificativa curta, idioma e formato da saída.
-- **Confiança:** autorrelatada e depois calibrada. A literatura recente mostra que a confiança
-  verbalizada é mal calibrada e recomenda logprobs ou calibração explícita. No Qwen local
-  testamos também a confiança por logprob.
+- **Confiança:** autorrelatada e depois calibrada por mapa isotônico do dev quando isso reduziu o
+  ECE na validação cruzada. A literatura recente mostra que a confiança verbalizada é mal
+  calibrada e recomenda logprobs ou calibração explícita.
+- **Prompt:** P0 para os quatro modelos, nas duas trilhas (capítulo [04](04-prompts.md)).
+- **No test-v2:** Sonnet 84,1%, Haiku 84,5%, Qwen3-8B local 79,9%. A equivalência com o Sonnet
+  (±3 pp) não foi estabelecida para nenhum (S2). O Qwen3-32B (E5b) foi retirado antes do
+  pré-registro, por latência.
 - **Trabalho futuro:** exemplos dinâmicos (os k exemplos do catálogo mais parecidos com a
   mensagem) e autoconsistência. A seleção dinâmica quebra o prefixo estático em cache, e esse
   é justamente o trade-off de contexto que o estudo discute.
@@ -98,7 +122,11 @@ mmBERT) fica como trabalho futuro.
   nativa. Em todo o estudo ele aparece como **"jev-router via OpenRouter"**, e as conclusões
   valem para esse produto, não para a API nativa do Jev.
 - **Reportamos também:** a mistura de modelos que efetivamente atenderam, e a acurácia por
-  modelo atendido.
+  modelo atendido. No E4, `deepseek/deepseek-v4.1-flash` atendeu 50,9% das chamadas de skill e
+  `openai/gpt-6-luna` 41,8% (capítulo [09](09-erros.md)).
+- **No test-v2:** 84,7% conjunta [81,0; 88,2] a US$ 0,82 por mil casos, p95 de 6,9 s. Tem a
+  maior acurácia pontual e custa ~6× menos que o Sonnet; a equivalência com o Sonnet passa pela
+  regra do IC, mas não depois de Holm.
 
 ## 8. Cascatas
 
@@ -111,11 +139,13 @@ mmBERT) fica como trabalho futuro.
   - trabalhos de 2025–26 usam calibração isotônica e *conformal risk control* para escolher
     limiares com garantia de erro.
 - **O que aplicamos:**
-  - limiares por validação cruzada, com calibração e escolha em partes diferentes dos dados;
-  - fronteira de Pareto completa;
-  - ponto de operação com risco controlado;
-  - como referências no gráfico: o roteador oráculo, a abstenção aleatória com a mesma
-    cobertura e o "sempre LLM".
+  - limiares por *cross-fitting* em 5 partes, com a regra "máxima acurácia com custo ≤ 0,5 ×
+    Sonnet" declarada antes;
+  - fronteira de Pareto completa como sensibilidade;
+  - como referências: o roteador oráculo, o adiamento aleatório com as mesmas taxas e o
+    "sempre LLM".
+- **No test-v2:** E9 81,8% e E7 79,9%; a não inferioridade ao Sonnet não foi demonstrada (H1, H2).
+  E12 (híbrido → Jev → Sonnet, exploratório) chegou a 83,0% (capítulo [06](06-cascatas.md)).
 
 ## 9. Por que não descoberta progressiva de tools no MCP
 

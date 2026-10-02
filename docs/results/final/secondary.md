@@ -1,6 +1,6 @@
 # Secondary analyses (prereg-v1 S1-S4) on test-v2
 
-Same machinery as primary.md (paired cluster bootstrap, 10k, seed 20260930; sign-flip p; Holm within family). ITT (an error row is wrong). Error rows after rescore: E4 2 (all others 0).
+Same machinery as primary.md (paired cluster bootstrap, 10k, seed 20260930; sign-flip p; Holm within family). ITT (an error row is wrong). Error rows after rescore: E4 2; E4-P6c 1 (all others 0).
 
 ## S1 (prompt engineering, tuned - canonical): DEGENERATE by construction
 

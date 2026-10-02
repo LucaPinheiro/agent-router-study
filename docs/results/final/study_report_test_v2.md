@@ -2,7 +2,7 @@
 
 ## test_v2 / routing-only: intention to treat (an error row counts as wrong)
 
-runs: v2-e1-regex-routing-r1, v2-e2-bm25-routing-r1, v2-e3-embedding-routing-r1, v2-e10-classifier-routing-r1, v2-e11-hybrid-routing-r1, v2-e1-regex-routing-repeat20, v2-e3-embedding-qwen06b-routing-r1, v2-e3-embedding-bgem3-routing-r1, v2-shadow-tuned-routing-r3, v2-e4-jev-canonical-routing-r3, v2-e5-sonnet-canonical-routing-r3, v2-e7-tuned-routing-r3, v2-e9-tuned-routing-r3, v2-e8-tuned-routing-r3, v2-e6-haiku-canonical-routing-r1, v2-e6-haiku-canonical-rep2-60, v2-e6b-qwen-canonical-routing-r1, v2-e6b-qwen-canonical-repeat50, lat-regex-b1, lat-bm25-b1, lat-embedding-b1, lat-classifier-b1, lat-hybrid-b1, lat-jev-b1, lat-sonnet-b1, lat-haiku-b1, lat-e7-b1, lat-e8-b1, lat-e9-b1, lat-qwen-b1, lat-regex-b2, lat-bm25-b2, lat-embedding-b2, lat-classifier-b2, lat-hybrid-b2, lat-jev-b2, lat-sonnet-b2, lat-haiku-b2, lat-e7-b2, lat-e8-b2, lat-e9-b2, lat-qwen-b2, lat-regex-b3, lat-bm25-b3, lat-embedding-b3, lat-classifier-b3, lat-hybrid-b3, lat-jev-b3, lat-sonnet-b3, lat-haiku-b3, lat-e7-b3, lat-e8-b3, lat-e9-b3, lat-qwen-b3, lat-regex-b4, lat-bm25-b4, lat-embedding-b4, lat-classifier-b4, lat-hybrid-b4, lat-jev-b4, lat-sonnet-b4, lat-haiku-b4, lat-e7-b4, lat-e8-b4, lat-e9-b4, lat-qwen-b4
+runs: v2-e1-regex-routing-r1, v2-e2-bm25-routing-r1, v2-e3-embedding-routing-r1, v2-e10-classifier-routing-r1, v2-e11-hybrid-routing-r1, v2-e1-regex-routing-repeat20, v2-e3-embedding-qwen06b-routing-r1, v2-e3-embedding-bgem3-routing-r1, v2-shadow-tuned-routing-r3, v2-e4-jev-canonical-routing-r3, v2-e5-sonnet-canonical-routing-r3, v2-e7-tuned-routing-r3, v2-e9-tuned-routing-r3, v2-e8-tuned-routing-r3, v2-e6-haiku-canonical-routing-r1, v2-e6-haiku-canonical-rep2-60, v2-e6b-qwen-canonical-routing-r1, v2-e6b-qwen-canonical-repeat50, lat-regex-b1, lat-bm25-b1, lat-embedding-b1, lat-classifier-b1, lat-hybrid-b1, lat-jev-b1, lat-sonnet-b1, lat-haiku-b1, lat-e7-b1, lat-e8-b1, lat-e9-b1, lat-qwen-b1, lat-regex-b2, lat-bm25-b2, lat-embedding-b2, lat-classifier-b2, lat-hybrid-b2, lat-jev-b2, lat-sonnet-b2, lat-haiku-b2, lat-e7-b2, lat-e8-b2, lat-e9-b2, lat-qwen-b2, lat-regex-b3, lat-bm25-b3, lat-embedding-b3, lat-classifier-b3, lat-hybrid-b3, lat-jev-b3, lat-sonnet-b3, lat-haiku-b3, lat-e7-b3, lat-e8-b3, lat-e9-b3, lat-qwen-b3, lat-regex-b4, lat-bm25-b4, lat-embedding-b4, lat-classifier-b4, lat-hybrid-b4, lat-jev-b4, lat-sonnet-b4, lat-haiku-b4, lat-e7-b4, lat-e8-b4, lat-e9-b4, lat-qwen-b4, rq5-test_v2-regex-base, rq5-test_v2-regex-zero, rq5-test_v2-regex-eng, rq5-test_v2-regex-full, rq5-test_v2-bm25-base, rq5-test_v2-bm25-zero, rq5-test_v2-classifier-base, rq5-test_v2-classifier-zero, rq5-test_v2-embedding-base, rq5-test_v2-embedding-zero, rq5-test_v2-hybrid-base, rq5-test_v2-hybrid-zero, rq5-test_v2-hybrid-eng, rq5-test_v2-hybrid-full, rq5-test_v2-jev-base, rq5-test_v2-jev-zero, rq5-test_v2-haiku-base, rq5-test_v2-haiku-zero, rq5-test_v2-sonnet-base, rq5-test_v2-sonnet-zero, x-e4-jev-p6c-routing-r1, x-e12-hybrid-tuned-routing-r3
 
 | run | n | err | err% | skill% | tool_top1% | joint% | joint_1st_label% | abst% | joint_correct 95% CI | $study/case 95% CI (x1000) | $paid total | $list/case | p50 ms 95% CI | rt_p95 | ex_p50 | ex_p95 | resolved_by |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -72,6 +72,28 @@ runs: v2-e1-regex-routing-r1, v2-e2-bm25-routing-r1, v2-e3-embedding-routing-r1,
 | lat-e8-b4 | 25 | 0 | 0.0 | 92.0 | 88.0 | 88.0 | 76.0 | 96.0 | 88.0 [72.0, 100.0] | 4.4744 [3.9521, 5.1166] | 0.1119 | - | 5242 [4313, 6308] | 7525 | - | - | llm:15,regex:10 |
 | lat-e9-b4 | 25 | 0 | 0.0 | 92.0 | 84.0 | 84.0 | 76.0 | 96.0 | 84.0 [68.0, 96.0] | 1.2826 [0.6350, 2.1108] | 0.0321 | - | 3724 [3186, 4261] | 10927 | - | - | jev:12,llm:3,regex:10 |
 | lat-qwen-b4 | 25 | 0 | 0.0 | 92.0 | 80.0 | 76.0 | 64.0 | 100.0 | 76.0 [60.0, 92.0] | 0.0000 [0.0000, 0.0000] | 0.0000 | - | 9073 [7695, 10110] | 10371 | - | - | llm_local:25 |
+| rq5-test_v2-regex-base | 349 | 0 | 0.0 | 75.6 | 50.1 | 47.9 | 43.6 | 76.8 | 47.9 [42.7, 53.0] | 0.0000 [0.0000, 0.0000] | 0.0000 | - | 0 [0, 0] | 0 | - | - | abstained:27,regex:322 |
+| rq5-test_v2-regex-zero | 349 | 0 | 0.0 | 75.6 | 50.1 | 47.9 | 43.6 | 76.8 | 47.9 [42.7, 53.0] | 0.0000 [0.0000, 0.0000] | 0.0000 | - | 0 [0, 0] | 0 | - | - | abstained:27,regex:322 |
+| rq5-test_v2-regex-eng | 349 | 0 | 0.0 | 75.4 | 55.3 | 53.0 | 48.7 | 79.4 | 53.0 [47.6, 58.5] | 0.0000 [0.0000, 0.0000] | 0.0000 | - | 0 [0, 0] | 0 | - | - | abstained:27,regex:322 |
+| rq5-test_v2-regex-full | 349 | 0 | 0.0 | 75.6 | 55.0 | 52.7 | 48.4 | 79.1 | 52.7 [47.3, 57.9] | 0.0000 [0.0000, 0.0000] | 0.0000 | - | 0 [0, 0] | 0 | - | - | abstained:27,regex:322 |
+| rq5-test_v2-bm25-base | 349 | 0 | 0.0 | 71.1 | 44.1 | 44.1 | 41.3 | 85.4 | 44.1 [39.0, 49.3] | 0.0000 [0.0000, 0.0000] | 0.0000 | - | 2 [2, 3] | 6 | - | - | bm25:349 |
+| rq5-test_v2-bm25-zero | 349 | 0 | 0.0 | 71.9 | 49.6 | 49.0 | 46.1 | 86.0 | 49.0 [43.8, 54.2] | 0.0000 [0.0000, 0.0000] | 0.0000 | - | 3 [3, 3] | 6 | - | - | bm25:349 |
+| rq5-test_v2-classifier-base | 349 | 0 | 0.0 | 85.4 | 67.0 | 66.8 | 59.6 | 92.3 | 66.8 [61.9, 71.6] | 0.0000 [0.0000, 0.0000] | 0.0000 | - | 384 [381, 389] | 852 | - | - | classifier:349 |
+| rq5-test_v2-classifier-zero | 349 | 0 | 0.0 | 87.1 | 74.8 | 74.8 | 67.9 | 92.0 | 74.8 [70.2, 79.4] | 0.0000 [0.0000, 0.0000] | 0.0000 | - | 384 [381, 389] | 852 | - | - | classifier:349 |
+| rq5-test_v2-embedding-base | 349 | 0 | 0.0 | 84.0 | 67.6 | 66.5 | 59.6 | 95.4 | 66.5 [61.3, 71.6] | 0.0000 [0.0000, 0.0000] | 0.0000 | - | 383 [380, 388] | 618 | - | - | embedding:349 |
+| rq5-test_v2-embedding-zero | 349 | 0 | 0.0 | 85.1 | 75.4 | 73.6 | 67.0 | 95.1 | 73.6 [68.8, 78.2] | 0.0000 [0.0000, 0.0000] | 0.0000 | - | 390 [385, 394] | 623 | - | - | embedding:349 |
+| rq5-test_v2-hybrid-base | 349 | 0 | 0.0 | 85.7 | 66.5 | 65.9 | 58.2 | 94.0 | 65.9 [60.7, 70.8] | 0.0000 [0.0000, 0.0000] | 0.0000 | - | 385 [381, 389] | 852 | - | - | hybrid:349 |
+| rq5-test_v2-hybrid-zero | 349 | 0 | 0.0 | 86.0 | 72.2 | 71.6 | 63.9 | 94.0 | 71.6 [66.8, 76.2] | 0.0000 [0.0000, 0.0000] | 0.0000 | - | 384 [381, 389] | 852 | - | - | hybrid:349 |
+| rq5-test_v2-hybrid-eng | 349 | 0 | 0.0 | 85.7 | 73.1 | 72.2 | 64.5 | 94.0 | 72.2 [67.3, 76.8] | 0.0000 [0.0000, 0.0000] | 0.0000 | - | 384 [381, 389] | 852 | - | - | hybrid:349 |
+| rq5-test_v2-hybrid-full | 349 | 0 | 0.0 | 86.0 | 73.4 | 72.8 | 65.0 | 94.0 | 72.8 [67.9, 77.4] | 0.0000 [0.0000, 0.0000] | 0.0000 | - | 384 [381, 389] | 852 | - | - | hybrid:349 |
+| rq5-test_v2-jev-base | 108 | 1 | 0.9 | 93.5 | 51.9 | 50.0 | 44.4 | 79.6 | 50.0 [40.7, 59.3] | 0.8439 [0.7299, 0.9642] | 0.0842 | - | 3819 [3370, 4302] | 6866 | - | - | jev:107 |
+| rq5-test_v2-jev-zero | 108 | 0 | 0.0 | 91.7 | 86.1 | 84.3 | 78.7 | 98.1 | 84.3 [76.9, 90.7] | 0.8533 [0.7239, 0.9874] | 0.0000 | - | 4402 [4066, 4574] | 7463 | - | - | jev:108 |
+| rq5-test_v2-haiku-base | 108 | 0 | 0.0 | 92.6 | 50.9 | 50.0 | 44.4 | 76.9 | 50.0 [40.7, 59.3] | 5.1134 [5.0268, 5.1936] | 0.5209 | - | 3193 [3163, 3239] | 4961 | - | - | llm:108 |
+| rq5-test_v2-haiku-zero | 108 | 0 | 0.0 | 90.7 | 85.2 | 84.3 | 76.9 | 98.1 | 84.3 [76.9, 90.7] | 5.3974 [5.2901, 5.4964] | 0.0000 | - | 3390 [3342, 3503] | 5323 | - | - | llm:108 |
+| rq5-test_v2-sonnet-base | 108 | 0 | 0.0 | 94.4 | 50.9 | 50.0 | 46.3 | 85.2 | 50.0 [40.7, 59.3] | 5.1841 [4.9049, 5.5258] | 0.5313 | - | 5537 [5470, 5744] | 7962 | - | - | llm:108 |
+| rq5-test_v2-sonnet-zero | 108 | 0 | 0.0 | 94.4 | 87.0 | 86.1 | 78.7 | 99.1 | 86.1 [78.7, 92.6] | 5.1699 [5.0094, 5.3905] | 0.0000 | - | 5976 [5870, 6149] | 10901 | - | - | llm:108 |
+| x-e4-jev-p6c-routing-r1 | 349 | 1 | 0.3 | 92.3 | 86.0 | 84.2 | 75.1 | 97.1 | 84.2 [80.2, 88.0] | 0.6080 [0.5308, 0.6907] | 0.1359 | - | 3216 [3068, 3394] | 6094 | - | - | jev:348 |
+| x-e12-hybrid-tuned-routing-r3 | 1047 | 0 | 0.0 | 90.0 | 86.2 | 83.0 | 74.9 | 97.5 | 83.0 [79.1, 86.7] | 0.8413 [0.7303, 0.9585] | 0.0261 | - | 2849 [2657, 3036] | 7588 | - | - | hybrid:906,jev:100,llm:41 |
 
 ### test_v2 / routing-only SENSITIVITY: 0 case ids error-free in every run listed
 
@@ -143,6 +165,28 @@ runs: v2-e1-regex-routing-r1, v2-e2-bm25-routing-r1, v2-e3-embedding-routing-r1,
 | lat-e8-b4 | 0 | - |
 | lat-e9-b4 | 0 | - |
 | lat-qwen-b4 | 0 | - |
+| rq5-test_v2-regex-base | 0 | - |
+| rq5-test_v2-regex-zero | 0 | - |
+| rq5-test_v2-regex-eng | 0 | - |
+| rq5-test_v2-regex-full | 0 | - |
+| rq5-test_v2-bm25-base | 0 | - |
+| rq5-test_v2-bm25-zero | 0 | - |
+| rq5-test_v2-classifier-base | 0 | - |
+| rq5-test_v2-classifier-zero | 0 | - |
+| rq5-test_v2-embedding-base | 0 | - |
+| rq5-test_v2-embedding-zero | 0 | - |
+| rq5-test_v2-hybrid-base | 0 | - |
+| rq5-test_v2-hybrid-zero | 0 | - |
+| rq5-test_v2-hybrid-eng | 0 | - |
+| rq5-test_v2-hybrid-full | 0 | - |
+| rq5-test_v2-jev-base | 0 | - |
+| rq5-test_v2-jev-zero | 0 | - |
+| rq5-test_v2-haiku-base | 0 | - |
+| rq5-test_v2-haiku-zero | 0 | - |
+| rq5-test_v2-sonnet-base | 0 | - |
+| rq5-test_v2-sonnet-zero | 0 | - |
+| x-e4-jev-p6c-routing-r1 | 0 | - |
+| x-e12-hybrid-tuned-routing-r3 | 0 | - |
 
 ### routing-only secondary metrics (docs/metrics.md)
 
@@ -214,6 +258,28 @@ runs: v2-e1-regex-routing-r1, v2-e2-bm25-routing-r1, v2-e3-embedding-routing-r1,
 | lat-e8-b4 | 88.0 | 92.0 | 92.0 | 80.0 | 100.0 (4) | 0.017 | 88.0 | 0.072 / 0.108 (n=25; bins 3/3/3/3/3/2/2/2/2/2) | 0.058 / 0.120 (n=23; bins 3/3/3/2/2/2/2/2/2/2) |
 | lat-e9-b4 | 84.0 | 88.0 | 92.0 | 80.0 | 100.0 (4) | 0.042 | 80.0 | 0.068 / 0.089 (n=25; bins 3/3/3/3/3/2/2/2/2/2) | 0.069 / 0.067 (n=23; bins 3/3/3/2/2/2/2/2/2/2) |
 | lat-qwen-b4 | 76.0 | 84.0 | 88.0 | 100.0 | 100.0 (4) | 0.230 | 4.0 | 0.074 / 0.158 (n=25; bins 3/3/3/3/3/2/2/2/2/2) | 0.143 / 0.252 (n=23; bins 3/3/3/2/2/2/2/2/2/2) |
+| rq5-test_v2-regex-base | 47.9 | 51.3 | 51.3 | 40.2 | 69.1 (55) | 0.430 | 0.0 | 0.184 / 0.176 (n=322; bins 33/33/32/32/32/32/32/32/32/32) | 0.201 / 0.181 (n=202; bins 21/21/20/20/20/20/20/20/20/20) |
+| rq5-test_v2-regex-zero | 47.9 | 51.3 | 51.3 | 40.2 | 69.1 (55) | 0.430 | 0.0 | 0.184 / 0.176 (n=322; bins 33/33/32/32/32/32/32/32/32/32) | 0.201 / 0.181 (n=202; bins 21/21/20/20/20/20/20/20/20/20) |
+| rq5-test_v2-regex-eng | 53.0 | 57.9 | 57.9 | 43.8 | 67.3 (55) | 0.362 | 0.0 | 0.183 / 0.177 (n=322; bins 33/33/32/32/32/32/32/32/32/32) | 0.162 / 0.151 (n=211; bins 22/21/21/21/21/21/21/21/21/21) |
+| rq5-test_v2-regex-full | 52.7 | 57.6 | 57.6 | 43.4 | 69.1 (55) | 0.372 | 0.0 | 0.182 / 0.179 (n=322; bins 33/33/32/32/32/32/32/32/32/32) | 0.163 / 0.182 (n=210; bins 21/21/21/21/21/21/21/21/21/21) |
+| rq5-test_v2-bm25-base | 44.1 | 51.3 | 58.2 | 55.6 | 43.6 (55) | 0.385 | 0.0 | 0.176 / 0.042 (n=349; bins 35/35/35/35/35/35/35/35/35/34) | 0.214 / 0.116 (n=248; bins 25/25/25/25/25/25/25/25/24/24) |
+| rq5-test_v2-bm25-zero | 49.0 | 59.0 | 65.6 | 58.5 | 41.8 (55) | 0.317 | 7.7 | 0.169 / 0.058 (n=349; bins 35/35/35/35/35/35/35/35/35/34) | 0.203 / 0.138 (n=251; bins 26/25/25/25/25/25/25/25/25/25) |
+| rq5-test_v2-classifier-base | 66.8 | 73.4 | 75.9 | 75.0 | 80.0 (55) | 0.155 | 18.3 | 0.106 / 0.031 (n=349; bins 35/35/35/35/35/35/35/35/35/34) | 0.143 / 0.081 (n=298; bins 30/30/30/30/30/30/30/30/29/29) |
+| rq5-test_v2-classifier-zero | 74.8 | 82.2 | 84.8 | 74.6 | 78.2 (55) | 0.097 | 17.5 | 0.096 / 0.051 (n=349; bins 35/35/35/35/35/35/35/35/35/34) | 0.107 / 0.095 (n=304; bins 31/31/31/31/30/30/30/30/30/30) |
+| rq5-test_v2-embedding-base | 66.5 | 73.4 | 74.5 | 100.0 | 70.9 (55) | 0.177 | 13.8 | 0.125 / 0.070 (n=349; bins 35/35/35/35/35/35/35/35/35/34) | 0.144 / 0.057 (n=293; bins 30/30/30/29/29/29/29/29/29/29) |
+| rq5-test_v2-embedding-zero | 73.6 | 83.4 | 84.8 | 100.0 | 69.1 (55) | 0.109 | 40.4 | 0.114 / 0.063 (n=349; bins 35/35/35/35/35/35/35/35/35/34) | 0.098 / 0.070 (n=297; bins 30/30/30/30/30/30/30/29/29/29) |
+| rq5-test_v2-hybrid-base | 65.9 | 73.6 | 75.1 | 88.0 | 72.7 (55) | 0.207 | 0.0 | 0.118 / 0.085 (n=349; bins 35/35/35/35/35/35/35/35/35/34) | 0.167 / 0.129 (n=299; bins 30/30/30/30/30/30/30/30/30/29) |
+| rq5-test_v2-hybrid-zero | 71.6 | 82.2 | 84.0 | 89.6 | 70.9 (55) | 0.153 | 0.0 | 0.116 / 0.068 (n=349; bins 35/35/35/35/35/35/35/35/35/34) | 0.131 / 0.106 (n=300; bins 30/30/30/30/30/30/30/30/30/30) |
+| rq5-test_v2-hybrid-eng | 72.2 | 81.9 | 84.0 | 89.6 | 70.9 (55) | 0.136 | 24.1 | 0.118 / 0.071 (n=349; bins 35/35/35/35/35/35/35/35/35/34) | 0.122 / 0.089 (n=299; bins 30/30/30/30/30/30/30/30/30/29) |
+| rq5-test_v2-hybrid-full | 72.8 | 82.2 | 84.2 | 89.6 | 70.9 (55) | 0.135 | 23.5 | 0.116 / 0.068 (n=349; bins 35/35/35/35/35/35/35/35/35/34) | 0.123 / 0.089 (n=300; bins 30/30/30/30/30/30/30/30/30/30) |
+| rq5-test_v2-jev-base | 50.0 | 54.6 | 56.5 | 32.3 | 100.0 (9) | 0.362 | 1.9 | 0.061 / 0.092 (n=107; bins 11/11/11/11/11/11/11/10/10/10) | 0.269 / 0.240 (n=101; bins 11/10/10/10/10/10/10/10/10/10) |
+| rq5-test_v2-jev-zero | 84.3 | 89.8 | 90.7 | 83.3 | 100.0 (9) | 0.064 | 62.0 | 0.073 / 0.066 (n=108; bins 11/11/11/11/11/11/11/11/10/10) | 0.071 / 0.074 (n=99; bins 10/10/10/10/10/10/10/10/10/9) |
+| rq5-test_v2-haiku-base | 50.0 | 53.7 | 56.5 | 28.6 | 100.0 (9) | 0.389 | 0.0 | 0.066 / 0.050 (n=108; bins 11/11/11/11/11/11/11/11/10/10) | 0.320 / 0.361 (n=100; bins 10/10/10/10/10/10/10/10/10/10) |
+| rq5-test_v2-haiku-zero | 84.3 | 88.9 | 89.8 | 83.3 | 100.0 (9) | 0.060 | 53.7 | 0.070 / 0.084 (n=108; bins 11/11/11/11/11/11/11/11/10/10) | 0.059 / 0.056 (n=98; bins 10/10/10/10/10/10/10/10/9/9) |
+| rq5-test_v2-sonnet-base | 50.0 | 56.5 | 58.3 | 34.8 | 88.9 (9) | 0.312 | 13.0 | 0.054 / 0.053 (n=108; bins 11/11/11/11/11/11/11/11/10/10) | 0.227 / 0.227 (n=102; bins 11/11/10/10/10/10/10/10/10/10) |
+| rq5-test_v2-sonnet-zero | 86.1 | 93.5 | 94.4 | 100.0 | 88.9 (9) | 0.045 | 63.9 | 0.055 / 0.057 (n=108; bins 11/11/11/11/11/11/11/11/10/10) | 0.076 / 0.092 (n=102; bins 11/11/10/10/10/10/10/10/10/10) |
+| x-e4-jev-p6c-routing-r1 | 84.2 | 89.7 | 91.4 | 94.5 | 89.1 (55) | 0.061 | 46.7 | 0.069 / 0.039 (n=348; bins 35/35/35/35/35/35/35/35/34/34) | 0.087 / 0.078 (n=322; bins 33/33/32/32/32/32/32/32/32/32) |
+| x-e12-hybrid-tuned-routing-r3 | 83.0 | 88.2 | 89.2 | 95.0 | 89.1 (165) | 0.067 | 47.8 | 0.090 / 0.060 (n=1047; bins 105/105/105/105/105/105/105/104/104/104) | 0.072 / 0.066 (n=942; bins 95/95/94/94/94/94/94/94/94/94) |
 
 ### trivial baselines on these 349 cases (majority fitted on dev)
 
@@ -225,7 +291,7 @@ runs: v2-e1-regex-routing-r1, v2-e2-bm25-routing-r1, v2-e3-embedding-routing-r1,
 
 ## test_v2 / e2e: intention to treat (an error row counts as wrong)
 
-runs: v2-e0-native-e2e-r1, v2-e9-tuned-e2e-r1, v2-e1-regex-e2e-r1, v2-e5-sonnet-canonical-e2e-r1, v2-e7-tuned-e2e-r1
+runs: v2-e0-native-e2e-r1, v2-e9-tuned-e2e-r1, v2-e1-regex-e2e-r1, v2-e5-sonnet-canonical-e2e-r1, v2-e7-tuned-e2e-r1, v2-e6b-qwen-canonical-e2e-r1, v2-e0-native-e2e-rep2-60, v2-e9-tuned-e2e-rep2-60, v2-e11-hybrid-e2e-r1
 
 | run | n | err | err% | skill% | tool_first_call% | args% | e2e% | = first_call% | + clarif% | + recovered% | e2e_strict% | invented% | joint_1st_label% | abst% | entity_grnd% | e2e_success 95% CI | e2e_strict 95% CI | $study/case 95% CI (x1000) | $paid total | $list/case | p50 ms 95% CI | rt_p95 | ex_p50 | ex_p95 | resolved_by |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -234,16 +300,24 @@ runs: v2-e0-native-e2e-r1, v2-e9-tuned-e2e-r1, v2-e1-regex-e2e-r1, v2-e5-sonnet-
 | v2-e1-regex-e2e-r1 | 349 | 0 | 0.0 | 75.6 | 57.9 | 55.0 | 34.7 | 34.1 | 0.3 | 0.3 | 34.7 | 0.4 | 46.1 | 72.8 | 97.3 | 34.7 [29.8, 39.5] | 34.7 [29.8, 39.5] | 5.9295 [5.3716, 6.5140] | 2.0694 | - | 6038 [5561, 6513] | 0 | 7261 | 17419 | abstained:27,regex:322 |
 | v2-e5-sonnet-canonical-e2e-r1 | 349 | 0 | 0.0 | 89.4 | 75.1 | 68.2 | 50.7 | 49.9 | 0.9 | 0.0 | 50.7 | 0.4 | 61.9 | 88.3 | 98.0 | 50.7 [45.3, 55.9] | 50.7 [45.3, 55.9] | 11.8378 [11.3871, 12.3315] | 2.3698 | - | 13025 [12741, 13569] | 10426 | 6587 | 14014 | llm:349 |
 | v2-e7-tuned-e2e-r1 | 349 | 0 | 0.0 | 83.7 | 73.9 | 67.0 | 45.0 | 43.6 | 1.1 | 0.3 | 45.0 | 0.4 | 57.9 | 87.1 | 98.0 | 45.0 [39.8, 50.1] | 45.0 [39.8, 50.1] | 7.8697 [7.4020, 8.3662] | 2.4815 | - | 10031 [9568, 10496] | 7062 | 6643 | 15573 | jev:164,regex:185 |
+| v2-e6b-qwen-canonical-e2e-r1 | 349 | 0 | 0.0 | 83.1 | 74.8 | 67.6 | 46.4 | 45.3 | 0.9 | 0.3 | 46.4 | 0.3 | 58.7 | 87.1 | 98.0 | 46.4 [41.3, 51.6] | 46.4 [41.3, 51.6] | 7.9009 [7.4101, 8.4261] | 2.7574 | - | 15802 [15534, 16170] | 11891 | 6366 | 14564 | llm_local:349 |
+| v2-e0-native-e2e-rep2-60 | 60 | 0 | 0.0 | 85.0 | 70.0 | 65.0 | 53.3 | 50.0 | 1.7 | 1.7 | 53.3 | 0.0 | 65.0 | 95.0 | 98.2 | 53.3 [40.0, 65.0] | 53.3 [40.0, 65.0] | 9.9632 [8.3798, 11.8913] | 0.5978 | - | 8598 [8123, 9368] | 0 | 8598 | 17820 | native:60 |
+| v2-e9-tuned-e2e-rep2-60 | 60 | 0 | 0.0 | 83.3 | 70.0 | 66.7 | 43.3 | 41.7 | 1.7 | 0.0 | 43.3 | 0.0 | 58.3 | 93.3 | 95.0 | 43.3 [31.7, 56.7] | 43.3 [31.7, 56.7] | 11.0760 [9.2134, 13.0652] | 0.6097 | - | 10228 [9224, 11554] | 9187 | 6053 | 16822 | jev:26,llm:4,regex:30 |
+| v2-e11-hybrid-e2e-r1 | 349 | 0 | 0.0 | 82.8 | 71.3 | 66.8 | 44.4 | 43.3 | 1.1 | 0.0 | 44.4 | 0.4 | 57.0 | 84.5 | 98.3 | 44.4 [39.3, 49.6] | 44.4 [39.3, 49.6] | 7.4499 [6.9517, 7.9798] | 2.6000 | - | 7110 [6796, 7378] | 853 | 6596 | 14599 | hybrid:349 |
 
-### test_v2 / e2e SENSITIVITY: 349 case ids error-free in every run listed
+### test_v2 / e2e SENSITIVITY: 60 case ids error-free in every run listed
 
 | run | n_shared | e2e_success 95% CI (error-free intersection) |
 |---|---|---|
-| v2-e0-native-e2e-r1 | 349 | 55.6 [50.1, 60.7] |
-| v2-e9-tuned-e2e-r1 | 349 | 45.8 [40.4, 51.0] |
-| v2-e1-regex-e2e-r1 | 349 | 34.7 [29.8, 39.5] |
-| v2-e5-sonnet-canonical-e2e-r1 | 349 | 50.7 [45.3, 55.9] |
-| v2-e7-tuned-e2e-r1 | 349 | 45.0 [39.8, 50.1] |
+| v2-e0-native-e2e-r1 | 60 | 48.3 [35.0, 61.7] |
+| v2-e9-tuned-e2e-r1 | 60 | 45.0 [33.3, 58.3] |
+| v2-e1-regex-e2e-r1 | 60 | 33.3 [21.7, 45.0] |
+| v2-e5-sonnet-canonical-e2e-r1 | 60 | 48.3 [36.7, 61.7] |
+| v2-e7-tuned-e2e-r1 | 60 | 41.7 [30.0, 53.3] |
+| v2-e6b-qwen-canonical-e2e-r1 | 60 | 40.0 [28.3, 53.3] |
+| v2-e0-native-e2e-rep2-60 | 60 | 53.3 [40.0, 65.0] |
+| v2-e9-tuned-e2e-rep2-60 | 60 | 43.3 [31.7, 56.7] |
+| v2-e11-hybrid-e2e-r1 | 60 | 40.0 [28.3, 53.3] |
 
 ### e2e secondary metrics (docs/metrics.md)
 
@@ -254,6 +328,10 @@ runs: v2-e0-native-e2e-r1, v2-e9-tuned-e2e-r1, v2-e1-regex-e2e-r1, v2-e5-sonnet-
 | v2-e1-regex-e2e-r1 | 52.7 | 57.6 | 57.6 | 37.9 | 70.9 (55) | 0.626 | 0.0 | 0.182 / 0.179 (n=322; bins 33/33/32/32/32/32/32/32/32/32) | 0.187 / 0.182 (n=210; bins 21/21/21/21/21/21/21/21/21/21) |
 | v2-e5-sonnet-canonical-e2e-r1 | 81.1 | 88.3 | 89.4 | 81.8 | 32.7 (55) | 0.435 | 0.0 | 0.089 / 0.102 (n=349; bins 35/35/35/35/35/35/35/35/35/34) | 0.165 / 0.090 (n=312; bins 32/32/31/31/31/31/31/31/31/31) |
 | v2-e7-tuned-e2e-r1 | 75.4 | 81.4 | 81.9 | 66.7 | 36.4 (55) | 0.495 | 0.0 | 0.142 / 0.097 (n=349; bins 35/35/35/35/35/35/35/35/35/34) | 0.158 / 0.094 (n=292; bins 30/30/29/29/29/29/29/29/29/29) |
+| v2-e6b-qwen-canonical-e2e-r1 | 75.9 | 81.7 | 82.5 | 67.7 | 38.2 (55) | 0.529 | 0.0 | 0.145 / 0.230 (n=349; bins 35/35/35/35/35/35/35/35/35/34) | 0.164 / 0.273 (n=290; bins 29/29/29/29/29/29/29/29/29/29) |
+| v2-e0-native-e2e-rep2-60 | - | - | - | 100.0 | 57.1 (7) | - | - | - | - |
+| v2-e9-tuned-e2e-rep2-60 | 78.3 | 83.3 | 83.3 | 71.4 | 71.4 (7) | 0.520 | 3.3 | 0.156 / 0.162 (n=60; bins 6/6/6/6/6/6/6/6/6/6) | 0.181 / 0.142 (n=50; bins 5/5/5/5/5/5/5/5/5/5) |
+| v2-e11-hybrid-e2e-r1 | 69.3 | 78.8 | 81.1 | 58.8 | 36.4 (55) | 0.530 | 0.0 | 0.140 / 0.100 (n=349; bins 35/35/35/35/35/35/35/35/35/34) | 0.189 / 0.115 (n=289; bins 29/29/29/29/29/29/29/29/29/28) |
 
 ## contrasts
 

@@ -8,6 +8,7 @@ Writes:
   results/analysis/{primary,secondary,estimation,enterprise_matrix}.{md,json}
   results/analysis/study_report_test_v2.md      (`study report --manifest ... --split test_v2`)
   results/analysis/runs_status.md               (which manifest runs are in / still missing)
+  results/analysis/exploratory_e2e.{md,json}     (EXPLORATORY: D-002 full-skill e2e + e2e error analysis)
   estudos/figuras/final-*.png                   (matplotlib; see below)
   docs/results/final/*.md + *.json              (committed copies; results/ is gitignored)
 
@@ -43,15 +44,19 @@ COPY = (
     "enterprise_matrix.json",
     "study_report_test_v2.md",
     "runs_status.md",
+    "exploratory_e2e.md",
+    "exploratory_e2e.json",
 )
 
 
 def figures_step() -> list[str]:
     if importlib.util.find_spec("matplotlib") is not None:
+        from final_exploratory import run_exploratory_figures
         from final_figures import run_figures
 
         est = json.loads((OUT / "estimation.json").read_text(encoding="utf-8"))
-        return run_figures(est)
+        xjs = json.loads((OUT / "exploratory_e2e.json").read_text(encoding="utf-8"))
+        return run_figures(est) + run_exploratory_figures(xjs)
     print(
         "  matplotlib not in the project env: running the figure step via `uv run --with matplotlib`",
         flush=True,
@@ -135,15 +140,21 @@ def main() -> None:
     ap.add_argument("--figures-only", action="store_true", help=argparse.SUPPRESS)
     args = ap.parse_args()
     if args.figures_only:
+        from final_exploratory import run_exploratory_figures
         from final_figures import run_figures
 
-        for p in run_figures(json.loads((OUT / "estimation.json").read_text(encoding="utf-8"))):
+        figs = run_figures(json.loads((OUT / "estimation.json").read_text(encoding="utf-8")))
+        figs += run_exploratory_figures(
+            json.loads((OUT / "exploratory_e2e.json").read_text(encoding="utf-8"))
+        )
+        for p in figs:
             print(p)
         return
     t0 = time.time()
     OUT.mkdir(parents=True, exist_ok=True)
     from final_enterprise import run_enterprise
     from final_estimation import run_estimation
+    from final_exploratory import run_exploratory
     from final_primary import run_primary, run_secondary
 
     ctx = Context.load()
@@ -159,6 +170,8 @@ def main() -> None:
     est = run_estimation(ctx)
     run_enterprise(est)
     print("enterprise matrix done", flush=True)
+    run_exploratory(ctx)
+    print("exploratory (D-002 + e2e error analysis) done", flush=True)
     if not args.no_study_report:
         study_report()
         print("study report done", flush=True)
