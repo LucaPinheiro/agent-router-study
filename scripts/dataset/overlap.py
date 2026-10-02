@@ -30,6 +30,7 @@ ROOT = Path(__file__).resolve().parents[2]
 LEXICAL_THRESHOLD = 0.9
 SEMANTIC_THRESHOLD = 0.9
 EMBED_MODEL = "qwen3-embedding:8b-q8_0"
+PHASE2_EMBED_MODEL = "amazon.titan-embed-text-v2:0"  # phase 2: no local model (Bedrock)
 MIN_UNIT_WORDS = 3
 
 CATALOG_FILES = [
@@ -167,14 +168,19 @@ def semantic_text(c: Case) -> str:
 
 
 class Embedder:
-    """Synchronous wrapper over the project's EmbeddingsClient (Ollama, cost 0, ledgered)."""
+    """Synchronous wrapper over the project's EmbeddingsClient (ledgered). Phase 1 used the local
+    Ollama embedder (cost 0, the default); phase 2 runs no local model and passes
+    `backend="bedrock"` with `PHASE2_EMBED_MODEL` (Titan v2, cents)."""
 
-    def __init__(self, model: str = EMBED_MODEL, batch: int = 32) -> None:
+    def __init__(self, model: str = EMBED_MODEL, batch: int = 32, backend: str = "ollama") -> None:
         sys.path.insert(0, str(ROOT / "src"))
         from routing_study.llm import EmbeddingsClient
         from routing_study.settings import Settings
 
-        self._make = lambda http: EmbeddingsClient(Settings(), model, backend="ollama", http=http)
+        region = "sa-east-1" if backend == "bedrock" else None
+        self._make = lambda http: EmbeddingsClient(
+            Settings(), model, backend=backend, http=http, region=region
+        )
         self.batch = batch
         self._cache: dict[str, np.ndarray] = {}
         self._disk = (
