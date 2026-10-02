@@ -189,7 +189,9 @@ class EmbeddingRouter(BaseRouter):
         hit = self._get(key)
         if isinstance(hit, dict) and "v" in hit:
             return np.asarray(hit["v"], dtype=np.float32), {**hit["info"], "cached": True}
-        q = await self.embedder.embed([text])
+        # asymmetric embedders (Bedrock Cohere) encode queries with their own input type
+        embed_q = getattr(self.embedder, "embed_search_query", None) or self.embedder.embed
+        q = await embed_q([text])
         vec = _unit(np.asarray(q.vectors[0], dtype=np.float32))
         info = {
             "cost_usd": q.cost_usd,

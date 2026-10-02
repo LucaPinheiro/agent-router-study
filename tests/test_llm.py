@@ -457,3 +457,33 @@ def test_with_system_prefix_prepends_or_inserts() -> None:
     assert out[0].content == "/no_think\nrules" and out[1].content == "hi"
     out = with_system_prefix([HumanMessage("hi")], "/no_think")
     assert isinstance(out[0], SystemMessage) and out[0].content == "/no_think"
+
+
+def test_bedrock_embeddings_cohere_batch_and_input_type(tmp_path, monkeypatch) -> None:
+    import asyncio
+    import io
+    import json as _json
+
+    from routing_study.llm import EmbeddingsClient
+    from routing_study.settings import Settings
+
+    monkeypatch.setenv("BUDGET__LEDGER_PATH", str(tmp_path / "ledger.jsonl"))
+    calls: list[dict] = []
+
+    class FakeBoto:
+        def invoke_model(self, modelId: str, body: str) -> dict:
+            b = _json.loads(body)
+            calls.append(b)
+            vecs = [[1.0, 0.0]] * len(b["texts"])
+            return {
+                "ResponseMetadata": {"HTTPHeaders": {"x-amzn-bedrock-input-token-count": "5"}},
+                "body": io.BytesIO(_json.dumps({"embeddings": {"float": vecs}}).encode()),
+            }
+
+    c = EmbeddingsClient(Settings(), "global.cohere.embed-v4:0", backend="bedrock")
+    c._boto = FakeBoto()
+    docs = asyncio.run(c.embed(["a", "b", "c"]))
+    q = asyncio.run(c.embed_search_query(["q"]))
+    assert docs.vectors.shape == (3, 2) and docs.prompt_tokens == 5
+    assert [x["input_type"] for x in calls] == ["search_document", "search_query"]
+    assert abs(docs.cost_usd - 5 * 0.12 / 1e6) < 1e-12 and q.provider == "bedrock"

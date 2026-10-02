@@ -18,6 +18,7 @@ through the spend ledger (`routing_study.budget`): reserved before, recorded aft
 from __future__ import annotations
 
 import asyncio
+import json
 import random
 import time
 import weakref
@@ -919,12 +920,15 @@ class EmbeddingsClient:
         backend: str = "openrouter",
         base_url: str | None = None,
         query_instruction: str | None = None,
+        region: str | None = None,
     ) -> None:
         self.settings = settings
         self.model = model
         self.provider = provider
         self.backend = backend
         self.query_instruction = query_instruction
+        self.region = region
+        self._boto: Any = None
         default = settings.ollama_base_url if backend == "ollama" else settings.openrouter_base_url
         self.base_url = (base_url or default).rstrip("/")
         self._http = http
@@ -938,6 +942,7 @@ class EmbeddingsClient:
             backend=cfg.provider,
             base_url=cfg.base_url,
             query_instruction=cfg.query_instruction,
+            region=cfg.region,
         )
 
     def _client(self) -> httpx.AsyncClient:
@@ -951,7 +956,14 @@ class EmbeddingsClient:
     async def embed_query(self, text: str) -> EmbeddingResult:
         return await self.embed([self.query_text(text)])
 
-    async def embed(self, texts: list[str]) -> EmbeddingResult:
+    async def embed_search_query(self, texts: list[str]) -> EmbeddingResult:
+        """Query-side embedding. Asymmetric Bedrock models (Cohere `input_type`) embed
+        queries and documents differently; elsewhere the same as `embed`."""
+        return await self.embed(texts, input_type="search_query")
+
+    async def embed(self, texts: list[str], input_type: str = "search_document") -> EmbeddingResult:
+        if self.backend == "bedrock":
+            return await self._embed_bedrock(texts, input_type)
         if self.backend not in ("openrouter", "ollama"):
             raise ValueError(f"embeddings provider {self.backend!r} is not supported")
         body: dict[str, Any] = {"model": self.model, "input": texts}
@@ -994,6 +1006,75 @@ class EmbeddingsClient:
             provider=data.get("provider")
             or (self.backend if self.backend != "openrouter" else None),
             prompt_tokens=int(usage.get("prompt_tokens") or 0),
+            latency_ms=stats.call_ms,
+            attempts=stats.attempts,
+            queue_ms=stats.queue_ms,
+            retry_ms=stats.retry_ms,
+        )
+
+    def _bedrock(self) -> Any:
+        if self._boto is None:
+            import boto3
+
+            self._boto = boto3.client(
+                "bedrock-runtime", region_name=self.region or self.settings.bedrock_region
+            )
+        return self._boto
+
+    async def _embed_bedrock(self, texts: list[str], input_type: str) -> EmbeddingResult:
+        """Bedrock InvokeModel. Cohere Embed takes a batch (≤ 96 texts) and an `input_type`
+        (search_query / search_document); Titan v2 takes one text per call. Tokens come from
+        the `x-amzn-bedrock-input-token-count` header; cost = tokens x the price table."""
+        price = prices_for(self.settings).get(("bedrock", self.model))
+        if price is None:
+            raise ValueError(
+                f"no bedrock price for {self.model!r} in {self.settings.budget.prices_path}"
+            )
+        cohere = "cohere.embed" in self.model
+        if cohere:
+            batches = [texts[i : i + 96] for i in range(0, len(texts), 96)]
+        else:
+            batches = [[t] for t in texts]
+
+        def _invoke(batch: list[str]) -> tuple[list[list[float]], int]:
+            if cohere:
+                body = {"texts": batch, "input_type": input_type, "embedding_types": ["float"]}
+            else:
+                body = {"inputText": batch[0], "dimensions": 1024, "normalize": True}
+            resp = self._bedrock().invoke_model(modelId=self.model, body=json.dumps(body))
+            tokens = int(
+                resp["ResponseMetadata"]["HTTPHeaders"].get("x-amzn-bedrock-input-token-count", 0)
+            )
+            data = json.loads(resp["body"].read())
+            vecs = data["embeddings"]["float"] if cohere else [data["embedding"]]
+            return vecs, tokens
+
+        stats = RetryStats()
+        vectors: list[list[float]] = []
+        tokens = 0
+        with CallMeter(ledger_for(self.settings), "bedrock", self.model, 0.0) as meter:
+            for batch in batches:
+                vecs, n = await call_with_retry(
+                    lambda b=batch: asyncio.to_thread(_invoke, b),
+                    model=self.model,
+                    settings=self.settings,
+                    stats=stats,
+                    provider="bedrock",
+                )
+                vectors += vecs
+                tokens += n
+            cost = tokens * price.input / 1e6
+            meter.done(
+                {"cost_usd": cost, "prompt_tokens": tokens, "served_model": self.model},
+                kind="embedding",
+                inputs=len(texts),
+            )
+        return EmbeddingResult(
+            vectors=np.asarray(vectors, dtype=np.float32),
+            cost_usd=cost,
+            served_model=self.model,
+            provider="bedrock",
+            prompt_tokens=tokens,
             latency_ms=stats.call_ms,
             attempts=stats.attempts,
             queue_ms=stats.queue_ms,

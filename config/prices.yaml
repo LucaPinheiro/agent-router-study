@@ -34,6 +34,15 @@ bedrock:
   nvidia.nemotron-nano-9b-v2:
     input: 0.07
     output: 0.28
+  # Managed embeddings (input tokens only). The sa-east-1 Price List has no entries for
+  # them; us-east-1 list prices are used (Titan Text Embeddings V2 $0.02/1M, Cohere Embed
+  # v4 $0.12/1M), the `global.` profile is billed at the base rate.
+  amazon.titan-embed-text-v2:0:
+    input: 0.02
+    output: 0.0
+  global.cohere.embed-v4:0:
+    input: 0.12
+    output: 0.0
 # OpenRouter reports the real cost per call (`usage.cost`); jev-router has no list price
 # (a meta-router: the served model decides), so no reservation, only the cap check.
 openrouter: {}
