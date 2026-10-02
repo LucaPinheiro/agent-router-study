@@ -28,6 +28,7 @@ e o regex escrito no dev caiu 32 pp no teste. Resumo completo em [01](01-resumo-
 | 11 | [Matriz de decisão enterprise](11-matriz-enterprise.md) | Latência × custo × acurácia mínima → roteador, e orientação por caso de uso |
 | 12 | [Ameaças à validade e limitações](12-limitacoes.md) | Exposição do test-v1, superajuste ao dev, dados sintéticos, assimetria do scorer e2e, catálogo pequeno, Jev como meta-roteador |
 | 13 | [Reprodutibilidade](13-reprodutibilidade.md) | Hashes, manifesto, comandos por tabela, ledger de gastos |
+| 14 | [Fase 2, Parte A: nuvem × local](14-fase2-nuvem.md) | Modelos gerenciados no Bedrock (Ministral, Nemotron, Cohere, Titan) contra os locais: família A (`prereg-v2a`), latência com âncoras, custo, matriz enterprise atualizada e resumo do scorer simétrico |
 
 As figuras ficam em [`figuras/`](figuras/): gráficos gerados a partir dos resultados recalculados
 (`final-*.png`; os `final-x-*.png` são exploratórios) e prints do Langfuse (`langfuse-*.png`).
@@ -55,3 +56,14 @@ E a pergunta que organiza tudo, "vale ter roteador?", em [07](07-ponta-a-ponta.m
 | S4. Léxico × semântico | Embedding − regex = +20,9 pp [15,2; 26,6] |
 
 Fontes: [primary.md](../docs/results/final/primary.md) e [secondary.md](../docs/results/final/secondary.md).
+
+### Fase 2, Parte A (pré-registro `prereg-v2a`, família A com Holm)
+
+| Hipótese | Resultado no test-v2 |
+|---|---|
+| **A1.** Ministral 3 8B gerenciado (E6m) não perde mais que 3 pp para o Qwen3-8B local (E6b) | Δ +2,3 pp [−2,0; 6,6], Holm p 0,0136: **não inferior** |
+| **A2.** Nemotron Nano 9B v2 gerenciado (E6n) não perde mais que 3 pp para o E6b | Δ −2,9 pp [−7,4; 1,7], Holm p 0,4722: **não demonstrada** |
+| **A3.** Cohere Embed v4 (E3c) − qwen3-embedding local (E3) | Δ −19,2 pp [−24,6; −14,0], Holm p 0,0004: **o local é melhor** |
+| **A4.** Titan v2 (E3t) − qwen3-embedding local (E3) | Δ −17,8 pp [−23,2; −12,6], Holm p 0,0004: **o local é melhor** |
+
+Fonte: [addendum-a/primary.md](../docs/results/addendum-a/primary.md); leitura no capítulo [14](14-fase2-nuvem.md).

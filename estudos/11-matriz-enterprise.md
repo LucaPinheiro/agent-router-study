@@ -5,6 +5,12 @@
 > "significativamente melhores" que os vizinhos (ver capítulos [05](05-resultados-roteamento.md)
 > e [06](06-cascatas.md)).
 
+> **Fase 2:** a matriz com as opções gerenciadas do Bedrock (Ministral, Nemotron, Cohere, Titan)
+> está em [addendum-a/enterprise_matrix.md](../docs/results/addendum-a/enterprise_matrix.md), lida
+> no capítulo [14 §7](14-fase2-nuvem.md#7-leitura-enterprise-atualizada-e). A principal mudança: com
+> SLO p95 < 2 s e teto ≥ US$ 0,5/1k, o Ministral 3 8B gerenciado (E6m) qualifica com 82,2%. A matriz
+> abaixo é a da fase 1 e continua valendo para os candidatos da fase 1.
+
 ## 1. Como ler
 
 Para cada combinação de SLO de latência (p95 quente, benchmark `lat-*`), teto de custo de

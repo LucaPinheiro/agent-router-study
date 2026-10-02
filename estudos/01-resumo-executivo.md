@@ -28,8 +28,23 @@ chega a 84,7% [81,0; 88,2] por US$ 0,82 por mil casos **[E]**.
 | Sem chamada externa, custo zero de API | **Qwen3-8B local (E6b)** se p95 ~12 s for aceitável; **classificador (E10)** se precisar de p95 ~1 s | 79,9% e 74,8% conjunta ([estimation.md §A, §D](../docs/results/final/estimation.md)) |
 | Latência p95 < 2 s com acurácia ≥ 75% | **Nenhuma configuração testada atende** | todas as células "none qualifies" ([enterprise_matrix.md](../docs/results/final/enterprise_matrix.md)) |
 | Regex como primeira camada | **Não recomendado como decisor geral** | 84,8% no dev → 52,7% no teste (−32,1 pp) **[C, S3]** |
+| **Fase 2:** sem inferência local, latência p95 < 2 s com acurácia ≥ 75% | **Ministral 3 8B gerenciado no Bedrock (E6m)** | 82,2% conjunta, p95 1,6 s, US$ 0,44/1k; não inferior ao Qwen3-8B local **[C, A1]** ([addendum-a/enterprise_matrix.md](../docs/results/addendum-a/enterprise_matrix.md)) |
+| **Fase 2:** roteamento por embedding sem modelo local | **Não recomendado** com Cohere v4 ou Titan v2 | 54,4% / 55,9% conjunta, −19,2 / −17,8 pp vs o embedding local **[C, A3/A4]** ([addendum-a/primary.md](../docs/results/addendum-a/primary.md)) |
 
-Detalhes por caso de uso no capítulo [11](11-matriz-enterprise.md).
+Detalhes por caso de uso no capítulo [11](11-matriz-enterprise.md); as duas linhas da fase 2 no capítulo [14](14-fase2-nuvem.md).
+
+## Fase 2 (Parte A): modelos gerenciados na nuvem
+
+A fase 1 mediu a latência local numa máquina só, e a operação alvo não quer inferência local. A
+Parte A (pré-registro `prereg-v2a`, só roteamento, mesmo test-v2) trocou cada roteador local por
+um gerenciado no Bedrock, reaproveitando as linhas locais da fase 1 como referência. O **Ministral
+3 8B** acerta 82,2% [77,9; 86,2] contra 79,9% do Qwen3-8B local, Δ +2,3 pp [−2,0; 6,6], **não
+inferior** com Holm p 0,0136 **[C, A1]**, com p95 de 1,6 s (o Qwen local: 12,0 s, outra janela) e
+US$ 0,44/1k **[E]**. É a primeira configuração do estudo com ≥ 75% e p95 < 2 s. O Nemotron Nano 9B
+v2 não demonstrou não inferioridade (−2,9 pp [−7,4; 1,7]) **[C, A2]**. Os **embeddings gerenciados**
+(Cohere v4, Titan v2) perdem 18–19 pp para o embedding local e não servem para este roteamento em
+pt-BR **[C, A3/A4]**. Fontes: [addendum-a/primary.md](../docs/results/addendum-a/primary.md),
+[estimation.md §G](../docs/results/addendum-a/estimation.md); detalhes no capítulo [14](14-fase2-nuvem.md).
 
 ## Números principais
 
