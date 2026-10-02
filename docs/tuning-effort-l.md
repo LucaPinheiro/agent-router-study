@@ -92,7 +92,7 @@ later and is logged as a separate row.
 | step | what | agent wall-clock | human | dev passes | paid calls |
 |---|---|---|---|---|---|
 | catalog rules | base = phase-1 rules copied unchanged; suppressors on the originals; rules for 7 new skills, 42 new tools, 2 new globals; 2 fix rounds on the in-sample checks below | ~0.4 h (2026-10-02 00:13–00:35) | 0 | 0 | 0 (US$ 0) |
-| dev-L round | not started | – | – | – | – |
+| dev-L round | read the 68 joint errors of the catalog-only rules on dev-L (`tune_router.py --split dev_l --errors`), then 2 edit batches + 2 CV re-runs; additive only (rules tagged `dev-L round`) | 2026-10-02 00:39:56–00:43:46 by `date` stamps (agent time) | 0 | 4 (2 points each, history 0/2) | 0 (US$ 0) |
 
 Timebox (plan §3, risk R1): 4 h for the whole regex effort. Used so far: ~0.4 h, so ~3.6 h
 remain for the dev-L error round; R1 allows one more logged 2 h round after the dev-L CV and
@@ -162,3 +162,55 @@ pedidos_logistica 13/20.
 Expect a large drop on dev-L: the phase-1 regex lost 32 pp from dev to test, and these rules saw
 no user phrasing at all. Tests: `tests/routers/test_regex_rules_l.py` (≥ 2 examples per tool,
 the phase-1 phrase tests on the large option sets, one probe per G1–G12 tool).
+
+#### dev-L round (T5.1 part 2): what changed and what it bought
+
+The round read the dev-L errors once, so its CV number is optimistic, like the phase-1 regex
+row: the CV only re-selects `history_turns`, and the rules were written on the same cases.
+
+- Rules 235 → 298 (suppressors 64 → 93), defs 46 → 48 (`INJECT`: prompt injection / mass
+  action → `__global__` + escalate_to_human; `NO_REPLY`: "aguardo retorno" is not a return).
+  File 478 → 554 lines. The 79 phase-1 positive rules are still byte-identical.
+- Widened catalog markers: entity-id prefixes from the large mock DB contract (ASS-, OS-,
+  VALE-, protocol prefixes ATD/NFC/MED/AJC/CCL; promotion codes), "cartão de vocês / fatura do
+  cartão / TX-…" → store card, "comprova…/comprobatório" → receipt, "documento fiscal",
+  "pontinhos/patente/bonificação" → loyalty, "terceiro/de quem estou comprando/lojão" → seller,
+  off-scope "parceria/seguidores/representação comercial/revenda/emprego".
+- Tool-stage fixes on new tools (block vs contest, gift-card balance vs redeem, reschedule
+  technical visit, return label "adesivo", resend invoice "retransmissão", seller report vs
+  contact, pause "congelar").
+
+| | skill | tool | joint (fixed = nested here) [95% CI] | skill ECE raw→cal | tool ECE raw→cal |
+|---|---|---|---|---|---|
+| catalog-only rules | 69.3 | 58.0 | 54.7 [46.7, 62.7] | 0.115 | 0.229 |
+| after the dev-L round | 89.3 | 83.3 | **82.7 [76.7, 88.7]** (optimistic) | 0.110→0.058 (Platt) | 0.214→0.082 (Platt) |
+
+Remaining errors are mostly multiturno ("e o outro?") and ambiguo; per category after the
+round: direto 86.7, parafrase 81.1, ambiguo 66.7, multiturno 53.3, fora_escopo 86.7,
+adversarial 75.0 (joint, first edit batch). Timebox used: ~0.5 h of the 4 h (+2 h) budget.
+
+### Other strategies on dev-L (T5.1–T5.3)
+
+Embedder: **Titan v2** for E3-L/E10-L/E11-L, per the Part A recommendation (dev CV ties Cohere
+within noise, ~4× faster, ~6× cheaper); no local model. Logs and per-point JSON:
+`results/phase2l/` (gitignored); grid scripts there (`bm25_grid.sh`, `emb_grid.sh`,
+`emb_T.sh`, `probe.sh`, `llm_p0.sh`). Tuned blocks: `docs/results/phase2-dev-l/tuned_blocks.yaml`,
+applied with `scripts/analysis/apply_tuned_l.py`. Maps written only when the cross-fitted ECE
+is lower than raw.
+
+| strategy | configs evaluated (dev-L passes) | wall-clock | paid | joint nested [95% CI] | fixed joint | skill ECE raw→cal | tool ECE raw→cal | map | p50 / p95 ms | US$/1k cases |
+|---|---|---|---|---|---|---|---|---|---|---|
+| E2 BM25 grid 1 | 512 | 4.5 min | 0 | 50.0 [42.0, 58.0] | 54.7 | – | – | – | 8 / 17 | 0 |
+| E3 Titan embedding | 324 (D1 grid verbatim) + 3 (T by calibrated Brier: T 0.02) | ~2 min + 1 min | ~US$ 0.002 | 61.3 [53.3, 69.3] | 64.7 | 0.083→0.118 | 0.186→0.133 (isotonic) | tool only | 161 / 250 | ≈0.003 |
+| E10 probe on Titan | 64 (D4 grid) + 8 (C {100,300,1000,3000} × history) | ~1 min | < US$ 0.001 | 66.0 [58.0, 73.3] (both) | 66.7 | 0.060→0.090 | 0.115→0.085 (isotonic) | tool only | 176 / 395 | ≈0.003 |
+| E6 Haiku 4.5, P0 | 1 | ~4 min | US$ 1.08 | 84.0 [78.0, 89.3] | 84.0 | 0.065→0.038 | 0.070→0.106 | skill only | 3651 / 4870 | 7.18 |
+| E6m Ministral 3 8B, P0 | 1 | ~3 min | US$ 0.10 | 78.7 [72.0, 84.7] | 78.7 | 0.145→0.076 | 0.148→0.059 | skill + tool | 841 / 1341 | 0.70 |
+| E6n Nemotron Nano 9B v2, P0 | 1 | ~3 min | US$ 0.05 | 73.3 [66.0, 80.0] | 73.3 | 0.156→0.101 | 0.199→0.022 | skill + tool | 1397 / 1936 | 0.33 |
+| E4 Jev, P0 | 1 | ~4 min | US$ 0.19 (OR) | 86.7 [80.7, 92.0] | 86.7 | 0.057→0.029 | 0.023→0.047 | skill only | 3620 / 7629 | 1.28 |
+| Sonnet 5 P0 (shadow only, OQ-1) | 1 | ~4 min | US$ 1.13 | 84.0 [78.0, 89.3] | 84.0 | 0.123→0.022 | 0.047→0.037 | skill + tool | 5840 / 10058 | 7.52 |
+
+- **Parse failures:** Ministral 2/300 calls (2 rows, 1.3% ITT), Jev 1, Sonnet 1, Haiku and
+  Nemotron 0: every model under 2%, so **no format-only fix**.
+- **Haiku cache (X3):** 0 cache reads: the large P0 prompt is ~2.7k tokens per call, under the
+  4,096-token Haiku cache minimum. Sonnet (1,024 minimum) reads ~2.6k cached tokens per call.
+- p50/p95 are dev-L tuning latencies at concurrency 2–4, **not** the benchmark.
