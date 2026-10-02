@@ -125,7 +125,7 @@ sem alternativa robusta (os ICs inferiores do E7-L e do E6 ficam abaixo de 80). 
 | < 2 s, até US$ 2 | E6m Ministral 82,2%, robusto (piso 75%) | E6m Ministral 79,3%, **não robusto**; nada no piso de 80% |
 | < 10 s, até US$ 2 | E4 Jev 84,7%, robusto | E4 Jev 84,9%, **não robusto** no p95 (cauda mais longa, prompt maior) |
 | < 500 ms | nada com ≥ 75% | nada com ≥ 75% (melhor: E11, 62,3%) |
-| Roteador vs nativo, ponta a ponta | nativo melhor (H3) **[C]** | empate (H1-L) **[C]** |
+| Roteador vs nativo, ponta a ponta | nativo melhor (H3) **[C]** | sem diferença detectável: −0,3 pp [−4,0; 3,3], o IC inclui 0, sem afirmação direcional **[C, H1-L]**; equivalência não testada (S2 inconclusivo) |
 | Custo por turno do roteado / nativo | 0,909 **[C]** | 1,101 **[C]** |
 
 ### 6.4 Orientação final por tamanho de catálogo e caso de uso
@@ -133,8 +133,8 @@ sem alternativa robusta (os ICs inferiores do E7-L e do E6 ficam abaixo de 80). 
 | Situação | Recomendação | Base |
 |---|---|---|
 | **Catálogo pequeno (≲ 20 tools), qualidade do agente** | Sem roteador (E0) | H3 **[C]**; inalterado |
-| **Catálogo grande (~60 tools), qualidade do agente** | Sem roteador (E0) é tão bom quanto e mais barato com cache; roteador só se houver outro motivo | H1-L: −0,3 pp [−4,0; 3,3]; custo 1,101× **[C]** |
-| **Qualquer tamanho, decisão de roteamento auditável** | E4 Jev sozinho | 84,7% (18) e 84,9% (62); não inferior ao Haiku com 62 tools **[C, H3-L]**; a única confiança com cobertura útil a risco ≤ 5% (68,7%) **[E]** |
+| **Catálogo grande (~60 tools), qualidade do agente** | Sem roteador (E0), o padrão mais simples: com 62 tools o roteador não mostrou perda detectável de ponta a ponta e custou 10% mais por turno; roteador só se houver outro motivo | H1-L: sem diferença detectável: −0,3 pp [−4,0; 3,3], o IC inclui 0, sem afirmação direcional **[C, H1-L]**; equivalência não testada (S2 inconclusivo); custo 1,101× **[C]** |
+| **Qualquer tamanho, decisão de roteamento auditável** | E4 Jev sozinho | 84,7% (18) e 84,9% (62); não inferior ao Haiku com 62 tools **[C, H3-L]**; cobertura a risco ≤ 5%: com 62 tools, 68,7%, a maior (cascatas do Jev: E7-L 67,9%, E9-L 67,3%, E12-L 64,9%); com 18 tools, 55,9%, abaixo do Sonnet (61,5%) e do E8 (59,6%) **[E]** |
 | **Qualquer tamanho, p95 < 2 s, sem modelo local** | E6m Ministral 3 8B no Bedrock | 82,2% com 18 tools **[C, A1]**; 79,3% com 62 tools, abaixo do Haiku sem NI demonstrada **[C, H2-L]** |
 | **Sem cache de prompt no executor** (outro provedor, tráfego esparso) | O roteador passa a economizar com 62 tools | 24,46 vs 39,95 US$/1k turnos sem cache **[E]** |
 | **Executor com teto de contexto** | Roteador top-2 | 10.067 vs 18.254 tokens de prompt por turno com 62 tools **[E]** |

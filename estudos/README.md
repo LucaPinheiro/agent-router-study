@@ -16,8 +16,8 @@
 **Em uma frase:** neste catálogo de 18 tools, o agente nativo que carrega a skill sozinho acertou
 mais de ponta a ponta (55,6%) que o agente com roteador (45,8%; −9,7 pp [−13,5; −6,0]); no
 roteamento isolado, o Jev via OpenRouter igualou o Sonnet 5 (84,7% vs 84,1%) a um sexto do custo,
-e o regex escrito no dev caiu 32 pp no teste. **Na fase 2, com 62 tools**, o roteado empatou com o
-nativo de ponta a ponta (57,0% vs 57,3%; −0,3 pp [−4,0; 3,3], scorer simétrico) e saiu 10% mais
+e o regex escrito no dev caiu 32 pp no teste. **Na fase 2, com 62 tools**, não houve diferença
+detectável de ponta a ponta entre roteado e nativo (57,0% vs 57,3%, scorer simétrico; sem diferença detectável: −0,3 pp [−4,0; 3,3], o IC inclui 0, sem afirmação direcional **[C, H1-L]**; equivalência não testada (S2 inconclusivo)) e saiu 10% mais
 caro por turno com o cache de prompt do nativo; o Jev seguiu como o melhor roteador (84,9%), não
 inferior ao Haiku 4.5. Resumo completo em [01](01-resumo-executivo.md).
 

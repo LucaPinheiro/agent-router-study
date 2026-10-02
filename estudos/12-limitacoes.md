@@ -119,8 +119,8 @@ As ameaças acima continuam valendo. A fase 2 (capítulos [14](14-fase2-nuvem.md
 3. **H3-L depende dos ambíguos.** A não inferioridade do Jev ao Haiku some com o primeiro rótulo
    (+0,6 pp [−3,1; 4,2]) e sem os ambíguos (−0,1 pp [−3,8; 3,3]); ela vem da generosidade dos
    rótulos múltiplos (mesma fonte).
-4. **Poder de H1-L.** O IC de −4,0 a +3,3 pp não exclui efeitos de 2–3 pp. "Empate" aqui quer dizer
-   "sem diferença detectável", não equivalência; a equivalência nos casos com as mesmas chamadas
+4. **Poder de H1-L.** O IC de −4,0 a +3,3 pp não exclui efeitos de 2–3 pp. O resultado é "sem
+   diferença detectável" (o IC inclui 0, sem afirmação direcional), não equivalência; a equivalência nos casos com as mesmas chamadas
    (S2) ficou inconclusiva **[C]**.
 5. **Custo dependente de cache.** A co-primária de custo de H1-L (1,101) depende do cache de
    prompt do Bedrock e do padrão de tráfego do manifesto; sem cache a razão se inverte **[E]**.

@@ -138,16 +138,14 @@ Fonte: [primary.md, Co-primary estimates](../docs/results/phase2-b/primary.md).
 
 **Leitura.**
 
-- **H1-L:** com 62 tools, o agente roteado e o nativo resolvem a mesma fração de turnos: 57,0%
-  [51,3; 62,3] contra 57,3% [51,7; 62,7]. O IC vai de −4,0 a +3,3 pp **[C]**. O estudo não mostra
-  que o roteador ajuda nem que atrapalha. O IC é mais estreito que a diferença detectável
-  prevista, então um efeito grande (≥ 5 pp em qualquer direção) fica improvável; um efeito
-  pequeno não pode ser descartado. Isso não prova equivalência: a equivalência pré-registrada é
-  a S2, na seção 5.
+- **H1-L:** com 62 tools, 57,0% [51,3; 62,3] (roteado) contra 57,3% [51,7; 62,7] (nativo),
+  sem diferença detectável: −0,3 pp [−4,0; 3,3], o IC inclui 0, sem afirmação direcional **[C, H1-L]**; equivalência não testada (S2 inconclusivo). O estudo não mostra que
+  o roteador ajuda nem que atrapalha, e um efeito pequeno não pode ser descartado. A única
+  equivalência pré-registrada é a S2, na seção 5.
 - **No custo, o roteador sai mais caro**: +10% por turno no regime observado, com IC que exclui
   1 **[C, co-primária]**. A seção 7 explica por quê: o cache de prompt do executor.
 - **H2-L:** o Ministral 3 8B acerta 79,3% contra 82,0% do Haiku; a não inferioridade **não foi
-  demonstrada** **[C]**. Na Parte A (18 tools), o Ministral tinha igualado o Qwen local; contra
+  demonstrada** **[C]**. Na Parte A (18 tools), o Ministral tinha sido não inferior ao Qwen local; contra
   o Haiku no catálogo grande, o IC desce até −7,0 pp. O Ministral responde em ~1/4 do tempo do
   Haiku no p95 **[C, co-primária]**.
 - **H3-L:** o **Jev é não inferior ao Haiku 4.5** (84,9% contra 82,0%; Holm p 0,0027) **[C]**, a
@@ -158,7 +156,7 @@ Fonte: [primary.md, Co-primary estimates](../docs/results/phase2-b/primary.md).
 | Variante | H1-L Δ pp [IC 95%] | H2-L Δ pp [IC 95%] | H3-L Δ pp [IC 95%] |
 |---|---|---|---|
 | Scorer legacy (assimétrico) | −3,3 [−7,7; 1,0] | – | – |
-| Conjunta só com o primeiro rótulo | −0,3 [−4,0; 3,3] | −6,0 [−10,0; −2,0] | +0,6 [−3,1; 4,2] |
+| Conjunta só com o primeiro rótulo | n/a (o H1-L é de ponta a ponta) | −6,0 [−10,0; −2,0] | +0,6 [−3,1; 4,2] |
 | Sem os ambíguos (n = 240) | −2,1 [−4,6; 0,4] | −5,0 [−9,2; −0,8] | −0,1 [−3,8; 3,3] |
 | Só os ambíguos (n = 60) | +6,7 [−8,3; 21,7] | +6,7 [−6,7; 20,0] | +15,0 [4,4; 26,1] |
 | Sem os 85 sinalizados pela auditoria (n = 215) | −1,9 [−6,0; 2,3] | −4,7 [−9,3; 0,0] | +2,2 [−1,4; 5,9] |
@@ -331,8 +329,9 @@ embedding levou 23,8 s (máximo da coluna fria); fica fora do p95 quente por des
 Fonte: [estimation.md §B e §C](../docs/results/phase2-b/estimation.md) (AURC e cobertura sobre a
 conjunta, confiança = mín(skill, tool)).
 
-- **A confiança do Jev é a única que serve para operar com risco controlado:** com risco ≤ 5%, o
-  Jev ainda responde 68,7% dos casos. Haiku e Ministral não têm nenhum ponto de operação assim,
+- **A confiança do Jev (e das cascatas que terminam nele) é a que serve para operar com risco
+  controlado:** com risco ≤ 5%, o Jev ainda responde 68,7% dos casos, e as cascatas E7-L, E9-L e
+  E12-L, 67,9%, 67,3% e 64,9%. Haiku e Ministral não têm nenhum ponto de operação assim,
   como na Parte A.
 - **Os mapas de calibração do dev-L nem sempre funcionaram no teste.** No Ministral e no
   Nemotron, o mapa aplicado aumentou o ECE (Ministral, skill: 0,153 → 0,207); no BM25 e no
@@ -447,8 +446,9 @@ Fonte: catalog_size.md.*
 **Leitura.**
 
 - **Nos mesmos casos, o catálogo maior custa acurácia** a quase todos os roteadores: o Jev perde
-  9,6 pp, a sonda 13,2 e o BM25 16,7 (IC excluindo zero). Haiku e Ministral perdem menos, com IC
-  tocando zero. A exceção é o regex (+7,0): as regras do catálogo grande foram reescritas no dev-L
+  9,6 pp, a sonda 13,2 e o BM25 16,7 (IC excluindo zero). O Haiku perde 3,5 pp [−7,9; 0,9], com IC
+  cruzando zero; o Ministral perde 5,3 [−10,5; 0,0] e o embedding Titan (E3) 7,9 [−15,8; 0,0], com
+  IC tocando zero. A exceção é o regex (+7,0): as regras do catálogo grande foram reescritas no dev-L
   e são melhores também nos casos antigos.
 - **No X1 a perda some**, porque os casos novos são mais fáceis: no próprio test-L, o Jev acerta
   77,2% nos casos orig e 89,6% nos casos das tools novas; todos os braços acertam mais nos casos
@@ -485,15 +485,17 @@ Fonte: catalog_size.md.*
    **[C, S7]**.
 4. **As cascatas não superam o Jev sozinho** e não reduzem o p95 **[E]**.
 5. **O agente nativo continua sendo uma escolha segura de ponta a ponta.** Com 10 skills e 62
-   tools, o Sonnet 5 que carrega a skill sozinho resolve tantos turnos quanto o roteado.
+   tools, entre o Sonnet 5 que carrega a skill sozinho e o roteado não houve diferença
+   detectável: −0,3 pp [−4,0; 3,3], o IC inclui 0, sem afirmação direcional **[C, H1-L]**; equivalência não testada (S2 inconclusivo).
 
 **Então, o roteador passa a valer a pena com 62 tools?** **Não pela qualidade de ponta a ponta:
-roteado e nativo empatam dentro de ±4 pp [C], e o roteador fica 10% mais caro por turno quando o
-cache de prompt do nativo funciona [C].** Ele passa a ser defensável por outros motivos:
+com 62 tools o roteador não mostrou perda detectável de ponta a ponta (−0,3 pp [−4,0; 3,3], o IC
+inclui 0, sem afirmação direcional [C, H1-L]; equivalência não testada, S2 inconclusivo) e custou
+10% mais por turno quando o cache de prompt do nativo funciona [C]; o nativo é o padrão mais simples.** Ele passa a ser defensável por outros motivos:
 contexto do executor ~45% menor (10.067 contra 18.254 tokens de prompt), uma decisão de
 roteamento registrada e auditável, e custo menor quando não há cache **[E]**. A conclusão da fase 1
-("não vale") fica mais fraca: deixou de ser "o nativo é melhor" e passou a ser "o nativo é tão
-bom quanto e mais barato com cache". O tamanho em que o roteador começa a ganhar em qualidade,
+("não vale") fica mais fraca: deixou de ser "o nativo é melhor" e passou a ser "sem diferença
+detectável de qualidade, e o nativo é mais barato com cache". O tamanho em que o roteador começa a ganhar em qualidade,
 se existe, está acima de 62 tools ou em catálogos com mais confusão do que este.
 
 ## 13. Ressalvas
@@ -518,7 +520,8 @@ A lista completa de ameaças da fase 2 está no capítulo [12](12-limitacoes.md#
 ## 14. Observabilidade
 
 Os runs do test-L estão no Langfuse local, ligados ao dataset `routing-study-test_l`: 10.333
-observações `turn` na janela do manifesto (13:05–15:36 UTC de 2026-10-02), lidas pela API
+observações `turn` (contagem devolvida pela API do Langfuse, não por uma tabela de
+`docs/results/`) na janela do manifesto (13:05–15:36 UTC de 2026-10-02), lidas pela API
 `/api/public/v2/observations`. O painel **"Agent Router Study: operação"** (capítulo
 [13 §5](13-reprodutibilidade.md#5-observabilidade)) mostra os mesmos traces, filtrando pelo
 dataset do test-L. Os números oficiais, com IC, continuam sendo os de

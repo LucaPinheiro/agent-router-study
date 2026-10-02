@@ -10,10 +10,11 @@
 
 ## Fase 2: a resposta final, "quando vale ter roteador?"
 
-**Com 18 tools, o nativo ganhava; com 62 tools, roteado e nativo empatam de ponta a ponta, e o
-roteador custa mais quando o cache de prompt funciona.** No catálogo grande, a cascata E9-L
+**Com 18 tools, o nativo ganhava; com 62 tools, não houve diferença detectável de ponta a ponta
+entre roteado e nativo, e o roteador custa mais quando o cache de prompt funciona.** No catálogo grande, a cascata E9-L
 (regex → Jev → Sonnet) resolveu 57,0% dos turnos e o agente nativo 57,3%: Δ **−0,3 pp
-[−4,0; 3,3]**, Holm p 1, sem afirmação direcional **[C, H1-L]**, com o scorer simétrico que
+[−4,0; 3,3]**, Holm p 1, o IC inclui 0, sem afirmação direcional **[C, H1-L]**; equivalência não testada
+(S2 inconclusivo); tudo com o scorer simétrico que
 pontua os dois braços pelo comportamento. O custo por turno do roteado foi **1,101× [1,014;
 1,196]** o do nativo **[C, co-primária]**: o roteador corta o prompt do executor de 18.254 para
 10.067 tokens por turno, mas o prefixo estável do nativo é lido do cache do Bedrock. Sem desconto
@@ -23,7 +24,7 @@ de cache, o roteado custaria 24,46 contra 39,95 US$ por mil turnos **[E]**
 
 | Dimensão | 18 tools (fase 1 + Parte A) | 62 tools (Parte B) |
 |---|---|---|
-| **Qualidade de ponta a ponta** | o nativo é melhor: E9 − E0 = −9,7 pp [−13,5; −6,0] **[C, H3]** (−3,2 [−6,0; −0,3] com o scorer simétrico **[X]**) | **empate**: −0,3 pp [−4,0; 3,3] **[C, H1-L]** |
+| **Qualidade de ponta a ponta** | o nativo é melhor: E9 − E0 = −9,7 pp [−13,5; −6,0] **[C, H3]** (−3,2 [−6,0; −0,3] com o scorer simétrico **[X]**) | **sem diferença detectável: −0,3 pp [−4,0; 3,3], o IC inclui 0, sem afirmação direcional [C, H1-L]; equivalência não testada (S2 inconclusivo)** |
 | **Custo por turno, roteado / nativo (observado)** | 0,909 [0,859; 0,960]: o roteado é ~9% mais barato **[C]** | 1,101 [1,014; 1,196]: o roteado é ~10% mais caro **[C]** |
 | **Melhor roteador isolado** | Jev 84,7% a US$ 0,82/1k **[E]** | Jev 84,9% a US$ 0,98/1k, não inferior ao Haiku 4.5 (+2,9 pp [−0,7; 6,6]) **[C, H3-L]** |
 | **Roteador com p95 < 2 s** | Ministral 3 8B gerenciado, 82,2%, p95 1,6 s **[C, A1; E]** | Ministral, 79,3%, p95 1,4 s; não demonstrou não inferioridade ao Haiku (−2,7 pp [−7,0; 1,7]) **[C, H2-L]** |
@@ -33,7 +34,7 @@ de cache, o roteado custaria 24,46 contra 39,95 US$ por mil turnos **[E]**
 **Quando vale ter roteador, então:**
 
 - **Pela qualidade do agente: em nenhum dos dois tamanhos testados.** Com 18 tools ele piora o
-  agente; com 62, empata **[C]**. Se existe um tamanho em que ele passa a ganhar, está acima de
+  agente; com 62, sem diferença detectável: −0,3 pp [−4,0; 3,3], o IC inclui 0, sem afirmação direcional **[C, H1-L]**; equivalência não testada (S2 inconclusivo). Se existe um tamanho em que ele passa a ganhar, está acima de
   62 tools (ou num catálogo mais confuso que este).
 - **Pelo custo: só sem cache de prompt.** Com cache (Bedrock, tráfego contínuo), o nativo é mais
   barato no catálogo grande **[C]**; sem cache, o roteado gasta ~39% menos por turno **[E]**.
@@ -41,9 +42,9 @@ de cache, o roteado custaria 24,46 contra 39,95 US$ por mil turnos **[E]**
   Ministral 3 8B gerenciado (p95 1,4–1,6 s); o Jev e as cascatas ficam em 7,5–9,6 s de p95
   ([phase2-b/estimation.md §D](../docs/results/phase2-b/estimation.md)) **[E]**.
 - **Por governança: sim.** Quando a decisão de roteamento precisa ser registrada e auditada, ou o
-  contexto do executor tem teto, o roteador é defensável sem perda de qualidade a partir de 62
-  tools; o Jev sozinho é a escolha (o melhor acerto e a única confiança que permite operar com
-  risco ≤ 5%, cobrindo 68,7% dos casos) **[E]**.
+  contexto do executor tem teto, o roteador é defensável: com 62 tools, ele não mostrou perda detectável de ponta a ponta
+  **[C, H1-L]**. O Jev sozinho é a escolha (o melhor acerto e a maior cobertura a risco ≤ 5%,
+  68,7%; as cascatas que terminam no Jev ficam perto: E7-L 67,9%, E9-L 67,3%, E12-L 64,9%) **[E]**.
 
 ## A resposta
 
@@ -70,7 +71,7 @@ chega a 84,7% [81,0; 88,2] por US$ 0,82 por mil casos **[E]**.
 | Regex como primeira camada | **Não recomendado como decisor geral** | 84,8% no dev → 52,7% no teste (−32,1 pp) **[C, S3]** |
 | **Fase 2:** sem inferência local, latência p95 < 2 s com acurácia ≥ 75% | **Ministral 3 8B gerenciado no Bedrock (E6m)** | 82,2% conjunta, p95 1,6 s, US$ 0,44/1k; não inferior ao Qwen3-8B local **[C, A1]** ([addendum-a/enterprise_matrix.md](../docs/results/addendum-a/enterprise_matrix.md)) |
 | **Fase 2:** roteamento por embedding sem modelo local | **Não recomendado** com Cohere v4 ou Titan v2 | 54,4% / 55,9% conjunta, −19,2 / −17,8 pp vs o embedding local **[C, A3/A4]** ([addendum-a/primary.md](../docs/results/addendum-a/primary.md)) |
-| **Fase 2:** catálogo grande (~60 tools), qualidade de ponta a ponta importa | **Agente nativo (E0)**, ou roteado se houver motivo de governança; os dois empatam | e2e_sym 57,3% (E0) vs 57,0% (E9-L), −0,3 pp [−4,0; 3,3] **[C, H1-L]**; com cache, o nativo é 10% mais barato ([phase2-b/primary.md](../docs/results/phase2-b/primary.md)) |
+| **Fase 2:** catálogo grande (~60 tools), qualidade de ponta a ponta importa | **Agente nativo (E0)**, o padrão mais simples; roteado só se houver motivo de governança | e2e_sym 57,3% (E0) vs 57,0% (E9-L): sem diferença detectável: −0,3 pp [−4,0; 3,3], o IC inclui 0, sem afirmação direcional **[C, H1-L]**; equivalência não testada (S2 inconclusivo). Com 62 tools, o roteador não mostrou perda detectável de ponta a ponta e custou 10% mais por turno (com cache, o roteado é 10% mais caro); o nativo é o padrão mais simples ([phase2-b/primary.md](../docs/results/phase2-b/primary.md)) |
 | **Fase 2:** catálogo grande, precisa de roteador | **Jev sozinho (E4)** | 84,9% conjunta a US$ 0,98/1k, não inferior ao Haiku 4.5 **[C, H3-L]** ([phase2-b/estimation.md §A](../docs/results/phase2-b/estimation.md)) |
 
 Detalhes por caso de uso no capítulo [11](11-matriz-enterprise.md); as linhas da fase 2 nos capítulos [14](14-fase2-nuvem.md) e [15](15-fase2-catalogo-grande.md).
@@ -82,8 +83,9 @@ Parte A (pré-registro `prereg-v2a`, só roteamento, mesmo test-v2) trocou cada 
 um gerenciado no Bedrock, reaproveitando as linhas locais da fase 1 como referência. O **Ministral
 3 8B** acerta 82,2% [77,9; 86,2] contra 79,9% do Qwen3-8B local, Δ +2,3 pp [−2,0; 6,6], **não
 inferior** com Holm p 0,0136 **[C, A1]**, com p95 de 1,6 s (o Qwen local: 12,0 s, outra janela) e
-US$ 0,44/1k **[E]**. É a primeira configuração do estudo com ≥ 75% e p95 < 2 s. O Nemotron Nano 9B
-v2 não demonstrou não inferioridade (−2,9 pp [−7,4; 1,7]) **[C, A2]**. Os **embeddings gerenciados**
+US$ 0,44/1k **[E]**. É a única configuração do estudo com ≥ 75% e p95 < 2 s que passou na regra
+de não inferioridade pré-registrada: o Nemotron Nano 9B v2 (E6n) também ficou acima de 75% abaixo
+de 2 s (77,1%, p95 1465 ms), mas não demonstrou não inferioridade (−2,9 pp [−7,4; 1,7]) **[C, A2]**. Os **embeddings gerenciados**
 (Cohere v4, Titan v2) perdem 18–19 pp para o embedding local e não servem para este roteamento em
 pt-BR **[C, A3/A4]**. Fontes: [addendum-a/primary.md](../docs/results/addendum-a/primary.md),
 [estimation.md §G](../docs/results/addendum-a/estimation.md); detalhes no capítulo [14](14-fase2-nuvem.md).
@@ -126,4 +128,5 @@ recuperação; barra = IC 95% do total (fonte: estimation.md §J).*
 
 Custo total do estudo final (ledger): US$ 34,48 Bedrock + US$ 1,43 OpenRouter
 ([13](13-reprodutibilidade.md)). Fase 2 (Partes A e B, desde a marca do ledger): US$ 27,65
-Bedrock + US$ 1,69 OpenRouter ([13 §7](13-reprodutibilidade.md#7-fase-2)).
+Bedrock + US$ 1,69 OpenRouter ([13 §7](13-reprodutibilidade.md#7-fase-2)); fonte: o ledger de
+gastos `results/spend_ledger.jsonl`, lido com `uv run study budget`.

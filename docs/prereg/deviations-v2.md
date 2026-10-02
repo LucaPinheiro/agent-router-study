@@ -9,6 +9,12 @@ pre-registered analysis (prereg-v2a §7).
 - **Why:** coordinator task specification (T2.6), to keep the Part-A outputs apart from a later Part-B analysis.
 - **Effect on analysis:** none. Same hypotheses (A1-A4, Holm), same machinery (paired cluster bootstrap 10k, seed 20260930, sign-flip p), same estimation list; every row's catalog/config/prompt hash asserted as in §8.
 
+## DV2-002 — 2026-10-02T00:43:34-03:00
+- **Runs:** none (analysis timing only).
+- **What changed:** the Part-A analysis script `scripts/analysis/addendum_a.py` was first committed at 2026-10-02 00:43:34 (commit `2a9bda4`), after the `prereg-v2a` tag (commit `d4b1463`, 00:02:22) and after the Part-A runs (00:03:42–00:30:38, `results/phase2a/run-manifest.log`). The script is not in the `prereg-v2a` tag.
+- **Why:** the Part-A runs were launched right after the freeze, and the analysis code was written while and after they ran.
+- **Effect on analysis:** limited to analysis implementation choices. The hypotheses (A1-A4, Holm) and the statistics (paired cluster bootstrap 10k, seed 20260930, sign-flip p, estimation list) were frozen in prereg-v2a §3/§8 before any Part-A row existed.
+
 ## D-L01 — 2026-10-02T10:11:44-03:00
 - **Runs:** `config/study_manifest_l.yaml` (prereg-v2, test-L), stopped during `l-shadow-tuned-routing-r3` (the cache-filling shadow pass; not an analysed arm) and resumed by (case, rep). Every other run started after the resume.
 - **What changed:** infra-only. At 10:08:19 the app-redis child process was OOM-killed during an AOF rewrite fork; auto-aof-rewrite and RDB save were disabled for the run (`results/phase2b/redis-restore.sh`). At 10:11:44 app-redis itself was OOM-killed (Docker VM 8.3 GB) by ~811k stale LangGraph checkpoint keys (~2 GB) left by earlier runs. The manifest was stopped; the `checkpoint*` / `write_keys_zset` keys were deleted with the user's approval (every result already lives in `results/*.jsonl`), Redis went from 2.05 GB to 141 MB, and the manifest was resumed. The shadow run's 66 error rows from the crash window (7.3%) were retried once by the runner's pre-registered retry rule (prereg-v2 §7: up to 2 retries of the error rows) and ended COMPLETE with 0 errors. The Redis config was restored after the manifest finished (12:36:52). Log: `results/phase2b/launch.log`, `results/phase2b/run-manifest.log`.

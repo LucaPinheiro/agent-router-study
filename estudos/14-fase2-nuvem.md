@@ -46,6 +46,14 @@ O protocolo foi congelado na tag `prereg-v2a` antes da primeira linha do test-v2
 ([prereg-v2a.md §1](../docs/prereg/prereg-v2a.md)). Herda tudo da fase 1 (ITT, bootstrap por
 caso, Holm dentro da família, latência só do benchmark dedicado, custo em três regimes).
 
+**Desvios** ([deviations-v2.md](../docs/prereg/deviations-v2.md)): **DV2-001**, o script de análise
+foi implementado como `scripts/analysis/addendum_a.py` (saída em `docs/results/addendum-a/`) e
+não como o `addendum_all.py` nomeado no prereg-v2a §8; sem efeito na análise. **DV2-002**, o
+`addendum_a.py` teve o primeiro commit em 2026-10-02 00:43:34 (`2a9bda4`), depois da tag
+`prereg-v2a` (00:02:22) e depois das runs da Parte A (00:03:42–00:30:38). Hipóteses e estatística
+estavam congeladas no prereg-v2a §3/§8; o efeito possível se limita a escolhas de implementação
+da análise.
+
 **Restrição da fase 2 (vinculante):** nenhum modelo local foi executado. Os braços locais (E6b,
 E3, E10) são **as linhas congeladas da fase 1**, reaproveitadas só para leitura, pareadas nos
 mesmos 349 casos e conferidas por sha256 ([primary.md, Provenance](../docs/results/addendum-a/primary.md)).

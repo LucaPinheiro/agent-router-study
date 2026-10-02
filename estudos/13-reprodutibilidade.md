@@ -178,8 +178,8 @@ toda entrada dos manifestos da fase 1 reproduz o `config_hash`/`prompt_hash` con
 | Manifesto | `config/addendum_manifest.yaml`, sha256 `177e374a8ee0f07303fc0244110c0ac5fa95f6b276d9006d30f2cdd54ac1149e` | `config/study_manifest_l.yaml`, sha256 `788fac3665ba82e06703a644f42e753f1413441dcc8d3395071d6d8ce8bc2e6b` (73 entradas) |
 | Scorers | roteamento `e0eef1fb0073` | roteamento `e0eef1fb0073`; e2e primário `e2e_success_sym` `5ad0f65296e4` (`scorers_sym.py`) |
 | Prompt | `c61ad0a7b7f8` (P0) | `c61ad0a7b7f8` (P0) |
-| Script de análise | `scripts/analysis/addendum_a.py` | `scripts/analysis/phase2_b.py` (escrito no commit `27cacee`, antes do test-L; só o bloco de constantes do congelamento mudou até a tag) |
-| Desvios | DV2-001 (nome do script) | D-L01 (Redis sem memória, só infraestrutura) |
+| Script de análise | `scripts/analysis/addendum_a.py` (primeiro commit `2a9bda4` em 2026-10-02 00:43:34, depois da tag `prereg-v2a` e das runs da Parte A, 00:03:42–00:30:38; hipóteses e estatística congeladas no prereg-v2a §3/§8; ver DV2-002) | `scripts/analysis/phase2_b.py` (escrito no commit `27cacee`, antes do test-L; só o bloco de constantes do congelamento mudou até a tag) |
+| Desvios | DV2-001 (nome do script); DV2-002 (script escrito depois das runs) | D-L01 (Redis sem memória, só infraestrutura) |
 
 `config_hash` por run: [prereg-v2a.md §1](../docs/prereg/prereg-v2a.md) e
 [prereg-v2.md §1](../docs/prereg/prereg-v2.md). Desvios: [deviations-v2.md](../docs/prereg/deviations-v2.md).
