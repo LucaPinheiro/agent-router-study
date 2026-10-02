@@ -366,8 +366,93 @@ sha256 after the automated adjudication. `tests/test_dataset_l.py` asserts the d
 | `data/audit/verdicts_dev_l_A.jsonl` | `88c9af9cf0ade2c64e46c34cb310b4327fbb02b2c3cc26207d88b959f2f11665` |
 | `data/audit/verdicts_dev_l_B.jsonl` | `5725359534ba991e5f4cd721b9676d7f5106d95986027809187d5e0c9dc861e3` |
 | `data/audit/adjudication_dev_l.jsonl` | `01cd47d69538744cc628184b97fea8653b282fffbafc07ac50543ab76176e818` |
-| `data/audit/summary_l.json` | `f4b53fe12296b34be8b943cb68cef22d1e06f24d4d84cde1a3e5c2e38ed71d7f` |
+| `data/audit/summary_l.json` | superseded: the file now holds dev-L and test-L, see the test-L freeze (dev-L stats unchanged) |
 | `data/audit/overlap_report_dev_l.json` | `d4decd6a14bfdf5211acc7b1c5031f6d23b59d0710124ba4e24b6e0c14ac8c14` |
 | `data/audit/generation_dev_l_raw.jsonl` | `ef2ae9d49373f56771189f8a8610b03dbc38f163d959987817dae3e8cb646e86` |
 
 `data/audit/review_dev_l.html` lists the 40 flagged cases for an optional human review (`apply-decisions` is not ported: a human decision would change the dev-L sha and needs a re-freeze).
+
+## Phase 2: test-L (large catalog, confirmatory)
+
+`data/dataset_test_l.jsonl` (300 cases) is the **confirmatory split of the large catalog**. It
+was generated after the T5 tuning freeze: the configs in `config/experiments_l` are freeze
+candidates, and the regex rules and thresholds are fixed. No router has been run on it, and no
+routing outcome was inspected.
+
+### Generation
+
+`scripts/dataset/generate_l.py --split test_l --seed 20261009` is the dev-L generator
+unchanged. It uses the same model (`moonshotai.kimi-k2.5` on Bedrock), temperature, prompts,
+filters and thresholds.
+
+- **Dedupe references.** test-L also dedupes against **dev-L**: 849 phase-1 cases + 150 dev-L =
+  999 cases, plus the large catalog units.
+- **Pilot.** 9 cases (`data/audit/pilot_test_l.jsonl`, not part of the split) were read before
+  the full run, and no change was needed.
+- **Quotas** (met exactly): direto 90, parafrase 75, ambiguo 60, multiturno 30, fora_escopo 30,
+  adversarial 15.
+  - Single-label cases: 195, covering all 62 tools with 3–4 each. 59 of them (30.3%) target the
+    18 original tools.
+  - ambiguo: 45 cases over G1–G12 and 15 over the phase-1 groups.
+  - **Orig subset** (every acceptable tool among the 18 originals): **78** cases under the
+    pre-audit gold, and 76 after the audit fixes. Both meet the required ≥ 60.
+- **Mock satisfiability: 98.0%.** The 6 conflicts are all adversarial cases.
+- **Rejections** (9 rounds, 213 calls): label_spec 152, id_not_offered 26, semantic_case 21,
+  leak_contained 11, args_param 10, semantic_catalog 8, customer_id_mentioned 6,
+  semantic_leak 3, adversarial_policy 2, schema 1, and surplus 183.
+- **Overlap report** (`data/audit/overlap_report_test_l.json`): **0 hits** against the 999
+  reference cases and the large catalog, both lexical and per the leak rule on both catalogs.
+  The maximum Titan cosines are 0.709 against cases, 0.707 against the catalog and 0.707 per
+  turn, all below 0.71.
+  - Within the split: the maximum lexical ratio is 0.611, so 0 hits above 0.85.
+  - Within the split, Titan flags one nearest-neighbour pair at 0.740 (`tl-direto-028` and
+    `tl-parafrase-023`): two different sneaker-color exchanges, with different orders and
+    wording. The within-split rule of plan §2 is lexical only, so both cases are kept.
+
+### Audit (blind, same rule)
+
+`scripts/dataset/audit_l.py` uses the same auditors (A `openai.gpt-oss-120b-1:0`, B
+`deepseek.v3.2`), prompt and adjudication rule as dev-L. All 300 cases got a verdict from both
+auditors on the first pass.
+
+| | test-L (n=300) |
+| --- | --- |
+| A vs B, gold acceptable: agreement / kappa | 0.800 / 0.218 |
+| A vs B, args correct | 0.887 / 0.529 |
+| A vs B, out of scope | 0.967 / 0.849 |
+| A vs B, escalation acceptable | 0.927 / 0.686 |
+| A vs B, first proposed tool | 0.853 / 0.849 |
+| A: gold acceptable rate [95% CI] | 0.830 [0.783, 0.868] |
+| B: gold acceptable rate [95% CI] | 0.870 [0.827, 0.903] |
+| A vs gold: out of scope / escalation / first tool kappa | 0.954 / 0.963 / 0.900 |
+| B vs gold: out of scope / escalation / first tool kappa | 0.863 / 0.720 / 0.845 |
+| A / B first tool in gold set | 0.947 / 0.880 |
+| Decisions keep / fixed / flagged | 203 / 12 / 85 |
+
+Decisions by category (keep/fixed/flagged): direto 67/4/19, parafrase 54/3/18, ambiguo
+32/2/26, multiturno 14/0/16, fora_escopo 28/0/2, adversarial 8/3/4. Both auditors accept 32/60
+ambiguous label sets and 15/30 multi-turn ones. Report single-label and first-label-only
+accuracy alongside the main metric, as for test-v2 (review M4).
+
+The gold-acceptable kappa (0.22) is low despite 80% raw agreement, because both auditors accept
+most cases (prevalence effect). The first-tool kappa (0.85) is the more informative agreement.
+
+Spend for T4.3 (ledger, Bedrock): pilot US$ 0.032, generation US$ 0.800, audit A US$ 0.167,
+audit B US$ 0.690. The total is **US$ 1.69**, within the US$ 3.00 cap.
+
+### Freeze (test-L)
+
+sha256 after the automated adjudication. `tests/test_dataset_l.py` asserts the dataset row.
+
+| File | sha256 |
+| --- | --- |
+| `data/dataset_test_l.jsonl` | `ae21a5dbce16eb90278612f7dbcf875cb6610b7b12a49cb6f7f57e503d680ff2` |
+| `data/generation_meta_test_l.json` | `9d606044da31e1b96d7117c1d734bdfc0c99ccedfc8849944da452532004b4b8` |
+| `data/audit/verdicts_test_l_A.jsonl` | `cff58bafc2af8fbb8432e099fce8a66cff820e268600fecc2a7ab882996f2d20` |
+| `data/audit/verdicts_test_l_B.jsonl` | `404a40d79a9da244e4ea0e01e997d91e20965cb5eddfd74437b6ea47bff87967` |
+| `data/audit/adjudication_test_l.jsonl` | `0ff641d9f149065097e6d8686c6d408d64a26273e211221f46fe6bbbe1568006` |
+| `data/audit/summary_l.json` | `59f4221cbad502a42a8221364f177615422acbe5c1a04afc80376d264f057b49` |
+| `data/audit/overlap_report_test_l.json` | `8ef1868e066523746a65978aba43b688662156d07fcc2a3a12ae611f44361021` |
+| `data/audit/generation_test_l_raw.jsonl` | `cc8317ec010be1d88b7f96882af4fc164c55f9f585f7dc55bfdb0034bb6fcfa1` |
+
+`data/audit/review_test_l.html` lists the 85 flagged cases. A human decision would change the test-L sha and requires a re-freeze before the prereg-v2 tag.

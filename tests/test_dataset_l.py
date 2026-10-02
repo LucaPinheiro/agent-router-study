@@ -27,6 +27,14 @@ SPLITS = {
         "fora_escopo": 15,
         "adversarial": 8,
     },
+    "test_l": {
+        "direto": 90,
+        "parafrase": 75,
+        "ambiguo": 60,
+        "multiturno": 30,
+        "fora_escopo": 30,
+        "adversarial": 15,
+    },
 }
 LARGE_TOOLS = {
     t["name"]
@@ -90,11 +98,29 @@ def test_no_large_catalog_text_lexically_matches_a_user_turn(split: str) -> None
     assert not leaks, leaks
 
 
-def test_dev_l_frozen_sha256_matches_dataset_card() -> None:
-    path = DATA / "dataset_dev_l.jsonl"
+@pytest.mark.parametrize("split", list(SPLITS))
+def test_frozen_sha256_matches_dataset_card(split: str) -> None:
+    path = DATA / f"dataset_{split}.jsonl"
     if not path.exists():
-        pytest.skip("dev-L not generated")
+        pytest.skip(f"{split} not generated")
     card = (ROOT / "docs" / "dataset-card.md").read_text()
-    m = re.search(r"`data/dataset_dev_l\.jsonl`\s*\|\s*`([0-9a-f]{64})`", card)
-    assert m, "dev-L freeze row missing in docs/dataset-card.md"
+    m = re.search(rf"`data/dataset_{split}\.jsonl`\s*\|\s*`([0-9a-f]{{64}})`", card)
+    assert m, f"{split} freeze row missing in docs/dataset-card.md"
     assert hashlib.sha256(path.read_bytes()).hexdigest() == m.group(1)
+
+
+def test_test_l_disjoint_from_dev_l_and_orig_subset() -> None:
+    dev, test = _load("dev_l"), _load("test_l")
+    assert not {c.id for c in dev} & {c.id for c in test}
+    dev_txt = {tuple(t.content for t in c.turns) for c in dev}
+    assert not any(tuple(t.content for t in c.turns) in dev_txt for c in test)
+    orig = [
+        c
+        for c in test
+        if set(
+            (c.label_audit or {}).get("original", {}).get("acceptable_tools")
+            or c.expected.acceptable_tools
+        )
+        <= set(ORIG_TOOLS)
+    ]
+    assert len(orig) >= 60  # plan §2: the paired catalog-size analysis needs >= 60
