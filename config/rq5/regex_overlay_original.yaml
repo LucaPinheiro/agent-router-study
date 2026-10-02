@@ -1,0 +1,24 @@
+# RQ5 (docs/rq5-design.md): the production rules removed from config/rq5/regex_rules_base.yaml,
+# verbatim. base + this overlay == config/regex_rules.yaml (asserted by tests/routers/test_rq5.py).
+# Provenance: written on dev over several iterations (some suppressors after test-v1 was read,
+# methodology review B1). Used only as a check, not as an RQ5 condition (the `full` condition
+# uses config/regex_rules.yaml itself).
+
+defs:
+  RESCHEDULE: '(reagend\w*|remarc\w*|adiar|adia|outro dia|outra data|nova data|(mudar|trocar|alterar) (o |a )?(dia|data)|nao (vou |vai |vamos )?(estar|estiver|estarei|tar|ta|to|ter ninguem)\s*(em casa|aqui|aq)|ninguem (vai estar )?em casa|viajando|nao (vou )?(consigo|poder) receber|tentativa de entrega)'
+  LABEL: '(etiqueta|(codigo|autorizacao) de postagem|vale[- ]?postagem|logistica reversa|como (faco )?(pra |para )?(envio|enviar|mando|mandar|posto|postar)|(enviar|mandar) o produto de volta)'
+
+rules:
+  pedidos_logistica:
+    - { pattern: '\b{{RESCHEDULE}}', weight: 1.0 }
+  trocas_devolucoes:
+    - { pattern: '\b{{LABEL}}', weight: 1.0 }
+    - { pattern: '\bpost(ar|agem)\b', weight: 0.6 }  # the customer ships it back
+  reschedule_delivery:
+    - { pattern: '\b{{RESCHEDULE}}', weight: 1.0 }
+  get_refund_status:
+    - { pattern: '\b{{REFUND}}.*\b(caiu|cai|ja|quando|cade|prazo|status|estatus|andamento|aparece\w*|foi resolvido)\b|\b(caiu|cade|quando|status|estatus|onde (ta|esta)) .*\b{{REFUND}}', weight: 1.0 }
+    - { pattern: '\b(esperando|aguardando) (o |a )?{{REFUND}}', weight: 1.0 }
+  generate_return_label:
+    - { pattern: '\b{{LABEL}}', weight: 1.0 }
+    - { pattern: '\b(postar|postagem|correio)\b', weight: 0.6 }

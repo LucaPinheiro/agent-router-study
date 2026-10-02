@@ -9,6 +9,7 @@ routing:
     pipeline: []
 
 executor:
-  model: anthropic/claude-sonnet-5   # sees globals + load_skill, then the loaded skill's tools
-  temperature: 0
+  provider: bedrock
+  model: global.anthropic.claude-sonnet-5   # sees globals + load_skill, then the loaded skill's tools
+  temperature: null                         # rejected by Sonnet 5 on Bedrock
   max_tool_iterations: 3

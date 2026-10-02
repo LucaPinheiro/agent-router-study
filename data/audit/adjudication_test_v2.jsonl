@@ -1,0 +1,349 @@
+{"id": "v2-direto-001", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-002", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-003", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-004", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-005", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-006", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-007", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-008", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-009", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-010", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-011", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-012", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-013", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-014", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-015", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-016", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-017", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-018", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-019", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["track_shipment"], "args": {"order_id": "O0045"}}, "both_missing_alternatives": ["track_shipment"]}
+{"id": "v2-direto-020", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-021", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-022", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-023", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-024", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": ["track_shipment"]}
+{"id": "v2-direto-025", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-026", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-027", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-028", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-029", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-030", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-031", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-032", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-033", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-034", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-035", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-036", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-037", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["reschedule_delivery"], "args": {"order_id": "O0042", "period": "tarde"}}, "both_missing_alternatives": []}
+{"id": "v2-direto-038", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-039", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-040", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-041", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-042", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-043", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-044", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-045", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-046", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-047", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-048", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-049", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-050", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-051", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-052", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-053", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-054", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-055", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-056", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-057", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-058", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-059", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-060", "decision": "flagged", "reasons": ["tools_fixed", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": ["cancel_order"]}
+{"id": "v2-direto-061", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": ["create_return_request"]}
+{"id": "v2-direto-062", "decision": "flagged", "reasons": ["tools_fixed", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": ["create_return_request"]}
+{"id": "v2-direto-063", "decision": "flagged", "reasons": ["tools_fixed", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": ["create_return_request"]}
+{"id": "v2-direto-064", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-065", "decision": "flagged", "reasons": ["tools_fixed", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-066", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-067", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-068", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-069", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-070", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-071", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-072", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["pagamentos_reembolsos"], "acceptable_tools": ["dispute_charge"], "args": {"reason": "nao_reconhecida", "order_id": "O0056", "details": "Caiu uma cobrança no meu cartão que eu não reconheço, o valor está errado."}}, "both_missing_alternatives": []}
+{"id": "v2-direto-073", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["pagamentos_reembolsos"], "acceptable_tools": ["dispute_charge"], "args": {"reason": "valor_divergente", "order_id": "O0025", "details": "O valor referente ao pedido O0025 está mais alto do que o que foi informado no momento da compra. Parece haver um erro no cálculo final ou alguma taxa não prevista."}}, "both_missing_alternatives": []}
+{"id": "v2-direto-074", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-075", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-076", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["pagamentos_reembolsos"], "acceptable_tools": ["dispute_charge"], "args": {"reason": "valor_divergente", "order_id": "O0016", "details": "O valor cobrado é superior ao acordado."}}, "both_missing_alternatives": []}
+{"id": "v2-direto-077", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-078", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-079", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-080", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-081", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-082", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-083", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-084", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-085", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["trocas_devolucoes"], "acceptable_tools": ["create_return_request"], "args": {"reason": "produto_errado", "order_id": "O0050", "sku": "CAMISA_VERDE_M"}}, "both_missing_alternatives": []}
+{"id": "v2-direto-086", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-087", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-088", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-089", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-090", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-091", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-092", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-093", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-094", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-095", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-096", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-097", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-098", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-099", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-100", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-101", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-102", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-103", "decision": "flagged", "reasons": ["tools_fixed", "fix_invalid"], "fixed_expected": null, "both_missing_alternatives": ["create_return_request"]}
+{"id": "v2-direto-104", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-direto-105", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-001", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-002", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-003", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-004", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-005", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-006", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-007", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-008", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-009", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-010", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-011", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["__global__"], "acceptable_tools": ["escalate_to_human"], "args": {"reason": "Preciso falar com alguém de verdade"}}, "both_missing_alternatives": []}
+{"id": "v2-parafrase-012", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-013", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-014", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-015", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-016", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-017", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["track_shipment"], "args": {"order_id": "O0040"}}, "both_missing_alternatives": ["track_shipment"]}
+{"id": "v2-parafrase-018", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["track_shipment"], "args": {"order_id": "O0022"}}, "both_missing_alternatives": ["track_shipment"]}
+{"id": "v2-parafrase-019", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-020", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-021", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-022", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": ["get_order_status"]}
+{"id": "v2-parafrase-023", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-024", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-025", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["update_delivery_address"], "args": {"street": "R. das Flores", "number": "123", "complement": "apto 4", "neighborhood": "Bela Vista", "city": "S. Paulo", "state": "SP", "postal_code": "01311-000", "order_id": "O0018"}}, "both_missing_alternatives": []}
+{"id": "v2-parafrase-026", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-027", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-028", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-029", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-030", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-031", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-032", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-033", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-034", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-035", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-036", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-037", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-038", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-039", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-040", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-041", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-042", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-043", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-044", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-045", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-046", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-047", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-048", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-049", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-050", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-051", "decision": "fixed", "reasons": ["tools_fixed", "args_fixed"], "fixed_expected": {"acceptable_skills": ["trocas_devolucoes"], "acceptable_tools": ["create_return_request"], "args": {"reason": "produto_errado", "order_id": "O0034"}}, "both_missing_alternatives": ["create_return_request"]}
+{"id": "v2-parafrase-052", "decision": "fixed", "reasons": ["tools_fixed", "args_fixed"], "fixed_expected": {"acceptable_skills": ["trocas_devolucoes"], "acceptable_tools": ["create_return_request"], "args": {"order_id": "O0015", "reason": "avariado"}}, "both_missing_alternatives": ["create_return_request"]}
+{"id": "v2-parafrase-053", "decision": "fixed", "reasons": ["tools_fixed", "args_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["cancel_order"], "args": {"order_id": "O0021"}}, "both_missing_alternatives": ["cancel_order"]}
+{"id": "v2-parafrase-054", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-055", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-056", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-057", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-058", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-059", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-060", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-061", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-062", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-063", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-064", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-065", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-066", "decision": "flagged", "reasons": ["tools_fixed", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": ["create_exchange"]}
+{"id": "v2-parafrase-067", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-068", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-069", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-070", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": ["create_exchange"]}
+{"id": "v2-parafrase-071", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["trocas_devolucoes"], "acceptable_tools": ["create_return_request"], "args": {"reason": "produto_errado", "order_id": "O0013"}}, "both_missing_alternatives": []}
+{"id": "v2-parafrase-072", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-073", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["trocas_devolucoes"], "acceptable_tools": ["create_return_request"], "args": {"reason": "produto_errado", "order_id": "O0055"}}, "both_missing_alternatives": []}
+{"id": "v2-parafrase-074", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-075", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-076", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-077", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-078", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-079", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["trocas_devolucoes"], "acceptable_tools": ["create_exchange"], "args": {"new_variant": "M", "order_id": "O0052"}}, "both_missing_alternatives": []}
+{"id": "v2-parafrase-080", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-081", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-082", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-083", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-084", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-085", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-086", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-parafrase-087", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-001", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-002", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-003", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-004", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-005", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-006", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-007", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-008", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-009", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-010", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-011", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-012", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-013", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-014", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-015", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-016", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-017", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-018", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-019", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-020", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-021", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-022", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-023", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-024", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-025", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-026", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-027", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-028", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["get_order_status", "track_shipment"], "args": {"order_id": "O0059"}}, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-029", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-030", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-031", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["get_order_status", "track_shipment"], "args": {"order_id": "O0046"}}, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-032", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-033", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-034", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["get_order_status", "track_shipment"], "args": {"order_id": "O0043"}}, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-035", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-036", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-037", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-038", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-039", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-040", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-041", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-042", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-043", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-044", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-045", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-046", "decision": "flagged", "reasons": ["tools_fixed", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-047", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-048", "decision": "flagged", "reasons": ["tools_disagree", "args_fixed"], "fixed_expected": null, "both_missing_alternatives": ["get_payment_status"]}
+{"id": "v2-ambiguo-049", "decision": "fixed", "reasons": ["tools_fixed", "args_fixed"], "fixed_expected": {"acceptable_skills": ["trocas_devolucoes"], "acceptable_tools": ["create_return_request"], "args": {"reason": "produto_errado", "order_id": "O0023"}}, "both_missing_alternatives": ["create_return_request"]}
+{"id": "v2-ambiguo-050", "decision": "flagged", "reasons": ["tools_fixed", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-051", "decision": "fixed", "reasons": ["tools_fixed", "args_fixed"], "fixed_expected": {"acceptable_skills": ["trocas_devolucoes"], "acceptable_tools": ["create_return_request"], "args": {"reason": "defeito", "order_id": "O0023"}}, "both_missing_alternatives": ["create_return_request"]}
+{"id": "v2-ambiguo-052", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": ["track_shipment"]}
+{"id": "v2-ambiguo-053", "decision": "flagged", "reasons": ["tools_fixed", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-054", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": ["create_return_request"]}
+{"id": "v2-ambiguo-055", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-056", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-057", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-058", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["get_order_status", "track_shipment"], "args": {"order_id": "O0023"}}, "both_missing_alternatives": ["track_shipment"]}
+{"id": "v2-ambiguo-059", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-060", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-061", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-062", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-063", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-064", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-065", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-066", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-067", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-068", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-069", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-ambiguo-070", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": ["get_order_status"]}
+{"id": "v2-multiturno-001", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-002", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-003", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-004", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": ["dispute_charge"]}
+{"id": "v2-multiturno-005", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-006", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-007", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-008", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-009", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["get_order_status"], "args": {"order_id": "O0009"}}, "both_missing_alternatives": ["get_order_status"]}
+{"id": "v2-multiturno-010", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-011", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-012", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-013", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-014", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["reschedule_delivery"], "args": {"period": "tarde", "order_id": "O0045"}}, "both_missing_alternatives": []}
+{"id": "v2-multiturno-015", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-016", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-017", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-018", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-019", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-020", "decision": "fixed", "reasons": ["tools_fixed", "args_fixed"], "fixed_expected": {"acceptable_skills": ["trocas_devolucoes"], "acceptable_tools": ["create_return_request"], "args": {"order_id": "O0028", "reason": "produto_errado"}}, "both_missing_alternatives": ["create_return_request"]}
+{"id": "v2-multiturno-021", "decision": "flagged", "reasons": ["tools_fixed", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": ["create_return_request"]}
+{"id": "v2-multiturno-022", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-023", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-024", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-025", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-026", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-027", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-028", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["trocas_devolucoes"], "acceptable_tools": ["create_return_request"], "args": {"reason": "defeito", "order_id": "O0049"}}, "both_missing_alternatives": []}
+{"id": "v2-multiturno-029", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-030", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-031", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-032", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-033", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-034", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-multiturno-035", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-001", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-002", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-003", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-004", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-005", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-006", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-007", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-008", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-009", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-010", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-011", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-012", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-013", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-014", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-015", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-016", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-017", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-018", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-019", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-020", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-021", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-022", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-023", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-024", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-025", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-026", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-027", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-028", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-029", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-030", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-031", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-032", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-033", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-034", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-fora_escopo-035", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-adversarial-001", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-adversarial-002", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-adversarial-003", "decision": "flagged", "reasons": ["tools_fixed", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": ["create_return_request"]}
+{"id": "v2-adversarial-004", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-adversarial-005", "decision": "flagged", "reasons": ["tools_disagree", "args_fixed"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-adversarial-006", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-adversarial-007", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-adversarial-008", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-adversarial-009", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-adversarial-010", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-adversarial-011", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-adversarial-012", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-adversarial-013", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "v2-adversarial-014", "decision": "flagged", "reasons": ["tools_fixed", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": ["update_delivery_address"]}
+{"id": "v2-adversarial-015", "decision": "fixed", "reasons": ["tools_fixed", "args_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["cancel_order"], "args": {"order_id": "O0052"}}, "both_missing_alternatives": ["cancel_order"]}
+{"id": "v2-adversarial-016", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": ["request_refund"]}
+{"id": "v2-adversarial-017", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}

@@ -11,7 +11,7 @@
   {
    "name": "cancel_order",
    "title": "Cancelar pedido",
-   "description": "Cancela um pedido que ainda não foi enviado; o estorno do pagamento é automático. Irreversível.\nWHEN TO USE: \"quero cancelar meu pedido\", desistência antes do envio.\nDON'T USE FOR: pedido já entregue (use create_return_request); dinheiro de volta de pedido já cancelado ou extraviado (use request_refund); cobrança não reconhecida (use dispute_charge).\nPARAMETERS: order_id opcional se o cliente tem um só pedido; reason opcional.\nCONFIRMATION: o servidor não pede confirmação; a ação é irreversível.\nRESULT: protocolo, valor e prazo do estorno; repasse sem alterar.",
+   "description": "Cancela um pedido que ainda não foi enviado; o estorno do pagamento é automático. Irreversível.\nWHEN TO USE: \"não quero mais, anula antes de despachar\", desistência antes do envio.\nDON'T USE FOR: se o pedido já foi entregue (use create_return_request); dinheiro de volta de pedido já cancelado ou extraviado (use request_refund); cobrança não reconhecida (use dispute_charge).\nPARAMETERS: order_id opcional se o cliente tem um só pedido; reason opcional.\nCONFIRMATION: o servidor não pede confirmação; a ação é irreversível.\nRESULT: protocolo, valor e prazo do estorno; repasse sem alterar.",
    "inputSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -279,8 +279,8 @@
    "_meta": {
     "br.routingstudy/skill": "pedidos_logistica",
     "br.routingstudy/examples": [
-     "Quero cancelar meu pedido",
-     "Desisti da compra, cancela o O0004 por favor",
+     "Não quero mais a compra, podem cancelar?",
+     "Pode anular a encomenda que ainda não saiu do estoque?",
      "Comprei errado, dá para cancelar antes de enviar?",
      "Cancela a compra que fiz ontem"
     ],
@@ -554,6 +554,32 @@
         },
         "title": "Options",
         "type": "array"
+       },
+       "open_return_id": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "description": "Devolução já aberta para o pedido (bloqueia nova devolução/troca)",
+        "title": "Open Return Id"
+       },
+       "refund_id": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "default": null,
+        "description": "Reembolso já existente (bloqueia nova devolução/troca)",
+        "title": "Refund Id"
        }
       },
       "required": [
@@ -610,7 +636,7 @@
   {
    "name": "create_exchange",
    "title": "Abrir troca",
-   "description": "Abre a troca de um item entregue por outro tamanho, cor ou variação do mesmo produto.\nWHEN TO USE: \"veio no tamanho errado, quero trocar\", \"quero outra cor\", em até 30 dias da entrega.\nDON'T USE FOR: dinheiro de volta (use create_return_request); defeito após 30 dias (use open_warranty_claim); pedido não entregue (use get_order_status).\nPARAMETERS: new_variant = tamanho, cor ou variação dita pelo cliente; sku opcional se o pedido tem um só item.\nCONFIRMATION: não requer.\nRESULT: id da troca e prazo de postagem; repasse sem alterar.",
+   "description": "Abre a troca de um item entregue por outro tamanho, cor ou variação do mesmo produto.\nWHEN TO USE: \"veio no tamanho errado, quero trocar\", \"quero outra cor\", em até 30 dias da entrega.\nDON'T USE FOR: dinheiro de volta (use create_return_request); defeito após 30 dias (use open_warranty_claim); se o pedido ainda não foi entregue (use get_order_status).\nPARAMETERS: new_variant = tamanho, cor ou variação dita pelo cliente; sku opcional se o pedido tem um só item.\nCONFIRMATION: não requer.\nRESULT: id da troca e prazo de postagem; repasse sem alterar.",
    "inputSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -881,7 +907,7 @@
    "_meta": {
     "br.routingstudy/skill": "trocas_devolucoes",
     "br.routingstudy/examples": [
-     "O tênis veio no tamanho errado, quero trocar por 41",
+     "O calçado ficou pequeno, troca por um 41",
      "Quero trocar a camiseta por uma G",
      "Dá para trocar a cor da jaqueta?",
      "Ficou apertado, quero um número maior"
@@ -902,7 +928,7 @@
   {
    "name": "create_return_request",
    "title": "Abrir devolução",
-   "description": "Abre a devolução de produto entregue, com reembolso após a loja receber o item.\nWHEN TO USE: \"quero devolver\", arrependimento em até 7 dias; defeito, avaria ou produto errado em até 30 dias da entrega.\nDON'T USE FOR: pedido não enviado (use cancel_order); trocar tamanho ou cor (use create_exchange); defeito após 30 dias (use open_warranty_claim); pedido extraviado (use request_refund).\nPARAMETERS: reason = arrependimento | defeito | avariado | produto_errado | tamanho_errado; sku opcional (omitido = pedido inteiro).\nCONFIRMATION: não requer.\nRESULT: id da devolução, valor e prazo de postagem; repasse sem alterar.",
+   "description": "Abre a devolução de produto entregue, com reembolso após a loja receber o item.\nWHEN TO USE: \"quero devolver\", arrependimento em até 7 dias; defeito, avaria ou produto errado em até 30 dias da entrega.\nDON'T USE FOR: se o pedido ainda não foi enviado (use cancel_order); trocar tamanho ou cor (use create_exchange); defeito após 30 dias (use open_warranty_claim); se o pedido foi extraviado (use request_refund).\nPARAMETERS: reason = arrependimento | defeito | avariado | produto_errado | tamanho_errado; sku opcional (omitido = pedido inteiro).\nCONFIRMATION: não requer.\nRESULT: id da devolução, valor e prazo de postagem; repasse sem alterar.",
    "inputSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -1187,8 +1213,8 @@
     "br.routingstudy/skill": "trocas_devolucoes",
     "br.routingstudy/examples": [
      "Quero devolver o produto que recebi",
-     "Me arrependi da compra, quero devolver e receber o dinheiro",
-     "O produto chegou quebrado, quero devolver",
+     "Mudei de ideia sobre o produto e vou mandar de volta",
+     "Recebi o item avariado e vou mandar para vocês",
      "Veio um item diferente do que eu pedi"
     ],
     "br.routingstudy/keywords": [
@@ -1206,7 +1232,7 @@
   {
    "name": "dispute_charge",
    "title": "Contestar cobrança",
-   "description": "Abre contestação (chargeback) de cobrança no cartão de crédito: não reconhecida, duplicada ou com valor divergente. Irreversível.\nWHEN TO USE: \"não reconheço essa cobrança\", \"fui cobrado duas vezes\", valor cobrado diferente.\nDON'T USE FOR: desistência ou devolução (use cancel_order, request_refund ou create_return_request); pagamento por Pix ou boleto.\nPARAMETERS: reason = nao_reconhecida | duplicada | valor_divergente; details opcional.\nCONFIRMATION: o servidor não pede confirmação; a ação é irreversível.\nRESULT: id da contestação e prazo; repasse sem alterar.",
+   "description": "Abre contestação (chargeback) de cobrança no cartão de crédito: não reconhecida, duplicada ou com valor divergente. Irreversível.\nWHEN TO USE: \"não reconheço essa cobrança\", \"a mesma compra caiu em dobro na fatura\", valor cobrado diferente.\nDON'T USE FOR: desistência ou devolução (use cancel_order, request_refund ou create_return_request); pagamento por Pix ou boleto.\nPARAMETERS: reason = nao_reconhecida | duplicada | valor_divergente; details opcional.\nCONFIRMATION: o servidor não pede confirmação; a ação é irreversível.\nRESULT: id da contestação e prazo; repasse sem alterar.",
    "inputSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -1487,7 +1513,7 @@
     "br.routingstudy/skill": "pagamentos_reembolsos",
     "br.routingstudy/examples": [
      "Não reconheço essa cobrança no meu cartão",
-     "Fui cobrado duas vezes pela mesma compra",
+     "A fatura mostra a mesma transação repetida",
      "O valor cobrado na fatura é maior que o do pedido",
      "Quero contestar uma compra no cartão"
     ],
@@ -1768,9 +1794,9 @@
    "_meta": {
     "br.routingstudy/skill": "global",
     "br.routingstudy/examples": [
-     "Quero falar com um atendente",
+     "Tem como eu ser atendido por alguém da equipe?",
      "Me passa para uma pessoa de verdade",
-     "Vocês têm vaga de emprego?",
+     "Estão contratando? Queria mandar meu currículo",
      "Preciso corrigir a nota fiscal da minha compra"
     ],
     "br.routingstudy/keywords": [
@@ -1788,7 +1814,7 @@
   {
    "name": "generate_boleto_second_copy",
    "title": "2ª via do boleto",
-   "description": "Emite a 2ª via do boleto de um pedido com pagamento pendente, com novo vencimento.\nWHEN TO USE: \"preciso da 2ª via do boleto\", boleto vencido ou perdido.\nDON'T USE FOR: saber se o boleto já foi pago (use get_payment_status); pedidos pagos com cartão ou Pix.\nPARAMETERS: order_id opcional se o cliente tem um só pedido.\nCONFIRMATION: não requer.\nRESULT: linha digitável, valor e vencimento; repasse sem alterar nenhum dígito.",
+   "description": "Emite uma segunda via de boleto para um pedido com pagamento pendente, com novo vencimento.\nWHEN TO USE: \"o código de barras expirou\", boleto com vencimento passado ou extraviado.\nDON'T USE FOR: saber se o boleto já foi pago (use get_payment_status); pedidos pagos com cartão ou Pix.\nPARAMETERS: order_id opcional se o cliente tem um só pedido.\nCONFIRMATION: não requer.\nRESULT: linha digitável, valor e vencimento; repasse sem alterar nenhum dígito.",
    "inputSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -2038,10 +2064,10 @@
    "_meta": {
     "br.routingstudy/skill": "pagamentos_reembolsos",
     "br.routingstudy/examples": [
-     "Preciso da segunda via do boleto",
+     "Pode reemitir o boleto da minha compra?",
      "Meu boleto venceu, como pago agora?",
-     "Perdi o boleto do pedido O0001",
-     "Gera um boleto novo para mim"
+     "Não acho mais o documento de pagamento, preciso de outro",
+     "Dá para emitir outro código de barras com data nova?"
     ],
     "br.routingstudy/keywords": [
      "boleto",
@@ -2059,7 +2085,7 @@
   {
    "name": "generate_return_label",
    "title": "Gerar etiqueta de devolução",
-   "description": "Gera a etiqueta de postagem de uma devolução já aberta.\nWHEN TO USE: \"preciso da etiqueta\", \"como envio o produto de volta?\" depois de abrir a devolução.\nDON'T USE FOR: abrir a devolução (use create_return_request); rastrear a entrega de um pedido (use track_shipment).\nPARAMETERS: return_id se o cliente informou; senão order_id (opcional se há um só pedido).\nCONFIRMATION: não requer.\nRESULT: código da etiqueta, transportadora e prazo de postagem; repasse sem alterar.",
+   "description": "Gera a etiqueta de postagem de uma devolução já aberta.\nWHEN TO USE: \"preciso da etiqueta\", \"como envio o produto de volta?\" depois de abrir a devolução.\nDON'T USE FOR: abrir a devolução (use create_return_request); rastrear a entrega de um pedido (use track_shipment).\nPARAMETERS: return_id informado pelo cliente ou devolvido por create_return_request; senão order_id (opcional se há um só pedido).\nCONFIRMATION: não requer.\nRESULT: código da etiqueta, transportadora e prazo de postagem; repasse sem alterar.",
    "inputSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -2322,7 +2348,7 @@
    "_meta": {
     "br.routingstudy/skill": "trocas_devolucoes",
     "br.routingstudy/examples": [
-     "Preciso da etiqueta para devolver o produto",
+     "Qual código levo aos Correios para despachar o retorno?",
      "Como faço para enviar o produto de volta?",
      "Gera a etiqueta da devolução DEV-1A2B3C4D",
      "Já abri a devolução, cadê o código de postagem?"
@@ -2611,7 +2637,7 @@
   {
    "name": "get_order_status",
    "title": "Status do pedido",
-   "description": "Consulta a situação de um pedido: status, itens, valor, forma de pagamento, previsão ou data de entrega e endereço.\nWHEN TO USE: \"como está meu pedido?\", \"meu pedido foi enviado?\", ver itens ou valor de um pedido.\nDON'T USE FOR: onde está o pacote e eventos de rastreio (use track_shipment); situação do pagamento (use get_payment_status) ou do reembolso (use get_refund_status).\nPARAMETERS: order_id opcional se o cliente tem um só pedido; nunca invente o número.\nCONFIRMATION: não requer.\nRESULT: dados do pedido; repasse datas, valores e IDs sem alterar.",
+   "description": "Consulta a situação de um pedido: status, itens, valor, forma de pagamento, previsão ou data de entrega e endereço.\nWHEN TO USE: \"qual a situação da minha compra?\", \"meu pedido foi enviado?\", ver itens ou valor de um pedido.\nDON'T USE FOR: onde está o pacote e eventos de rastreio (use track_shipment); situação do pagamento (use get_payment_status) ou do reembolso (use get_refund_status).\nPARAMETERS: order_id opcional se o cliente tem um só pedido; nunca invente o número.\nCONFIRMATION: não requer.\nRESULT: dados do pedido; repasse datas, valores e IDs sem alterar.",
    "inputSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -2934,10 +2960,10 @@
    "_meta": {
     "br.routingstudy/skill": "pedidos_logistica",
     "br.routingstudy/examples": [
-     "Como está meu pedido O0002?",
+     "Em que etapa está a compra que fiz semana passada?",
      "Meu pedido já foi enviado?",
      "Quais itens vieram no meu último pedido?",
-     "Qual a previsão de entrega da minha compra?"
+     "Até quando devo receber o que comprei?"
     ],
     "br.routingstudy/keywords": [
      "status",
@@ -2954,7 +2980,7 @@
   {
    "name": "get_payment_status",
    "title": "Status do pagamento",
-   "description": "Consulta o pagamento de um pedido: forma, status (pendente, aprovado, estornado, contestado), valor, parcelas e vencimento do boleto.\nWHEN TO USE: \"meu pagamento foi aprovado?\", \"o boleto já compensou?\", \"em quantas parcelas ficou?\".\nDON'T USE FOR: dinheiro que deve voltar ao cliente (use get_refund_status); emitir boleto novo (use generate_boleto_second_copy); status do pedido (use get_order_status).\nPARAMETERS: order_id opcional se o cliente tem um só pedido.\nCONFIRMATION: não requer.\nRESULT: dados do pagamento; repasse valores e datas sem alterar.",
+   "description": "Consulta o pagamento de um pedido: forma, status (pendente, aprovado, estornado, contestado), valor, parcelas e vencimento do boleto.\nWHEN TO USE: \"o banco já liberou o pagamento?\", \"o boleto já compensou?\", \"em quantas parcelas ficou?\".\nDON'T USE FOR: dinheiro que deve voltar ao cliente (use get_refund_status); emitir boleto novo (use generate_boleto_second_copy); status do pedido (use get_order_status).\nPARAMETERS: order_id opcional se o cliente tem um só pedido.\nCONFIRMATION: não requer.\nRESULT: dados do pagamento; repasse valores e datas sem alterar.",
    "inputSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -3233,7 +3259,7 @@
    "_meta": {
     "br.routingstudy/skill": "pagamentos_reembolsos",
     "br.routingstudy/examples": [
-     "Meu pagamento foi aprovado?",
+     "O banco já liberou o pagamento?",
      "O boleto que paguei já compensou?",
      "Em quantas parcelas ficou minha compra?",
      "Por que meu pedido ainda está aguardando pagamento?"
@@ -3522,7 +3548,7 @@
     "br.routingstudy/examples": [
      "Meu reembolso já caiu?",
      "Quando o estorno vai aparecer na fatura?",
-     "Cadê o dinheiro do pedido que cancelei?",
+     "Cancelei há dias e o estorno ainda não apareceu",
      "Qual o prazo do meu reembolso?"
     ],
     "br.routingstudy/keywords": [
@@ -3539,7 +3565,7 @@
   {
    "name": "open_warranty_claim",
    "title": "Acionar garantia",
-   "description": "Aciona a garantia de um produto com defeito que apareceu após 30 dias e em até 12 meses da entrega.\nWHEN TO USE: \"parou de funcionar\", \"deu defeito depois de alguns meses\".\nDON'T USE FOR: defeito em até 30 dias da entrega ou produto que chegou quebrado (use create_return_request ou create_exchange); pedido não entregue (use track_shipment).\nPARAMETERS: defect_description = defeito nas palavras do cliente; sku opcional se o pedido tem um só item.\nCONFIRMATION: não requer.\nRESULT: id do chamado de garantia e prazo de resposta; repasse sem alterar.",
+   "description": "Aciona a garantia de um produto com defeito que apareceu após 30 dias e em até 12 meses da entrega.\nWHEN TO USE: \"parou de funcionar\", \"deu defeito depois de alguns meses\".\nDON'T USE FOR: defeito em até 30 dias da entrega ou produto que chegou quebrado (use create_return_request ou create_exchange); se o pedido ainda não foi entregue (use track_shipment).\nPARAMETERS: defect_description = defeito nas palavras do cliente; sku opcional se o pedido tem um só item.\nCONFIRMATION: não requer.\nRESULT: id do chamado de garantia e prazo de resposta; repasse sem alterar.",
    "inputSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -3831,7 +3857,7 @@
   {
    "name": "request_refund",
    "title": "Solicitar reembolso",
-   "description": "Solicita o reembolso de um pedido cancelado que não foi estornado ou extraviado na entrega.\nWHEN TO USE: \"quero meu dinheiro de volta\" de pedido cancelado sem estorno ou que nunca chegou (extraviado).\nDON'T USE FOR: pedido ainda não enviado (use cancel_order); produto recebido a devolver (use create_return_request); acompanhar reembolso já pedido (use get_refund_status); cobrança não reconhecida (use dispute_charge).\nPARAMETERS: order_id opcional se o cliente tem um só pedido; reason = motivo curto.\nCONFIRMATION: não requer.\nRESULT: id do reembolso, valor e prazo; repasse sem alterar.",
+   "description": "Solicita o reembolso de um pedido cancelado que não foi estornado ou extraviado na entrega.\nWHEN TO USE: \"quero ser ressarcido\" de pedido cancelado sem estorno ou que nunca chegou (extraviado).\nDON'T USE FOR: se o pedido ainda não foi enviado (use cancel_order); produto recebido a devolver (use create_return_request); acompanhar reembolso já pedido (use get_refund_status); cobrança não reconhecida (use dispute_charge).\nPARAMETERS: order_id opcional se o cliente tem um só pedido; reason = motivo curto.\nCONFIRMATION: não requer.\nRESULT: id do reembolso, valor e prazo; repasse sem alterar.",
    "inputSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -4091,7 +4117,7 @@
     "br.routingstudy/examples": [
      "Quero meu dinheiro de volta, o pedido foi cancelado e não estornaram",
      "Meu pedido foi extraviado, quero o reembolso",
-     "O pedido nunca chegou, quero ser reembolsado",
+     "A encomenda sumiu no caminho, quero o valor ressarcido",
      "Cancelaram minha compra e o valor não voltou"
     ],
     "br.routingstudy/keywords": [
@@ -4109,7 +4135,7 @@
   {
    "name": "reschedule_delivery",
    "title": "Reagendar entrega",
-   "description": "Reagenda a entrega de um pedido já enviado e ainda não entregue para uma nova data e período.\nWHEN TO USE: o cliente não estará em casa, quer receber em outro dia ou perdeu a tentativa de entrega.\nDON'T USE FOR: trocar o endereço (use update_delivery_address); saber onde está o pacote (use track_shipment); desistir do pedido (use cancel_order).\nPARAMETERS: new_date em AAAA-MM-DD, de 1 a 15 dias à frente; period = manha | tarde | comercial.\nCONFIRMATION: não requer.\nRESULT: protocolo e nova janela de entrega; repasse sem alterar.",
+   "description": "Marca nova data e período de entrega para um pedido em trânsito (enviado, ainda não entregue).\nWHEN TO USE: o cliente não estará em casa, quer receber em outro dia ou perdeu a tentativa de entrega.\nDON'T USE FOR: trocar o endereço (use update_delivery_address); saber onde está o pacote (use track_shipment); desistir do pedido (use cancel_order).\nPARAMETERS: new_date em AAAA-MM-DD, de 1 a 15 dias à frente; period = manha | tarde | comercial.\nCONFIRMATION: não requer.\nRESULT: protocolo e nova janela de entrega; repasse sem alterar.",
    "inputSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -4377,7 +4403,7 @@
    "_meta": {
     "br.routingstudy/skill": "pedidos_logistica",
     "br.routingstudy/examples": [
-     "Não vou estar em casa amanhã, dá para entregar outro dia?",
+     "Na quinta não tem ninguém no apartamento, dá para vir em outra data?",
      "O entregador veio e eu não estava, quero reagendar",
      "Pode entregar o pedido na sexta à tarde?",
      "Quero remarcar a entrega para semana que vem"
@@ -4659,7 +4685,7 @@
      "Qual o prazo para devolver um produto?",
      "Vocês parcelam no cartão?",
      "Quanto tempo demora o estorno no Pix?",
-     "Como funciona a garantia?"
+     "Qual a cobertura da garantia dos produtos?"
     ],
     "br.routingstudy/keywords": [
      "politica",
@@ -4973,7 +4999,7 @@
     "br.routingstudy/skill": "pedidos_logistica",
     "br.routingstudy/examples": [
      "Cadê minha encomenda?",
-     "Qual o código de rastreio do pedido O0005?",
+     "Em que cidade a encomenda está neste momento?",
      "Meu pacote está parado na transportadora",
      "Onde está minha entrega agora?"
     ],
@@ -4993,7 +5019,7 @@
   {
    "name": "update_delivery_address",
    "title": "Alterar endereço de entrega",
-   "description": "Altera o endereço de entrega de um pedido que ainda não foi enviado.\nWHEN TO USE: o cliente quer receber em outro endereço ou corrigir o endereço de um pedido em preparação.\nDON'T USE FOR: mudar a data de entrega (use reschedule_delivery); pedido já enviado (use escalate_to_human); alterar o cadastro.\nPARAMETERS: só o endereço novo dito pelo cliente; nunca copie o atual. complement opcional; state = UF; postal_code = CEP de 8 dígitos.\nCONFIRMATION: não requer.\nRESULT: protocolo e endereço novo; repasse sem alterar.",
+   "description": "Altera o endereço de entrega de um pedido que ainda não foi enviado.\nWHEN TO USE: o cliente quer receber em outro endereço ou corrigir o endereço de um pedido em preparação.\nDON'T USE FOR: reagendar o dia (use reschedule_delivery); se o pedido já foi enviado (use escalate_to_human); alterar o cadastro.\nPARAMETERS: só o endereço novo dito pelo cliente; nunca copie o atual. complement opcional; state = UF; postal_code = CEP de 8 dígitos.\nCONFIRMATION: não requer.\nRESULT: protocolo e endereço novo; repasse sem alterar.",
    "inputSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -5291,7 +5317,7 @@
      "Quero mudar o endereço de entrega do meu pedido",
      "Errei o número da casa no pedido, é 250",
      "Posso receber no meu trabalho em vez de em casa?",
-     "Troca o endereço do pedido O0003 para Rua Bahia, 90"
+     "Manda para a Rua Bahia, 90 em vez do endereço antigo"
     ],
     "br.routingstudy/keywords": [
      "endereco",

@@ -1,0 +1,119 @@
+# E11 — hybrid: calibrated fusion of the cheap routers (regex / BM25 / embedding / classifier)
+routing:
+  mode: single
+  skill:
+    pipeline:
+      - { strategy: hybrid }
+    on_abstain: escalate
+  tool:
+    expose_top_k: 2
+    pipeline:
+      - { strategy: hybrid }
+
+strategies:
+  regex:
+    rules_path: config/regex_rules.yaml
+    history_turns: 2        # tuned by 5-fold CV on dev (scripts/analysis/tune_router.py)
+    history_weight: 0.3
+    calibration:            # isotonic raw -> P(correct), fitted on dev
+      skill: { x: [0.165, 0.290455, 0.516429, 0.926568], y: [0.5, 0.692308, 0.818182, 0.97561] }
+      tool:  { x: [0.156, 0.3425, 0.834878], y: [0.571429, 0.681818, 0.925234] }
+  bm25:
+    # tuned by 5-fold CV on dev (D2, docs/tuning-effort.md): utterance-level index (one doc
+    # per catalog utterance, option = sum of its best 4), char 3-5-grams without accent
+    # folding, catalog-only expansion (tool examples of a skill + WHEN TO USE quotes).
+    # Nested CV joint 40.4 -> 46.4 (one-stage grid) / 51.0 (refinement grid).
+    index: utterance
+    aggregate: topk_sum
+    agg_k: 4
+    analyzer: char
+    ngram_min: 3
+    ngram_max: 5
+    fold_accents: false
+    shots: true
+    quotes: true
+    variant: okapi          # utterance corpus: Okapi IDF is no longer degenerate (BM25L not needed)
+    k1: 0.6
+    b: 0.5
+    history_turns: 2
+    calibration:            # raw margin -> P(correct), fitted on dev; Platt (skill) / isotonic (tool) by CV Brier
+      skill: { x: [0.002006, 0.03753, 0.073053, 0.108576, 0.144099, 0.179623, 0.215146, 0.250669, 0.286192, 0.321715, 0.357239, 0.392762, 0.428285, 0.463808, 0.499332, 0.534855, 0.570378, 0.605901, 0.641425, 0.676948, 0.712471], y: [0.388214, 0.448019, 0.509366, 0.570433, 0.629428, 0.684798, 0.735373, 0.780435, 0.819705, 0.853272, 0.881493, 0.904891, 0.924067, 0.939635, 0.952176, 0.962217, 0.970215, 0.976562, 0.981582, 0.985542, 0.988661] }
+      tool:  { x: [0.000842, 0.022289, 0.128491, 0.253802, 0.364955, 0.469964, 0.523546, 0.626912], y: [0.333333, 0.4375, 0.462963, 0.5, 0.594595, 0.631579, 0.666667, 0.928571] }
+  embedding:
+    provider: ollama
+    model: qwen3-embedding:8b-q8_0     # local, 4096-d
+    num_ctx: 8192
+    # tuned by 5-fold CV on dev (D1, docs/tuning-effort.md): 324-point grid over similarity x
+    # top_k x temperature x instruction x history x shots; nested CV joint 77.5 (was 66.2)
+    similarity: centroid
+    confidence: softmax
+    softmax_temperature: 0.02         # chosen by CV Brier after calibration (accuracy-neutral)
+    history_turns: 2                  # query = last 2 turns + message
+    shots: true                       # + the catalog examples resolved to the option
+    # Qwen3-Embedding model card: queries carry the task instruction, documents do not
+    query_instruction: "Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:"
+    calibration:                      # isotonic raw -> P(correct), fitted on dev (lower CV Brier than Platt)
+      skill: { x: [0.361615, 0.518244, 0.60742, 0.832673, 0.94852, 0.96687, 0.988528, 0.997242], y: [0.333333, 0.444444, 0.75, 0.860465, 0.862069, 0.862069, 0.930233, 0.930233] }
+      tool:  { x: [0.277759, 0.457729, 0.779592, 0.982974, 0.998994], y: [0.333333, 0.625, 0.710145, 0.860465, 0.973684] }
+  llm:  # Bedrock Sonnet 5 rejects temperature
+    provider: bedrock
+    model: global.anthropic.claude-sonnet-5
+    temperature: null
+    confidence: self_reported
+    prompt_track: canonical
+    prompt_variant: P0
+    calibration:            # isotonic raw -> P(correct), fitted on dev
+      skill: {x: [0.572326, 0.845833, 0.9, 0.956912], y: [0.8, 0.807692, 0.888889, 0.985714]}
+  llm_local:  # thinking off (reasoning.enabled=false)
+    provider: ollama
+    model: 'qwen3:8b-q8_0'
+    num_ctx: 8192
+    temperature: 0
+    confidence: self_reported
+    prompt_track: canonical
+    prompt_variant: P0
+    calibration:            # isotonic raw -> P(correct), fitted on dev
+      skill: {x: [0.95, 1.0], y: [0.897959, 0.897959]}
+      tool: {x: [0.4, 0.7875, 0.95, 1.0], y: [0.25, 0.5, 0.830769, 0.894737]}
+  jev:  # shared samples per (case, rep, prompt): reps stay independent
+    provider: openrouter
+    model: typesafe/jev-router
+    parse_retries: 1
+    cache: true
+    prompt_track: canonical
+    prompt_variant: P0
+    calibration:            # isotonic raw -> P(correct), fitted on dev
+      skill: {x: [0.756818, 0.927, 0.95, 0.981053], y: [0.73913, 0.833333, 0.869565, 0.987179]}
+  hybrid:
+    # D3 (docs/tuning-effort.md): calibrated convex fusion, members + alpha chosen by 5-fold
+    # CV on dev over 7 member sets x 11 alphas (nested joint 83.5; RRF baseline 61.6; logistic
+    # stacker over regex/bm25/embedding 80.1). Regex-free fusion = embedding alone (77.5):
+    # the gain comes from the regex member, whose rules were written on dev (optimistic).
+    fusion: convex
+    members: [regex, classifier]
+    alpha: 0.5              # weight of members[0]
+    calibration:            # fused p(top) -> P(correct), fitted on dev; Platt (skill) / isotonic (tool) by CV Brier
+      skill: { x: [0.390289, 0.419843, 0.449397, 0.478951, 0.508505, 0.538059, 0.567613, 0.597167, 0.626721, 0.656275, 0.685829, 0.715383, 0.744937, 0.774491, 0.804045, 0.833599, 0.863153, 0.892707, 0.922261, 0.951815, 0.98137], y: [0.745702, 0.771418, 0.795248, 0.817182, 0.837247, 0.855499, 0.872018, 0.886897, 0.900245, 0.912173, 0.922798, 0.932232, 0.940588, 0.947971, 0.954481, 0.960211, 0.965246, 0.969663, 0.973535, 0.976924, 0.979888] }
+      tool:  { x: [0.343146, 0.456121, 0.617442, 0.822891, 0.916105], y: [0.166667, 0.7, 0.75, 0.952941, 0.952941] }
+  classifier:
+    # "open Jev replica" (D4): linear probe (logistic regression) on frozen qwen3-embedding
+    # vectors of catalog utterances (examples + description sentences + keywords + a skill's
+    # tool examples); query embedded with the task instruction. Selected by 5-fold CV on dev
+    # over TF-IDF+LR (144 points, nested 39.1) and the probe (72 points, nested 76.8).
+    model: probe
+    c: 3
+    shots: true
+    quotes: false
+    description: true
+    probe_instruction: true
+    history_turns: 2
+    history_weight: 0.3
+    calibration:            # raw p(top) -> P(correct), fitted on dev; Platt (both levels) by CV Brier
+      skill: { x: [0.304854, 0.330362, 0.355869, 0.381376, 0.406883, 0.432391, 0.457898, 0.483405, 0.508912, 0.534419, 0.559927, 0.585434, 0.610941, 0.636448, 0.661956, 0.687463, 0.71297, 0.738477, 0.763985, 0.789492, 0.814999], y: [0.493194, 0.547637, 0.600964, 0.651998, 0.699767, 0.743558, 0.782942, 0.817761, 0.848078, 0.874127, 0.896257, 0.914875, 0.930411, 0.943287, 0.953899, 0.962604, 0.969717, 0.975512, 0.980221, 0.984039, 0.987129] }
+      tool:  { x: [0.184803, 0.20798, 0.231157, 0.254333, 0.27751, 0.300687, 0.323864, 0.347041, 0.370218, 0.393394, 0.416571, 0.439748, 0.462925, 0.486102, 0.509279, 0.532455, 0.555632, 0.578809, 0.601986, 0.625163, 0.64834], y: [0.577013, 0.606606, 0.635437, 0.663328, 0.690126, 0.715705, 0.739968, 0.762847, 0.784299, 0.804308, 0.822881, 0.840041, 0.855831, 0.870302, 0.883518, 0.895549, 0.90647, 0.916355, 0.925281, 0.933324, 0.940557] }
+
+executor:
+  provider: bedrock
+  model: global.anthropic.claude-sonnet-5   # fills arguments and answers
+  temperature: null                         # rejected by Sonnet 5 on Bedrock
+  max_tool_iterations: 3

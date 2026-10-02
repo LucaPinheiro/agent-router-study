@@ -1,0 +1,182 @@
+{"id": "seed-adversarial-003", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-adversarial-005", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-ambiguo-001", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-ambiguo-002", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-ambiguo-003", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["trocas_devolucoes"], "acceptable_tools": ["create_return_request"], "args": {}}, "both_missing_alternatives": []}
+{"id": "seed-ambiguo-004", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-ambiguo-005", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-ambiguo-009", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-ambiguo-010", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-ambiguo-012", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-ambiguo-014", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-ambiguo-016", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": ["escalate_to_human"]}
+{"id": "seed-ambiguo-018", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-ambiguo-021", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-direto-006", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-direto-007", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-direto-010", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-direto-012", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-direto-018", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-fora_escopo-001", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-fora_escopo-002", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-fora_escopo-003", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-fora_escopo-004", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-fora_escopo-005", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-fora_escopo-010", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-multiturno-004", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-parafrase-001", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-parafrase-009", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-parafrase-013", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-parafrase-014", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "seed-parafrase-018", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-adversarial-002", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-adversarial-003", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-adversarial-004", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-adversarial-005", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["track_shipment"], "args": {"order_id": "O0013"}}, "both_missing_alternatives": []}
+{"id": "syn-adversarial-007", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-adversarial-009", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-adversarial-010", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-adversarial-011", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-adversarial-012", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["get_order_status"], "args": {"order_id": "O0002"}}, "both_missing_alternatives": []}
+{"id": "syn-adversarial-013", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-adversarial-015", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["cancel_order"], "args": {"order_id": "O0011"}}, "both_missing_alternatives": []}
+{"id": "syn-adversarial-016", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-adversarial-017", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-adversarial-018", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-adversarial-020", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["pagamentos_reembolsos"], "acceptable_tools": ["dispute_charge", "get_payment_status"], "args": {"order_id": "O0047"}}, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-001", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-002", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["pagamentos_reembolsos"], "acceptable_tools": ["dispute_charge"], "args": {"order_id": "O0026"}}, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-003", "decision": "flagged", "reasons": ["tools_disagree", "args_fixed"], "fixed_expected": null, "both_missing_alternatives": ["create_return_request"]}
+{"id": "syn-ambiguo-004", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-005", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["pagamentos_reembolsos"], "acceptable_tools": ["dispute_charge"], "args": {}}, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-006", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-008", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-009", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-011", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["pagamentos_reembolsos"], "acceptable_tools": ["dispute_charge"], "args": {"order_id": "O0001"}}, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-012", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-013", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-015", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-016", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-017", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-019", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-020", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-021", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-022", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-023", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": ["track_shipment"]}
+{"id": "syn-ambiguo-025", "decision": "flagged", "reasons": ["tools_disagree", "args_fixed"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-026", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": ["check_return_eligibility"]}
+{"id": "syn-ambiguo-027", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": ["create_return_request"]}
+{"id": "syn-ambiguo-029", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-030", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-032", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["get_order_status", "track_shipment"], "args": {"order_id": "O0050"}}, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-033", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["trocas_devolucoes"], "acceptable_tools": ["create_return_request"], "args": {}}, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-034", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-036", "decision": "flagged", "reasons": ["tools_disagree", "args_fixed"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-038", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-040", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-041", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-042", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": ["check_return_eligibility"]}
+{"id": "syn-ambiguo-043", "decision": "flagged", "reasons": ["tools_fixed", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-044", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-046", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-047", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": ["create_return_request"]}
+{"id": "syn-ambiguo-048", "decision": "flagged", "reasons": ["tools_disagree", "args_fixed"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-049", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-052", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["pagamentos_reembolsos"], "acceptable_tools": ["dispute_charge"], "args": {}}, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-054", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-055", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["get_order_status", "track_shipment"], "args": {"order_id": "O0016"}}, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-056", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-057", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-058", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-059", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-061", "decision": "flagged", "reasons": ["tools_disagree", "args_fixed"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-063", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-064", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-065", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-066", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["trocas_devolucoes"], "acceptable_tools": ["create_return_request"], "args": {}}, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-068", "decision": "flagged", "reasons": ["tools_disagree", "args_fixed"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-070", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-071", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-073", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-074", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-075", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-ambiguo-076", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["trocas_devolucoes"], "acceptable_tools": ["create_return_request"], "args": {"order_id": "O0034"}}, "both_missing_alternatives": ["create_return_request"]}
+{"id": "syn-ambiguo-078", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-002", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-009", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": ["cancel_order"]}
+{"id": "syn-direto-021", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-025", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-033", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-049", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["trocas_devolucoes"], "acceptable_tools": ["create_return_request"], "args": {"order_id": "O0031"}}, "both_missing_alternatives": []}
+{"id": "syn-direto-051", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-054", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-059", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-065", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-066", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-071", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-076", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-079", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-084", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-086", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-087", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-088", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-092", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-097", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-098", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-099", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-direto-117", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["pagamentos_reembolsos"], "acceptable_tools": ["get_payment_status"], "args": {"order_id": "O0023"}}, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-001", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-002", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-003", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-005", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-006", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-008", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-009", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-010", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-012", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-013", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-014", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-015", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-019", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-020", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-023", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-025", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-026", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-027", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-029", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-030", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-031", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-032", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-033", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-034", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-035", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-036", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-037", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": ["escalate_to_human"]}
+{"id": "syn-fora_escopo-038", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-fora_escopo-039", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-multiturno-004", "decision": "fixed", "reasons": ["tools_fixed", "args_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["update_delivery_address"], "args": {"order_id": "O0037", "street": "Rua das Flores", "number": "123", "complement": "apto 4B", "city": "Belo Horizonte", "state": "MG", "postal_code": "12345-678"}}, "both_missing_alternatives": []}
+{"id": "syn-multiturno-017", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-multiturno-018", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-multiturno-021", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-multiturno-022", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-multiturno-027", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-multiturno-034", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-multiturno-039", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-parafrase-001", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-parafrase-004", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-parafrase-006", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-parafrase-009", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": ["create_return_request"]}
+{"id": "syn-parafrase-015", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-parafrase-021", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["pagamentos_reembolsos"], "acceptable_tools": ["get_payment_status"], "args": {"order_id": "O0001"}}, "both_missing_alternatives": []}
+{"id": "syn-parafrase-023", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-parafrase-032", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-parafrase-037", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-parafrase-044", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-parafrase-048", "decision": "flagged", "reasons": ["tools_disagree", "args_fixed"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-parafrase-050", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-parafrase-055", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-parafrase-065", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-parafrase-067", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-parafrase-071", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-parafrase-074", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "syn-parafrase-085", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}

@@ -1,0 +1,155 @@
+{
+  "S1": {
+    "tested": false,
+    "reason": "tuned == canonical (P0) for all 4 LLM routers; delta identically 0"
+  },
+  "S2": [
+    {
+      "id": "S2 Haiku 4.5",
+      "run": "E6",
+      "reference": "E5",
+      "kind": "equivalence",
+      "margin": 0.03,
+      "n_cases": 349,
+      "delta": {
+        "point": 0.0038204393505253133,
+        "lo": -0.02865329512893983,
+        "hi": 0.03629417382999045
+      },
+      "mcnemar_case": {
+        "run_only": 20,
+        "ref_only": 17,
+        "p": 0.7428293587290682
+      },
+      "p": 0.06189381061893811,
+      "p_holm": 0.13108689131086892,
+      "reject_holm_0.05": false,
+      "verdict": "inconclusive",
+      "verdict_ci": {
+        "lo": -0.023877745940783186,
+        "hi": 0.030563514804202486
+      },
+      "ci90": {
+        "lo": -0.023877745940783186,
+        "hi": 0.030563514804202486
+      }
+    },
+    {
+      "id": "S2 Qwen3-8B",
+      "run": "E6b",
+      "reference": "E5",
+      "kind": "equivalence",
+      "margin": 0.03,
+      "n_cases": 349,
+      "delta": {
+        "point": -0.04202483285577841,
+        "lo": -0.08118433619866285,
+        "hi": -0.001910219675262653
+      },
+      "mcnemar_case": {
+        "run_only": 21,
+        "ref_only": 34,
+        "p": 0.10478948242660335
+      },
+      "p": 0.7233276672332767,
+      "p_holm": 0.7233276672332767,
+      "reject_holm_0.05": false,
+      "verdict": "inconclusive",
+      "verdict_ci": {
+        "lo": -0.07545367717287488,
+        "hi": -0.008595988538681945
+      },
+      "ci90": {
+        "lo": -0.07545367717287488,
+        "hi": -0.008595988538681945
+      }
+    },
+    {
+      "id": "S2 Jev",
+      "run": "E4",
+      "reference": "E5",
+      "kind": "equivalence",
+      "margin": 0.03,
+      "n_cases": 349,
+      "delta": {
+        "point": 0.005730659025787964,
+        "lo": -0.02101241642788921,
+        "hi": 0.03151862464183381
+      },
+      "mcnemar_case": {
+        "run_only": 16,
+        "ref_only": 13,
+        "p": 0.711071103811264
+      },
+      "p": 0.043695630436956304,
+      "p_holm": 0.13108689131086892,
+      "reject_holm_0.05": false,
+      "verdict": "equivalent",
+      "verdict_ci": {
+        "lo": -0.01628462273161426,
+        "hi": 0.0276981852913085
+      },
+      "ci90": {
+        "lo": -0.01628462273161426,
+        "hi": 0.0276981852913085
+      }
+    }
+  ],
+  "S3": [
+    {
+      "router": "E1",
+      "dev_fixed": 0.848,
+      "test": {
+        "point": 0.5272206303724928,
+        "lo": 0.47277936962750716,
+        "hi": 0.5787965616045845
+      },
+      "gap": {
+        "point": -0.3207793696275072,
+        "lo": -0.3752206303724928,
+        "hi": -0.2692034383954155
+      },
+      "verdict": "gap < 0 (test CI entirely below dev)"
+    },
+    {
+      "router": "E2",
+      "dev_fixed": 0.557,
+      "test": {
+        "point": 0.4899713467048711,
+        "lo": 0.4383954154727794,
+        "hi": 0.5415472779369628
+      },
+      "gap": {
+        "point": -0.06702865329512897,
+        "lo": -0.11860458452722067,
+        "hi": -0.015452722063037272
+      },
+      "verdict": "gap < 0 (test CI entirely below dev)"
+    }
+  ],
+  "S4": [
+    {
+      "id": "S4 embedding - regex",
+      "run": "E3",
+      "reference": "E1",
+      "kind": "two_sided",
+      "margin": 0.03,
+      "n_cases": 349,
+      "delta": {
+        "point": 0.20916905444126074,
+        "lo": 0.1518624641833811,
+        "hi": 0.2664756446991404
+      },
+      "mcnemar_case": {
+        "run_only": 96,
+        "ref_only": 23,
+        "p": 8.53534417884671e-12
+      },
+      "p": 9.999000099990002e-05,
+      "p_holm": 9.999000099990002e-05,
+      "reject_holm_0.05": true,
+      "verdict": "CI excludes 0",
+      "verdict_ci": null
+    }
+  ]
+}

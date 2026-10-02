@@ -24,22 +24,27 @@ def skill_options() -> list[RouteOption]:
         RouteOption(
             id="pedidos_logistica",
             description="Pedidos, entrega, rastreio, endereco e cancelamento de pedidos",
-            examples=["cade minha encomenda", "quero rastrear meu pacote",
-                      "mudar endereco de entrega"],
+            examples=[
+                "cade minha encomenda",
+                "quero rastrear meu pacote",
+                "mudar endereco de entrega",
+            ],
             keywords=["entrega", "rastreio"],
         ),
         RouteOption(
             id="pagamentos_reembolsos",
             description="Pagamentos, boletos, reembolsos e contestacao de cobrancas",
-            examples=["segunda via do boleto", "quero meu reembolso",
-                      "fui cobrado duas vezes"],
+            examples=["segunda via do boleto", "quero meu reembolso", "fui cobrado duas vezes"],
             keywords=["boleto", "reembolso"],
         ),
         RouteOption(
             id="trocas_devolucoes",
             description="Trocas, devolucoes, etiquetas de postagem e garantia",
-            examples=["o tenis veio no tamanho errado", "quero devolver o produto",
-                      "acionar garantia"],
+            examples=[
+                "o tenis veio no tamanho errado",
+                "quero devolver o produto",
+                "acionar garantia",
+            ],
             keywords=["troca", "devolucao"],
         ),
         RouteOption(

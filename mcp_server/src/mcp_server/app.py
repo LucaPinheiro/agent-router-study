@@ -8,6 +8,9 @@ from __future__ import annotations
 import hmac
 import logging
 import os
+from collections.abc import AsyncIterator, MutableMapping
+from contextlib import asynccontextmanager
+from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -18,15 +21,53 @@ from mcp_server.server import mcp
 from mcp_server.telemetry import setup_tracing
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(message)s")
-setup_tracing()
 
-MCP_TOKEN = os.getenv("MCP_TOKEN", "dev-token")
+# No default: a guessable shared token must never reach a listening server. Generate one with
+# `python -c "import secrets; print(secrets.token_urlsafe(32))"` (see .env.example).
+MCP_TOKEN = os.getenv("MCP_TOKEN", "")
+MIN_TOKEN_LEN = 16
+
+
+def check_token(token: str) -> None:
+    if len(token) < MIN_TOKEN_LEN or token == "dev-token":
+        raise RuntimeError(
+            f"MCP_TOKEN must be set to a random secret of at least {MIN_TOKEN_LEN} characters"
+        )
+
+
+UNTRACED_PATHS = frozenset({"/healthz", "/readyz"})  # probes: no HTTP span, nothing exported
+
+
+def untraced(scope: MutableMapping[str, Any]) -> bool:
+    """FastAPI telemetry `exclude`: skip instrumentation of the health/readiness probes."""
+    return scope.get("path") in UNTRACED_PATHS
+
+
 mcp_app = mcp.http_app(path="/mcp", stateless_http=True, transport="http")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    # Exporter set up at server start, not on import (importing the app must not install a
+    # process-global TracerProvider, e.g. in tests).
+    check_token(MCP_TOKEN)  # refuse to start without a strong bearer token
+    setup_tracing()
+    async with mcp_app.lifespan(app):
+        yield
+
+
 app = FastAPI(
     title="routing-study MCP server",
-    lifespan=mcp_app.lifespan,
+    lifespan=lifespan,
     # Export is owned by telemetry.setup_tracing (Langfuse auth); no env auto-exporters/metrics.
-    telemetry={"auto_configure": False, "metrics": False, "logs": False, "operation_spans": False},
+    # The HTTP span parents from the client's `traceparent` header (joins the turn trace).
+    telemetry={
+        "auto_configure": False,
+        "metrics": False,
+        "logs": False,
+        "operation_spans": False,
+        "exclude": untraced,
+    },
 )
 
 
@@ -35,7 +76,11 @@ async def bearer_auth(request: Request, call_next):  # type: ignore[no-untyped-d
     if request.url.path.startswith("/mcp"):
         auth = request.headers.get("authorization", "")
         scheme, _, token = auth.partition(" ")
-        if scheme.lower() != "bearer" or not hmac.compare_digest(token, MCP_TOKEN):
+        if (
+            scheme.lower() != "bearer"
+            or len(MCP_TOKEN) < MIN_TOKEN_LEN
+            or not hmac.compare_digest(token, MCP_TOKEN)
+        ):
             error = 'error="invalid_token"' if auth else ""
             return Response(
                 status_code=401,

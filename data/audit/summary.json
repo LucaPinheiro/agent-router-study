@@ -1,0 +1,333 @@
+{
+  "auditors": {
+    "A": "openai/gpt-5.6-luna",
+    "B": "deepseek/deepseek-v4-pro"
+  },
+  "splits": {
+    "test_v2": {
+      "n_cases": 349,
+      "n_both_verdicts": 349,
+      "between_auditors": {
+        "gold_acceptable": {
+          "n": 349,
+          "raw_agreement": 0.8997,
+          "kappa": 0.6619
+        },
+        "args_correct": {
+          "n": 349,
+          "raw_agreement": 0.8481,
+          "kappa": 0.5186
+        },
+        "out_of_scope": {
+          "n": 349,
+          "raw_agreement": 0.9885,
+          "kappa": 0.9409
+        },
+        "escalation_acceptable": {
+          "n": 349,
+          "raw_agreement": 0.9742,
+          "kappa": 0.8864
+        },
+        "first_proposed_tool": {
+          "n": 349,
+          "raw_agreement": 0.914,
+          "kappa": 0.9082
+        }
+      },
+      "auditor_vs_gold": {
+        "A": {
+          "model": "openai/gpt-5.6-luna",
+          "gold_acceptable_rate": 0.7851,
+          "gold_acceptable_ci95": [
+            0.739,
+            0.825
+          ],
+          "args_correct_rate": 0.765,
+          "vs_gold_out_of_scope": {
+            "n": 349,
+            "raw_agreement": 0.9857,
+            "kappa": 0.9302
+          },
+          "vs_gold_escalation": {
+            "n": 349,
+            "raw_agreement": 0.9799,
+            "kappa": 0.9099
+          },
+          "vs_gold_first_tool": {
+            "n": 349,
+            "raw_agreement": 0.8567,
+            "kappa": 0.8477
+          },
+          "first_proposed_in_gold_rate": 0.9112
+        },
+        "B": {
+          "model": "deepseek/deepseek-v4-pro",
+          "gold_acceptable_rate": 0.8567,
+          "gold_acceptable_ci95": [
+            0.8161,
+            0.8896
+          ],
+          "args_correct_rate": 0.8481,
+          "vs_gold_out_of_scope": {
+            "n": 349,
+            "raw_agreement": 0.9799,
+            "kappa": 0.9023
+          },
+          "vs_gold_escalation": {
+            "n": 349,
+            "raw_agreement": 0.9771,
+            "kappa": 0.9034
+          },
+          "vs_gold_first_tool": {
+            "n": 349,
+            "raw_agreement": 0.8625,
+            "kappa": 0.8537
+          },
+          "first_proposed_in_gold_rate": 0.8883
+        }
+      },
+      "gold_acceptable_by_category": {
+        "adversarial": {
+          "n": 17,
+          "A": 12,
+          "B": 13,
+          "both": 12
+        },
+        "ambiguo": {
+          "n": 70,
+          "A": 23,
+          "B": 44,
+          "both": 22
+        },
+        "direto": {
+          "n": 105,
+          "A": 97,
+          "B": 98,
+          "both": 97
+        },
+        "fora_escopo": {
+          "n": 35,
+          "A": 34,
+          "B": 35,
+          "both": 34
+        },
+        "multiturno": {
+          "n": 35,
+          "A": 28,
+          "B": 32,
+          "both": 28
+        },
+        "parafrase": {
+          "n": 87,
+          "A": 80,
+          "B": 77,
+          "both": 76
+        }
+      },
+      "decisions": {
+        "keep": 214,
+        "flagged": 108,
+        "fixed": 27
+      },
+      "decisions_by_category": {
+        "adversarial": {
+          "keep": 11,
+          "flagged": 5,
+          "fixed": 1
+        },
+        "ambiguo": {
+          "flagged": 49,
+          "fixed": 6,
+          "keep": 15
+        },
+        "direto": {
+          "keep": 79,
+          "flagged": 20,
+          "fixed": 6
+        },
+        "fora_escopo": {
+          "keep": 34,
+          "flagged": 1
+        },
+        "multiturno": {
+          "keep": 23,
+          "flagged": 8,
+          "fixed": 4
+        },
+        "parafrase": {
+          "keep": 52,
+          "flagged": 25,
+          "fixed": 10
+        }
+      },
+      "both_missing_alternatives_cases": 30
+    },
+    "test_v1_subset": {
+      "n_cases": 182,
+      "n_both_verdicts": 182,
+      "between_auditors": {
+        "gold_acceptable": {
+          "n": 182,
+          "raw_agreement": 0.8242,
+          "kappa": 0.5985
+        },
+        "args_correct": {
+          "n": 182,
+          "raw_agreement": 0.8846,
+          "kappa": 0.487
+        },
+        "out_of_scope": {
+          "n": 182,
+          "raw_agreement": 0.9835,
+          "kappa": 0.9486
+        },
+        "escalation_acceptable": {
+          "n": 182,
+          "raw_agreement": 0.9286,
+          "kappa": 0.7067
+        },
+        "first_proposed_tool": {
+          "n": 182,
+          "raw_agreement": 0.8407,
+          "kappa": 0.8245
+        }
+      },
+      "auditor_vs_gold": {
+        "A": {
+          "model": "openai/gpt-5.6-luna",
+          "gold_acceptable_rate": 0.6154,
+          "gold_acceptable_ci95": [
+            0.543,
+            0.683
+          ],
+          "args_correct_rate": 0.8736,
+          "vs_gold_out_of_scope": {
+            "n": 182,
+            "raw_agreement": 0.989,
+            "kappa": 0.9661
+          },
+          "vs_gold_escalation": {
+            "n": 182,
+            "raw_agreement": 0.9011,
+            "kappa": 0.601
+          },
+          "vs_gold_first_tool": {
+            "n": 182,
+            "raw_agreement": 0.7692,
+            "kappa": 0.7468
+          },
+          "first_proposed_in_gold_rate": 0.8956
+        },
+        "B": {
+          "model": "deepseek/deepseek-v4-pro",
+          "gold_acceptable_rate": 0.7692,
+          "gold_acceptable_ci95": [
+            0.7028,
+            0.8245
+          ],
+          "args_correct_rate": 0.8681,
+          "vs_gold_out_of_scope": {
+            "n": 182,
+            "raw_agreement": 0.9945,
+            "kappa": 0.9829
+          },
+          "vs_gold_escalation": {
+            "n": 182,
+            "raw_agreement": 0.9066,
+            "kappa": 0.6816
+          },
+          "vs_gold_first_tool": {
+            "n": 182,
+            "raw_agreement": 0.8407,
+            "kappa": 0.8241
+          },
+          "first_proposed_in_gold_rate": 0.9286
+        }
+      },
+      "gold_acceptable_by_category": {
+        "adversarial": {
+          "n": 17,
+          "A": 5,
+          "B": 11,
+          "both": 5
+        },
+        "ambiguo": {
+          "n": 70,
+          "A": 21,
+          "B": 39,
+          "both": 20
+        },
+        "direto": {
+          "n": 28,
+          "A": 24,
+          "B": 26,
+          "both": 23
+        },
+        "fora_escopo": {
+          "n": 35,
+          "A": 35,
+          "B": 35,
+          "both": 35
+        },
+        "multiturno": {
+          "n": 9,
+          "A": 7,
+          "B": 7,
+          "both": 7
+        },
+        "parafrase": {
+          "n": 23,
+          "A": 20,
+          "B": 22,
+          "both": 20
+        }
+      },
+      "decisions": {
+        "keep": 96,
+        "flagged": 68,
+        "fixed": 18
+      },
+      "decisions_by_category": {
+        "adversarial": {
+          "keep": 4,
+          "flagged": 9,
+          "fixed": 4
+        },
+        "ambiguo": {
+          "flagged": 47,
+          "fixed": 10,
+          "keep": 13
+        },
+        "direto": {
+          "keep": 20,
+          "flagged": 6,
+          "fixed": 2
+        },
+        "fora_escopo": {
+          "keep": 35
+        },
+        "multiturno": {
+          "keep": 7,
+          "fixed": 1,
+          "flagged": 1
+        },
+        "parafrase": {
+          "flagged": 5,
+          "keep": 17,
+          "fixed": 1
+        }
+      },
+      "both_missing_alternatives_cases": 11
+    }
+  },
+  "dataset_test_v2_sha256": "6637c4795b2340b953ac5867498c1aeba7953fea25d76b8614de265cf2902a66",
+  "files_sha256": {
+    "adjudication_test_v1_subset.jsonl": "2f38b5bba3b09aa8c4e48e7d8439824297dc3e4048251a7513f2a1952e6c10db",
+    "adjudication_test_v2.jsonl": "a7107bd0506f5936e636ba45fe0d5d50dd7a69b86f5f21649045eb2bb15ae898",
+    "verdicts_superseded.jsonl": "9645480421a0141d11d20dff87fe94e4e2950638ec867e4cac16bffa94e86820",
+    "verdicts_test_v1_subset_A.jsonl": "59beba96e0835efb0c7c5a6c036636fe441f70c4c85d4d9b2c62e04b3fc4b5fa",
+    "verdicts_test_v1_subset_B.jsonl": "05a21b3862e18a7ec562cb076294e3ab7388b2ba44911873bbf74bcc3bb50a1d",
+    "verdicts_test_v2_A.jsonl": "2d9ed6aca25cc7c471b47106c1cca3dc6b092f6dc57525f6d085ca491081a9ea",
+    "verdicts_test_v2_B.jsonl": "c99d8ea98adefd0df9c19934846c2102ad6514ea203323e64baabdbe2896bb3e"
+  }
+}

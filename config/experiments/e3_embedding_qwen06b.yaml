@@ -1,0 +1,90 @@
+# E3 ablation — embedding router with qwen3-embedding:0.6b (D1 alt embedder; same tuned settings)
+routing:
+  mode: single
+  skill:
+    pipeline:
+      - { strategy: embedding }
+    on_abstain: escalate
+  tool:
+    expose_top_k: 2
+    pipeline:
+      - { strategy: embedding }
+
+strategies:
+  regex:
+    rules_path: config/regex_rules.yaml
+    history_turns: 2        # tuned by 5-fold CV on dev (scripts/analysis/tune_router.py)
+    history_weight: 0.3
+    calibration:            # isotonic raw -> P(correct), fitted on dev
+      skill: { x: [0.165, 0.290455, 0.516429, 0.926568], y: [0.5, 0.692308, 0.818182, 0.97561] }
+      tool:  { x: [0.156, 0.3425, 0.834878], y: [0.571429, 0.681818, 0.925234] }
+  bm25:
+    # tuned by 5-fold CV on dev (D2, docs/tuning-effort.md): utterance-level index (one doc
+    # per catalog utterance, option = sum of its best 4), char 3-5-grams without accent
+    # folding, catalog-only expansion (tool examples of a skill + WHEN TO USE quotes).
+    # Nested CV joint 40.4 -> 46.4 (one-stage grid) / 51.0 (refinement grid).
+    index: utterance
+    aggregate: topk_sum
+    agg_k: 4
+    analyzer: char
+    ngram_min: 3
+    ngram_max: 5
+    fold_accents: false
+    shots: true
+    quotes: true
+    variant: okapi          # utterance corpus: Okapi IDF is no longer degenerate (BM25L not needed)
+    k1: 0.6
+    b: 0.5
+    history_turns: 2
+    calibration:            # raw margin -> P(correct), fitted on dev; Platt (skill) / isotonic (tool) by CV Brier
+      skill: { x: [0.002006, 0.03753, 0.073053, 0.108576, 0.144099, 0.179623, 0.215146, 0.250669, 0.286192, 0.321715, 0.357239, 0.392762, 0.428285, 0.463808, 0.499332, 0.534855, 0.570378, 0.605901, 0.641425, 0.676948, 0.712471], y: [0.388214, 0.448019, 0.509366, 0.570433, 0.629428, 0.684798, 0.735373, 0.780435, 0.819705, 0.853272, 0.881493, 0.904891, 0.924067, 0.939635, 0.952176, 0.962217, 0.970215, 0.976562, 0.981582, 0.985542, 0.988661] }
+      tool:  { x: [0.000842, 0.022289, 0.128491, 0.253802, 0.364955, 0.469964, 0.523546, 0.626912], y: [0.333333, 0.4375, 0.462963, 0.5, 0.594595, 0.631579, 0.666667, 0.928571] }
+  embedding:
+    provider: ollama
+    model: qwen3-embedding:0.6b     # local, 1024-d (D1 ablation row; nested CV joint: see docs/tuning-effort.md)
+    num_ctx: 8192
+    similarity: centroid
+    confidence: softmax
+    softmax_temperature: 0.02
+    history_turns: 2
+    shots: true
+    query_instruction: "Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:"
+    calibration:            # fitted on dev (CV-Brier-chosen calibrator per level)
+      skill: { x: [0.321453, 0.355366, 0.389279, 0.423191, 0.457104, 0.491017, 0.52493, 0.558843, 0.592756, 0.626669, 0.660582, 0.694495, 0.728408, 0.762321, 0.796234, 0.830147, 0.86406, 0.897973, 0.931886, 0.965799, 0.999712], y: [0.379602, 0.407596, 0.436202, 0.465239, 0.494513, 0.523825, 0.552974, 0.581763, 0.610006, 0.63753, 0.664181, 0.689825, 0.714354, 0.73768, 0.759743, 0.780501, 0.799939, 0.818056, 0.834872, 0.850417, 0.864736] }
+      tool:  { x: [0.328724, 0.362287, 0.39585, 0.429413, 0.462976, 0.496539, 0.530103, 0.563666, 0.597229, 0.630792, 0.664355, 0.697919, 0.731482, 0.765045, 0.798608, 0.832171, 0.865734, 0.899298, 0.932861, 0.966424, 0.999987], y: [0.152122, 0.171806, 0.193455, 0.217118, 0.242803, 0.270477, 0.300055, 0.331399, 0.364313, 0.398547, 0.433803, 0.469741, 0.505996, 0.542189, 0.577941, 0.612895, 0.646723, 0.679143, 0.709922, 0.738884, 0.765908] }
+  llm:  # Bedrock Sonnet 5 rejects temperature
+    provider: bedrock
+    model: global.anthropic.claude-sonnet-5
+    temperature: null
+    confidence: self_reported
+    prompt_track: canonical
+    prompt_variant: P0
+    calibration:            # isotonic raw -> P(correct), fitted on dev
+      skill: {x: [0.572326, 0.845833, 0.9, 0.956912], y: [0.8, 0.807692, 0.888889, 0.985714]}
+  llm_local:  # thinking off (reasoning.enabled=false)
+    provider: ollama
+    model: 'qwen3:8b-q8_0'
+    num_ctx: 8192
+    temperature: 0
+    confidence: self_reported
+    prompt_track: canonical
+    prompt_variant: P0
+    calibration:            # isotonic raw -> P(correct), fitted on dev
+      skill: {x: [0.95, 1.0], y: [0.897959, 0.897959]}
+      tool: {x: [0.4, 0.7875, 0.95, 1.0], y: [0.25, 0.5, 0.830769, 0.894737]}
+  jev:  # shared samples per (case, rep, prompt): reps stay independent
+    provider: openrouter
+    model: typesafe/jev-router
+    parse_retries: 1
+    cache: true
+    prompt_track: canonical
+    prompt_variant: P0
+    calibration:            # isotonic raw -> P(correct), fitted on dev
+      skill: {x: [0.756818, 0.927, 0.95, 0.981053], y: [0.73913, 0.833333, 0.869565, 0.987179]}
+  hybrid:    { rrf_k: 60 }
+
+executor:
+  provider: bedrock
+  model: global.anthropic.claude-sonnet-5   # fills arguments and answers
+  temperature: null                         # rejected by Sonnet 5 on Bedrock
+  max_tool_iterations: 3

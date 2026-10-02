@@ -46,16 +46,25 @@ class FakeEmbedder:
         )
 
 
-def chat_completion(content: str, *, model: str = "anthropic/claude-haiku-4.5",
-                    provider: str = "Anthropic", cost: float = 0.0003) -> dict[str, Any]:
+def chat_completion(
+    content: str,
+    *,
+    model: str = "anthropic/claude-haiku-4.5",
+    provider: str = "Anthropic",
+    cost: float = 0.0003,
+) -> dict[str, Any]:
     return {
         "id": "gen-test",
         "object": "chat.completion",
         "created": 1,
         "model": model,
         "provider": provider,
-        "choices": [{"index": 0, "finish_reason": "stop",
-                     "message": {"role": "assistant", "content": content}}],
-        "usage": {"prompt_tokens": 100, "completion_tokens": 10, "total_tokens": 110,
-                  "cost": cost},
+        "choices": [
+            {
+                "index": 0,
+                "finish_reason": "stop",
+                "message": {"role": "assistant", "content": content},
+            }
+        ],
+        "usage": {"prompt_tokens": 100, "completion_tokens": 10, "total_tokens": 110, "cost": cost},
     }

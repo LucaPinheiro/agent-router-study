@@ -11,19 +11,25 @@ import time
 import unicodedata
 from collections.abc import Awaitable, Callable
 from contextvars import ContextVar
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Literal
 
 import diskcache
 from langfuse import get_client, observe
 
+from routing_study.prompts import escape_data
 from routing_study.routers.base import RouteDecision, RouteOption, RoutingInput
+from routing_study.routers.calibration import Calibration
 
 log = logging.getLogger(__name__)
 
 # Set by `RoutingPipeline.run` (copied into gather() tasks): resolves whether a decision is the
 # one the pipeline acts on, so the router span gets `decisive` / `shadow` while still open.
 DECIDES: ContextVar[Callable[[RouteDecision], Awaitable[bool]] | None] = ContextVar(
-    "DECIDES", default=None)
+    "DECIDES", default=None
+)
+# Set by the runner per (case, repetition): part of the response-cache key, so `--reps` are
+# independent samples while re-running the same repetition stays free.
+REPETITION: ContextVar[int] = ContextVar("REPETITION", default=1)
 
 
 # ---------------------------------------------------------------- text
@@ -47,8 +53,135 @@ _PT_STOPWORDS = frozenset(
 )
 
 
-def tokenize(text: str) -> list[str]:
-    return [t for t in re.findall(r"\w+", normalize(text)) if t not in _PT_STOPWORDS]
+# `extended`: courtesy / filler words of customer messages; they carry no intent but collide
+# with option vocabulary ("bom dia" vs "entregar outro dia"). Greeting phrases go first.
+_PT_EXTRA_STOPWORDS = frozenset(
+    """oi ola ei opa eai salve bom boa tarde noite obrigado obrigada obg grato grata favor
+    gentileza pfv pf por obsequio prezados prezado prezada senhor senhora moco moca gente galera
+    pessoal ai aqui tipo sabe saca entao bem vcs voces voce vc tb tbm tambem la agora
+    urgente""".split()
+)
+_GREETING = re.compile(r"\b(bom dia|boa tarde|boa noite|por favor|por gentileza)\b")
+
+Stemmer = Literal["none", "light", "prefix"]
+Stopwords = Literal["basic", "extended"]
+
+# Light pt-BR suffix stripper (RSLP-inspired, accent-free input): plural -> nominal/verbal
+# suffix (longest first) -> final vowel, never leaving fewer than `_MIN_STEM` characters.
+_MIN_STEM = 3
+_PLURAL = (("oes", "ao"), ("aes", "ao"), ("ais", "al"), ("eis", "el"), ("ns", "m"), ("s", ""))
+_SUFFIXES = tuple(
+    sorted(
+        """amento imento mente idade acao icao ador edor idor ante encia ancia avel ivel ismo
+        ista zinho zinha inho inha issimo ando endo indo aram eram iram avam ava aria eria iria
+        ado ada ido ida ou ei ar er ir am em""".split(),
+        key=len,
+        reverse=True,
+    )
+)
+
+
+def stem_pt(token: str) -> str:
+    """Light stemmer: 'devolvido'/'devolver' -> 'devolv', 'reembolsos' -> 'reembols'."""
+    if len(token) <= _MIN_STEM or token.isdigit():
+        return token
+    for suf, rep in _PLURAL:
+        if token.endswith(suf) and len(token) - len(suf) >= _MIN_STEM:
+            token = token[: -len(suf)] + rep
+            break
+    for suf in _SUFFIXES:
+        if token.endswith(suf) and len(token) - len(suf) >= _MIN_STEM:
+            token = token[: -len(suf)]
+            break
+    if token[-1] in "aeo" and len(token) - 1 >= _MIN_STEM:
+        token = token[:-1]
+    return token
+
+
+def tokenize(
+    text: str,
+    stemmer: Stemmer = "none",
+    stopwords: Stopwords = "basic",
+    prefix_len: int = 5,
+    fold_accents: bool = True,
+) -> list[str]:
+    """Accent-free word tokens without stopwords; optionally stemmed (`light` suffix
+    stripper or `prefix` truncation to `prefix_len` characters). `fold_accents=False` keeps
+    accents (stopwords are still matched on the folded form)."""
+    text = normalize(text) if fold_accents else text.lower()
+    stop = _PT_STOPWORDS
+    if stopwords == "extended":
+        text = _GREETING.sub(" ", text)
+        stop = _PT_STOPWORDS | _PT_EXTRA_STOPWORDS
+    tokens = [t for t in re.findall(r"\w+", text) if strip_accents(t) not in stop]
+    if stemmer == "light":
+        return [stem_pt(t) for t in tokens]
+    if stemmer == "prefix":
+        return [t[:prefix_len] for t in tokens]
+    return tokens
+
+
+def char_ngrams(text: str, lo: int = 3, hi: int = 5, fold_accents: bool = True) -> list[str]:
+    """Character n-grams (lo..hi) inside word boundaries (`char_wb`-style: each word padded
+    with spaces), lowercased and optionally accent-folded; robust to typos and informal
+    spellings ("tá", "q", "vc")."""
+    text = normalize(text) if fold_accents else text.lower()
+    out: list[str] = []
+    for word in re.findall(r"\w+", text):
+        padded = f" {word} "
+        for n in range(lo, hi + 1):
+            out.extend(padded[i : i + n] for i in range(max(1, len(padded) - n + 1)))
+    return out
+
+
+_QUOTE = re.compile(r'"([^"]{3,})"')
+_PARAMS_LINE = re.compile(r"^\s*PARAMETERS:", re.IGNORECASE)
+_SENTENCE = re.compile(r"(?<=[.!?;])\s+|\n+")
+
+
+def description_sentences(description: str) -> list[str]:
+    """Description split into sentences/lines, without the PARAMETERS line (argument format,
+    not intent) and without the `WHEN TO USE:` label."""
+    out: list[str] = []
+    for line in description.splitlines():
+        if _PARAMS_LINE.match(line):
+            continue
+        line = re.sub(r"^\s*WHEN TO USE:\s*", "", line)
+        out.extend(s.strip() for s in _SENTENCE.split(line) if len(s.strip()) > 2)
+    return out
+
+
+def description_quotes(description: str) -> list[str]:
+    """Quoted phrases of a description (the catalog's WHEN TO USE example quotes)."""
+    return _QUOTE.findall(description)
+
+
+def option_utterances(
+    opt: RouteOption, *, shots: bool = False, quotes: bool = False, description: bool = True
+) -> list[str]:
+    """Utterance-level texts of an option, deterministic and from the catalog only:
+    examples, description sentences, keywords (one utterance), and optionally
+    - `shots`: the catalog example messages resolved to this option (a skill's tool
+      examples; for a tool the same as its examples),
+    - `quotes`: quoted phrases of the description ("WHEN TO USE" quotes).
+    Duplicates are dropped, order kept."""
+    texts = list(opt.examples)
+    if shots:
+        texts += opt.shots
+    if description:
+        texts += description_sentences(opt.description)
+    if quotes:
+        texts += description_quotes(opt.description)
+    if opt.keywords:
+        texts.append(" ".join(opt.keywords))
+    return list(dict.fromkeys(t for t in texts if t.strip()))
+
+
+def turns_text(inp: RoutingInput, turns: int) -> str:
+    """Content of the last `turns` history messages (both roles), for lexical routers."""
+    if turns <= 0:
+        return ""
+    return "\n".join(m.content for m in inp.history[-turns:])
 
 
 def option_document(opt: RouteOption) -> str:
@@ -58,18 +191,27 @@ def option_document(opt: RouteOption) -> str:
 def history_text(inp: RoutingInput, turns: int) -> str:
     if turns <= 0 or not inp.history:
         return ""
-    return "\n".join(f"{m.role}: {m.content}" for m in inp.history[-turns:])
+    return "\n".join(f"{m.role}: {escape_data(m.content)}" for m in inp.history[-turns:])
 
 
 # ---------------------------------------------------------------- cache
 
 
-def cache_key(strategy: str, model: str | None, inp: RoutingInput, options: list[RouteOption],
-              namespace: str = "") -> str:
+def cache_key(
+    strategy: str,
+    params: dict[str, Any],
+    inp: RoutingInput,
+    options: list[RouteOption],
+    namespace: str = "",
+    rep: int = 1,
+) -> str:
+    """`params`: everything besides the input that shapes the decision (model, router and
+    sampling config, rendered prompt/schema) — see `BaseRouter.cache_params`."""
     payload = {
         "strategy": strategy,
-        "model": model,
+        "params": params,
         "ns": namespace,
+        "rep": rep,
         "input": inp.model_dump(mode="json"),
         "options": [o.model_dump(mode="json") for o in options],
     }
@@ -77,14 +219,30 @@ def cache_key(strategy: str, model: str | None, inp: RoutingInput, options: list
     return hashlib.sha256(raw.encode()).hexdigest()
 
 
+class StrictJSONDisk(diskcache.JSONDisk):
+    """JSONDisk that refuses pickle rows. `JSONDisk` still falls back to `pickle.load` for a
+    row stored in pickle mode (or a non-raw key), so a planted row in the cache DB would run
+    code; here it raises instead (security review)."""
+
+    def get(self, key: Any, raw: bool) -> Any:
+        if not raw:
+            raise ValueError("refusing a pickled cache key")
+        return super().get(key, raw)
+
+    def fetch(self, mode: int, filename: Any, value: Any, read: bool) -> Any:
+        if mode == diskcache.core.MODE_PICKLE:
+            raise ValueError("refusing a pickled cache value")
+        return super().fetch(mode, filename, value, read)
+
+
 class ResponseCache:
     """Disk cache of router decisions. Hits keep the ORIGINAL latency/cost, with cached=True.
 
-    `namespace` separates repetitions (e.g. "rep=2") when a strategy must be re-sampled.
+    `namespace` is an extra key prefix; repetitions are keyed via `REPETITION`.
     """
 
     def __init__(self, directory: str, namespace: str = "") -> None:
-        self._cache = diskcache.Cache(directory, disk=diskcache.JSONDisk)  # no pickle
+        self._cache = diskcache.Cache(directory, disk=StrictJSONDisk)  # never unpickles
         self.namespace = namespace
 
     def get(self, key: str) -> RouteDecision | None:
@@ -121,11 +279,17 @@ def tracing_active() -> bool:
         return False
 
 
-async def _annotate(inp: RoutingInput, decision: RouteDecision, *, generation: bool,
-                    model: str | None) -> None:
+CACHED_SUFFIX = " [cache]"
+
+
+async def _annotate(
+    inp: RoutingInput, decision: RouteDecision, *, generation: bool, model: str | None
+) -> None:
     decides = DECIDES.get()
     decisive = bool(decides and await decides(decision))
     name = f"route.{inp.level}.{decision.strategy}"
+    if decision.cached:  # served from the response cache: the span itself lasts ~0 s
+        name += CACHED_SUFFIX
     metadata = {
         "choice": decision.choice,
         "confidence": decision.confidence,
@@ -135,24 +299,28 @@ async def _annotate(inp: RoutingInput, decision: RouteDecision, *, generation: b
         "cost_usd": decision.cost_usd,
         "level": inp.level,
         "loaded_skill": inp.loaded_skill,
+        # the latency the decision took when it was computed (what the study reports)
+        **({"original_latency_ms": decision.latency_ms} if decision.cached else {}),
         "decisive": decisive,
         "shadow": not decisive,
-        **{k: v for k, v in decision.usage.items() if k in ("served_model", "provider",
-                                                             "parse_fail", "error")},
+        **{
+            k: v
+            for k, v in decision.usage.items()
+            if k in ("served_model", "provider", "parse_fail", "error", "queue_ms", "retry_ms")
+        },
     }
     try:
         client = get_client()
         if generation:
+            from routing_study.tracing.cost import usage_details
+
             usage = decision.usage
             client.update_current_generation(
                 name=name,
                 model=usage.get("served_model") or model,
                 metadata=metadata,
                 output={"choice": decision.choice, "confidence": decision.confidence},
-                usage_details={
-                    "input": int(usage.get("prompt_tokens") or 0),
-                    "output": int(usage.get("completion_tokens") or 0),
-                },
+                usage_details=usage_details(usage),
                 # cached hits cost nothing now; the original cost stays in metadata
                 cost_details={"total": 0.0 if decision.cached else decision.cost_usd},
             )
@@ -175,8 +343,15 @@ class BaseRouter:
     name: ClassVar[str]
     paid: ClassVar[bool] = False  # paid routers become Langfuse generations
 
-    def __init__(self, cache: ResponseCache | None = None) -> None:
+    def __init__(
+        self,
+        cache: ResponseCache | None = None,
+        calibration: dict[str, Calibration] | None = None,
+    ) -> None:
         self.cache = cache
+        # per level (skill/tool): raw confidence -> P(correct); applied after the cache, so
+        # re-fitting it never invalidates cached decisions
+        self.calibration = calibration or {}
 
     @property
     def model(self) -> str | None:
@@ -184,6 +359,10 @@ class BaseRouter:
 
     async def _decide(self, inp: RoutingInput, options: list[RouteOption]) -> RouteDecision:
         raise NotImplementedError
+
+    def cache_params(self, inp: RoutingInput, options: list[RouteOption]) -> dict[str, Any]:
+        """Config + prompt that shape the decision; routers with a cache extend it."""
+        return {"model": self.model}
 
     async def route(self, inp: RoutingInput, options: list[RouteOption]) -> RouteDecision:
         if not tracing_active():
@@ -199,8 +378,9 @@ class BaseRouter:
         return decision
 
     @observe(name="route", as_type="generation", capture_input=False, capture_output=False)
-    async def _route_generation(self, inp: RoutingInput,
-                                options: list[RouteOption]) -> RouteDecision:
+    async def _route_generation(
+        self, inp: RoutingInput, options: list[RouteOption]
+    ) -> RouteDecision:
         decision = await self._route(inp, options)
         await _annotate(inp, decision, generation=True, model=self.model)
         return decision
@@ -208,17 +388,59 @@ class BaseRouter:
     async def _route(self, inp: RoutingInput, options: list[RouteOption]) -> RouteDecision:
         key = None
         if self.cache is not None:
-            key = cache_key(self.name, self.model, inp, options, self.cache.namespace)
+            key = cache_key(
+                self.name,
+                self.cache_params(inp, options),
+                inp,
+                options,
+                self.cache.namespace,
+                REPETITION.get(),
+            )
             hit = self.cache.get(key)
             if hit is not None:
-                return hit
+                return self._calibrated(inp, hit)
         t0 = time.perf_counter()
         decision = await self._decide(inp, options)
-        latency = (time.perf_counter() - t0) * 1000
+        # Routing latency: HTTP work + local compute, not semaphore/RPM queueing or retry
+        # backoff (reported separately in usage.queue_ms / usage.retry_ms).
+        waited = float(decision.usage.get("queue_ms") or 0) + float(
+            decision.usage.get("retry_ms") or 0
+        )
+        latency = max(0.0, (time.perf_counter() - t0) * 1000 - waited)
+        if decision.latency_ms > 0:  # set by a composite router from its sub-decisions
+            latency = decision.latency_ms
         decision = decision.model_copy(update={"latency_ms": latency, "strategy": self.name})
-        if self.cache is not None and key is not None and not decision.usage.get("error"):
+        # never cache failures: a transient parse failure / error must be retried next time
+        if (
+            self.cache is not None
+            and key is not None
+            and not decision.usage.get("error")
+            and not decision.usage.get("parse_fail")
+        ):
             self.cache.set(key, decision)
-        return decision
+        return self._calibrated(inp, decision)
+
+    def _calibrated(self, inp: RoutingInput, decision: RouteDecision) -> RouteDecision:
+        """Maps the confidence through the level's calibration; the raw value stays in
+        `usage.raw_confidence` (what calibration is fitted on)."""
+        cal = self.calibration.get(inp.level)
+        if cal is None or decision.choice is None:
+            return decision
+        usage = {**decision.usage, "raw_confidence": decision.confidence}
+        return decision.model_copy(
+            update={"confidence": clamp01(cal(decision.confidence)), "usage": usage}
+        )
+
+
+def attach_partial_usage(exc: BaseException, cost_usd: float, usage: dict[str, Any]) -> None:
+    """A router step that fails after billed calls: its spend and usage so far ride on the
+    exception (`partial_cost_usd`, `partial_usage`), which the pipeline keeps on the error
+    decision (F7: the cost of a failed step is not lost from the run's totals)."""
+    try:
+        exc.partial_cost_usd = cost_usd  # type: ignore[attr-defined]
+        exc.partial_usage = usage  # type: ignore[attr-defined]
+    except AttributeError:  # pragma: no cover - exceptions with __slots__
+        pass
 
 
 def abstain(strategy: str, **usage: Any) -> RouteDecision:

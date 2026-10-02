@@ -1,4 +1,6 @@
 .env
+.env.*
+!.env.example
 .venv/
 __pycache__/
 .cache/
@@ -9,3 +11,5 @@ __pycache__/
 .ruff_cache/
 .claude/
 graphify-out/
+.playwright-mcp/
+estudos/figuras/_*

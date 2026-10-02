@@ -27,6 +27,7 @@ from common import (  # noqa: E402
     TARGET_DIST,
     TOOL_SKILL,
     Case,
+    case_dict,
     case_text,
     customer_orders,
 )
@@ -56,7 +57,15 @@ TOOL_DESC = {
     "create_exchange": "cria troca por outro tamanho/cor/produto",
     "open_warranty_claim": "abre chamado de garantia para defeito",
 }
-CATALOG = "\n".join(f"- {t} ({TOOL_SKILL[t]}): {d}" for t, d in TOOL_DESC.items())
+# Real parameter names per tool (MCP inputSchema), so gold args are comparable to tool calls.
+TOOL_PARAMS: dict[str, list[str]] = {
+    t["name"]: list((t.get("inputSchema") or {}).get("properties") or {})
+    for t in json.loads((ROOT / "mcp_server" / "tools_list.json").read_text())["tools"]
+}
+CATALOG = "\n".join(
+    f"- {t} ({TOOL_SKILL[t]}): {d}; parâmetros: {', '.join(TOOL_PARAMS.get(t, [])) or 'nenhum'}"
+    for t, d in TOOL_DESC.items()
+)
 
 # Confusable groups for the ambiguous category: (description, acceptable tools).
 AMBIG_GROUPS = [
@@ -120,13 +129,15 @@ OOS_TOPICS = [
 ]
 
 
-def load_env() -> str:
-    for line in (ROOT / ".env").read_text().splitlines():
-        if line.startswith("OPENROUTER_API_KEY="):
-            return line.split("=", 1)[1].strip().strip('"').strip("'")
-    key = os.environ.get("OPENROUTER_API_KEY")
+def load_env(env_file: Path = ROOT / ".env") -> str:
+    """OPENROUTER_API_KEY: the environment variable wins; a blank value never counts."""
+    key = os.environ.get("OPENROUTER_API_KEY", "").strip()
+    if not key and env_file.exists():
+        for line in env_file.read_text().splitlines():
+            if line.startswith("OPENROUTER_API_KEY="):
+                key = line.split("=", 1)[1].strip().strip('"').strip("'")
     if not key:
-        raise SystemExit("OPENROUTER_API_KEY not found")
+        raise SystemExit("OPENROUTER_API_KEY not found (environment or .env)")
     return key
 
 
@@ -161,7 +172,7 @@ Gere {n} casos DIFERENTES entre si (vocabulário, tom, tamanho, gênero, nível 
 
 Saída: SOMENTE JSON: {{"items": [{{"turns": [{{"role":"user","content":"..."}}], "acceptable_tools": ["..."], "args": {{}}}}]}}
 - turns termina SEMPRE com mensagem role=user (a mensagem sob teste).
-- args: use chaves como order_id, address, query quando aplicável; {{}} se nada.
+- args: SOMENTE nomes de parâmetros reais da tool (lista "parâmetros" no catálogo), com o valor dito pelo cliente; nunca invente chaves; {{}} se nada.
 - acceptable_tools: nomes exatos do catálogo, ou "__abstain__".
 """
     if category == "direto":
@@ -214,6 +225,13 @@ def call(client: httpx.Client, key: str, model: str, prompt: str) -> tuple[list[
             text = j["choices"][0]["message"]["content"]
             text = re.sub(r"^```(?:json)?|```$", "", text.strip()).strip()
             return json.loads(text)["items"], cost
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code in (401, 402, 403):  # bad key / no credits: retrying
+                raise SystemExit(  # can't help, and an empty result must not be written
+                    f"OpenRouter HTTP {e.response.status_code}: check OPENROUTER_API_KEY/credits"
+                ) from e
+            print(f"  retry {attempt + 1}: {type(e).__name__}", flush=True)
+            time.sleep(2**attempt)
         except (httpx.HTTPError, KeyError, ValueError, TypeError) as e:
             print(f"  retry {attempt + 1}: {type(e).__name__}", flush=True)
             time.sleep(2**attempt)
@@ -263,6 +281,10 @@ def to_case(
         )
     except (ValidationError, KeyError, TypeError):
         return None
+    # gold args must be parameters of an acceptable tool (otherwise never comparable)
+    params = {p for t in tools for p in TOOL_PARAMS.get(t, [])}
+    if set(c.expected.args) - params:
+        return None
     # order ids mentioned anywhere must belong to the customer
     blob = json.dumps(item, ensure_ascii=False)
     if set(re.findall(r"O\d{4}", blob)) - set(slot[1]):
@@ -277,11 +299,27 @@ def is_dup(c: Case, seen_texts: list[str], seen_set: set[str]) -> bool:
     return any(SequenceMatcher(None, t, s).ratio() > 0.85 for s in seen_texts)
 
 
+def write_cases(path: Path, cases: list[Case], *, force: bool) -> None:
+    """Refuse to replace the dataset with fewer rows than it has (e.g. a failed run)."""
+    if path.exists() and not force:
+        have = sum(1 for line in path.read_text().splitlines() if line.strip())
+        if len(cases) < have:
+            raise SystemExit(
+                f"{path.name}: refusing to overwrite {have} rows with {len(cases)} (use --force)"
+            )
+    with path.open("w") as f:
+        for c in cases:
+            f.write(json.dumps(case_dict(c), ensure_ascii=False, separators=(",", ":")) + "\n")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--target", type=int, default=500)
     ap.add_argument("--model", default="google/gemini-2.5-flash")
     ap.add_argument("--oversample", type=float, default=1.6)
+    ap.add_argument(
+        "--force", action="store_true", help="overwrite synthetic.jsonl even with fewer rows"
+    )
     args = ap.parse_args()
     key = load_env()
     rng = random.Random(SEED)
@@ -354,9 +392,7 @@ def main() -> None:
         out.extend(picked)
         print(f"{cat}: generated={len(pool)} quota={quota[cat]} kept={len(picked)}")
 
-    with (DATA / "synthetic.jsonl").open("w") as f:
-        for c in out:
-            f.write(c.model_dump_json() + "\n")
+    write_cases(DATA / "synthetic.jsonl", out, force=args.force)
     meta = {
         "model": args.model,
         "temperature": 0.9,

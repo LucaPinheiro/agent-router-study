@@ -1,0 +1,10 @@
+# RQ5 effort record (docs/rq5-design.md). Read by `study rq5`.
+held_out: [get_refund_status, reschedule_delivery, generate_return_label]
+engineered:
+  overlay: config/rq5/regex_overlay_engineered.yaml
+  author: "AI agent (Claude Opus): agent-written rules, timeboxed; not a human engineer"
+  inputs: "catalog entries + SKILL.md + base rules only; no dev/test messages"
+  timebox_min: 20
+  start: "2026-10-01T01:43:13Z"
+  end: "2026-10-01T01:44:25Z"
+  iterations: 3   # draft + 2 fix rounds against the catalog examples

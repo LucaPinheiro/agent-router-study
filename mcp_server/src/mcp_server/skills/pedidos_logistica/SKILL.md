@@ -10,8 +10,8 @@ allowed-tools:
 examples:
   - "Cadê minha encomenda?"
   - "Meu pedido já foi enviado?"
-  - "Quero mudar o endereço de entrega"
-  - "Não vou estar em casa, dá para entregar outro dia?"
+  - "Preciso que o pacote vá para outro endereço"
+  - "Consigo escolher outra data para receber?"
   - "Quero cancelar meu pedido antes de enviarem"
 ---
 
@@ -29,7 +29,7 @@ examples:
 
 ## Heurística de desambiguação
 
-- "Como está meu pedido?" → get_order_status. "Cadê o pacote?" ou "está parado na transportadora" → track_shipment. Na dúvida, comece por get_order_status: ele diz se já existe envio.
+- "Qual a situação da compra?" → get_order_status. "Cadê o pacote?" ou "está parado na transportadora" → track_shipment. Na dúvida, comece por get_order_status: ele diz se já existe envio.
 - Endereço × data: mudar **onde** é update_delivery_address; mudar **quando** é reschedule_delivery.
 - Cancelar × reembolso × devolução: cancel_order só vale antes do envio. Pedido entregue vai para create_return_request (skill trocas_devolucoes). Pedido cancelado sem estorno, ou extraviado, vai para request_refund (skill pagamentos_reembolsos).
 

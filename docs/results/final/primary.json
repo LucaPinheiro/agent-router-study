@@ -1,0 +1,219 @@
+{
+  "status": "CONFIRMATORY (prereg-v1, Holm across H1-H3, alpha 0.05)",
+  "itt": [
+    {
+      "id": "H1",
+      "run": "E9",
+      "reference": "E5",
+      "kind": "non_inferiority",
+      "margin": 0.03,
+      "n_cases": 349,
+      "delta": {
+        "point": -0.023877745940783193,
+        "lo": -0.054441260744985676,
+        "hi": 0.006685768863419295
+      },
+      "mcnemar_case": {
+        "run_only": 15,
+        "ref_only": 21,
+        "p": 0.40503224614076316
+      },
+      "p": 0.34826517348265174,
+      "p_holm": 0.6965303469653035,
+      "reject_holm_0.05": false,
+      "verdict": "non-inferiority NOT shown",
+      "verdict_ci": {
+        "lo": -0.054441260744985676,
+        "hi": 0.006685768863419295
+      }
+    },
+    {
+      "id": "H2",
+      "run": "E7",
+      "reference": "E5",
+      "kind": "non_inferiority",
+      "margin": 0.03,
+      "n_cases": 349,
+      "delta": {
+        "point": -0.04202483285577842,
+        "lo": -0.07831900668576887,
+        "hi": -0.005730659025787965
+      },
+      "mcnemar_case": {
+        "run_only": 18,
+        "ref_only": 31,
+        "p": 0.08543313315739454
+      },
+      "p": 0.7284271572842715,
+      "p_holm": 0.7284271572842715,
+      "reject_holm_0.05": false,
+      "verdict": "non-inferiority NOT shown",
+      "verdict_ci": {
+        "lo": -0.07831900668576887,
+        "hi": -0.005730659025787965
+      }
+    },
+    {
+      "id": "H3",
+      "run": "E9@e2e",
+      "reference": "E0@e2e",
+      "kind": "two_sided",
+      "margin": 0.03,
+      "n_cases": 349,
+      "delta": {
+        "point": -0.09742120343839542,
+        "lo": -0.1346704871060172,
+        "hi": -0.06017191977077364
+      },
+      "mcnemar_case": {
+        "run_only": 6,
+        "ref_only": 40,
+        "p": 3.1028037028590916e-07
+      },
+      "p": 9.999000099990002e-05,
+      "p_holm": 0.00029997000299970003,
+      "reject_holm_0.05": true,
+      "verdict": "CI excludes 0",
+      "verdict_ci": null
+    }
+  ],
+  "error_free": [
+    {
+      "id": "H1",
+      "run": "E9#0",
+      "reference": "E5#0",
+      "kind": "non_inferiority",
+      "margin": 0.03,
+      "n_cases": 349,
+      "delta": {
+        "point": -0.023877745940783193,
+        "lo": -0.054441260744985676,
+        "hi": 0.006685768863419295
+      },
+      "mcnemar_case": {
+        "run_only": 15,
+        "ref_only": 21,
+        "p": 0.40503224614076316
+      },
+      "p": 0.34826517348265174,
+      "p_holm": 0.6965303469653035,
+      "reject_holm_0.05": false,
+      "verdict": "non-inferiority NOT shown",
+      "verdict_ci": {
+        "lo": -0.054441260744985676,
+        "hi": 0.006685768863419295
+      }
+    },
+    {
+      "id": "H2",
+      "run": "E7#1",
+      "reference": "E5#1",
+      "kind": "non_inferiority",
+      "margin": 0.03,
+      "n_cases": 349,
+      "delta": {
+        "point": -0.04202483285577842,
+        "lo": -0.07831900668576887,
+        "hi": -0.005730659025787965
+      },
+      "mcnemar_case": {
+        "run_only": 18,
+        "ref_only": 31,
+        "p": 0.08543313315739454
+      },
+      "p": 0.7284271572842715,
+      "p_holm": 0.7284271572842715,
+      "reject_holm_0.05": false,
+      "verdict": "non-inferiority NOT shown",
+      "verdict_ci": {
+        "lo": -0.07831900668576887,
+        "hi": -0.005730659025787965
+      }
+    },
+    {
+      "id": "H3",
+      "run": "E9@e2e#2",
+      "reference": "E0@e2e#2",
+      "kind": "two_sided",
+      "margin": 0.03,
+      "n_cases": 349,
+      "delta": {
+        "point": -0.09742120343839542,
+        "lo": -0.1346704871060172,
+        "hi": -0.06017191977077364
+      },
+      "mcnemar_case": {
+        "run_only": 6,
+        "ref_only": 40,
+        "p": 3.1028037028590916e-07
+      },
+      "p": 9.999000099990002e-05,
+      "p_holm": 0.00029997000299970003,
+      "reject_holm_0.05": true,
+      "verdict": "CI excludes 0",
+      "verdict_ci": null
+    }
+  ],
+  "cost_ratios": [
+    {
+      "id": "H1 co-primary",
+      "ratio": {
+        "point": 0.19856145961556637,
+        "lo": 0.17420479596172228,
+        "hi": 0.22424607193234952,
+        "n_cases": 349
+      },
+      "a_usd_per_1k": {
+        "point": 0.9889416838586437,
+        "lo": 0.8682437893027697,
+        "hi": 1.115855788276027
+      },
+      "b_usd_per_1k": {
+        "point": 4.980531900668577,
+        "lo": 4.908635969436485,
+        "hi": 5.051871153295128
+      },
+      "what": "routing US$/case, observed-cache regime (recorded cost of each decision)"
+    },
+    {
+      "id": "H2 (estimation)",
+      "ratio": {
+        "point": 0.1459813511899599,
+        "lo": 0.1309657856537427,
+        "hi": 0.16199237650234577,
+        "n_cases": 349
+      },
+      "a_usd_per_1k": {
+        "point": 0.7270647765042979,
+        "lo": 0.6536029456303726,
+        "hi": 0.805056137488061
+      },
+      "b_usd_per_1k": {
+        "point": 4.980531900668577,
+        "lo": 4.908635969436485,
+        "hi": 5.051871153295128
+      },
+      "what": "routing US$/case, observed-cache regime"
+    },
+    {
+      "id": "H3 co-primary",
+      "ratio": {
+        "point": 0.908656584890528,
+        "lo": 0.8586356958934839,
+        "hi": 0.9602570500046068,
+        "n_cases": 349
+      },
+      "a_usd_per_1k": {
+        "point": 8.206111985673353,
+        "lo": 7.721646936962752,
+        "hi": 8.733837166833808
+      },
+      "b_usd_per_1k": {
+        "point": 9.031037822349571,
+        "lo": 8.53294269340974,
+        "hi": 9.575545737822347
+      },
+      "what": "US$/turn, routing + executor, observed"
+    }
+  ]
+}

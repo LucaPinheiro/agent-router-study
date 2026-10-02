@@ -4,9 +4,18 @@
   `skill://<id>/SKILL.md` resources (frontmatter `allowed-tools` must match the `_meta` skills).
 - `CatalogProvider`: Redis cache (TTL = server `ttlMs`, fallback 300 s) under
   `mcp:catalog:<url>:<protocol_version>`, plus an in-process copy until the same TTL.
+- Every client is PINNED to `PROTOCOL_VERSION` (2026-07-28). fastmcp's default `mode="auto"`
+  probes `server/discover` and silently falls back to the 2025-11-25 initialize handshake on
+  ANY probe error (a client-side timeout under load included), which yields a catalog with
+  another protocol version and another inputSchema key order.
+- `Catalog.hash` covers the semantic content only (instructions, tools, skills; JSON-object
+  keys sorted, server order of tools / skills / schema properties kept); never the protocol
+  version, url or TTL.
 - `Catalog`: skill RouteOptions (3 skills + `__global__`), per-skill tool RouteOptions
   (5 skill tools + 3 globals) and OpenAI-format tool schemas, verbatim from the server.
 - `McpTools`: `tools/call` with `X-Customer-Id` and the current `traceparent` in `_meta`.
+- Every HTTP request also carries the W3C `traceparent` HEADER of the current span, so the
+  server's HTTP span joins the turn trace instead of opening a root trace of its own.
 """
 
 from __future__ import annotations
@@ -14,6 +23,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import re
 import time
 from dataclasses import asdict, dataclass, field
 from typing import Any
@@ -22,6 +32,9 @@ import mcp.types as mt
 import yaml
 from fastmcp import Client
 from fastmcp.client.transports import StreamableHttpTransport
+from mcp.shared._httpx_utils import create_mcp_http_client
+from mcp.shared.exceptions import MCPError
+from mcp_types.version import MODERN_PROTOCOL_VERSIONS
 
 from routing_study.routers.base import GLOBAL_OPTION, RouteOption
 from routing_study.settings import Settings
@@ -29,10 +42,20 @@ from routing_study.tracing.langfuse import traceparent
 
 log = logging.getLogger(__name__)
 
-PROTOCOL_VERSION = mt.LATEST_PROTOCOL_VERSION
+PROTOCOL_VERSION = "2026-07-28"  # pinned: see the module docstring
+assert PROTOCOL_VERSION in MODERN_PROTOCOL_VERSIONS, "the MCP SDK no longer speaks 2026-07-28"
 RDNS = "br.routingstudy"
 SERVER_GLOBAL = "global"  # `_meta.br.routingstudy/skill` value of the always-exposed tools
 DEFAULT_TTL_S = 300
+# Description sections kept out of tool-stage RouteOptions: DON'T USE FOR names the sibling
+# tools (their vocabulary would pull BM25/embeddings towards the wrong tool); CONFIRMATION and
+# RESULT say nothing about when to use the tool. The executor still gets the full description.
+ROUTING_EXCLUDED_SECTIONS = ("DON'T USE FOR:", "CONFIRMATION:", "RESULT:")
+_AVOID = "DON'T USE FOR:"
+_USE = re.compile(r"\(use ([^)]*)\)")
+# A DON'T USE FOR clause opening with "se" is a precondition of the tool's own action
+# ("se o pedido já foi enviado"): true between tools, false as a skill-level rule.
+_CONDITION = re.compile(r"se\b", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -60,18 +83,56 @@ class Catalog:
 
     @property
     def hash(self) -> str:
-        return hashlib.sha256(self.to_json().encode()).hexdigest()[:12]
+        """Content hash (provenance `catalog_hash`): same tools / instructions / skills ->
+        same hash, whatever protocol version, url or TTL the fetch had."""
+        raw = json.dumps(self.content(), ensure_ascii=False, separators=(",", ":"))
+        return hashlib.sha256(raw.encode()).hexdigest()[:12]
+
+    def content(self) -> dict[str, Any]:
+        """The semantic content, normalized: JSON-object keys sorted (their order is
+        meaningless and differs between protocol eras) except the members of a schema's
+        `properties`, whose server order shapes the tool schema the executor sees; tools and
+        skills stay lists in server order (order shapes the prompt bytes)."""
+        return {
+            "instructions": self.instructions,
+            "tools": [_normalize(t) for t in self.tools],
+            "skills": [asdict(s) for s in self.skills.values()],
+        }
 
     def to_json(self) -> str:
+        """Server order kept (skills, schema properties): it shapes the prompt bytes, and the
+        hash covers it. No `sort_keys`: a Redis round-trip must not reorder anything."""
         data = asdict(self)
         data.pop("_by_name")
-        return json.dumps(data, sort_keys=True, ensure_ascii=False)
+        return json.dumps(data, ensure_ascii=False)
 
     @classmethod
     def from_json(cls, raw: str | bytes) -> Catalog:
         data = json.loads(raw)
         data["skills"] = {k: Skill(**v) for k, v in data["skills"].items()}
         return cls(**data)
+
+    def without(self, names: list[str] | set[str]) -> Catalog:
+        """This catalog minus the tools `names` (RQ5 leave-tools-out, host side only): drops
+        them from tools/list and drops skill-frontmatter examples that are verbatim copies of
+        their `_meta` examples. Everything derived from the catalog (route options, shots,
+        DON'T USE FOR targets, executor schemas, hash) follows."""
+        drop = set(names)
+        if unknown := drop - set(self._by_name):
+            raise ValueError(f"catalog.exclude_tools: unknown tool(s) {sorted(unknown)}")
+        copied = {e for n in drop for e in self.meta(n, "examples", [])}
+        skills = {
+            k: Skill(s.id, s.description, [e for e in s.examples if e not in copied], s.markdown)
+            for k, s in self.skills.items()
+        }
+        return Catalog(
+            url=self.url,
+            protocol_version=self.protocol_version,
+            instructions=self.instructions,
+            tools=[t for t in self.tools if t["name"] not in drop],
+            skills=skills,
+            ttl_s=self.ttl_s,
+        )
 
     # ------------------------------------------------------------ lookups
 
@@ -102,23 +163,98 @@ class Catalog:
 
     # ------------------------------------------------------------ route options
 
+    def avoid_clauses(self, name: str) -> list[tuple[str, list[str]]]:
+        """DON'T USE FOR of a tool as [(clause, [tools to use instead])], verbatim, one per
+        `;`-separated clause; clauses that name no known tool are dropped."""
+        out: list[tuple[str, list[str]]] = []
+        for line in self.tool(name)["description"].split("\n"):
+            if not line.lstrip().startswith(_AVOID):
+                continue
+            for clause in line.split(_AVOID, 1)[1].split(";"):
+                targets = [
+                    t
+                    for m in _USE.finditer(clause)
+                    for t in re.findall(r"[a-z_]+", m.group(1))
+                    if self.has_tool(t)
+                ]
+                if targets:
+                    out.append((clause.strip(" .;"), list(dict.fromkeys(targets))))
+        return out
+
+    def _skill_avoid(self, skill_id: str) -> list[tuple[str, list[str]]]:
+        """The skill's tools' DON'T USE FOR clauses whose subject is skill-level, with each
+        `(use tool)` rewritten as `(use skill)`. Kept only when EVERY target is in another
+        skill (a mixed clause is also served by this skill) and the clause names an intent,
+        not a precondition of the source tool's own action ("se o pedido já foi enviado":
+        that intent still belongs to this skill, only this tool refuses it)."""
+        tools = self.tools_for(skill_id) if skill_id != GLOBAL_OPTION else self.global_tools
+        out: list[tuple[str, list[str]]] = []
+        for name in tools:
+            for clause, targets in self.avoid_clauses(name):
+                if _CONDITION.match(clause):
+                    continue
+                skills = list(dict.fromkeys(map(self.skill_of, targets)))
+                if skill_id in skills:
+                    continue
+
+                def to_skill(m: re.Match[str], home: str = skill_id) -> str:
+                    ids = [
+                        self.skill_of(t)
+                        for t in re.findall(r"[a-z_]+", m.group(1))
+                        if self.has_tool(t)
+                    ]
+                    ids = [i for i in dict.fromkeys(ids) if i and i != home]
+                    return f"(use {' / '.join(ids)})" if ids else ""
+
+                text = re.sub(r"\s+", " ", _USE.sub(to_skill, clause)).strip()
+                if (text, skills) not in out:
+                    out.append((text, skills))
+        return out
+
+    def _skill_shots(self, skill_id: str) -> list[str]:
+        """The skill's tool examples, round-robin over its tools (tool order)."""
+        tools = self.tools_for(skill_id) if skill_id != GLOBAL_OPTION else self.global_tools
+        pools = [list(self.meta(n, "examples", [])) for n in tools]
+        return [p[i] for i in range(max(map(len, pools), default=0)) for p in pools if i < len(p)]
+
     def skill_options(self) -> list[RouteOption]:
-        opts = [RouteOption(id=s.id, description=s.description, examples=s.examples)
-                for s in self.skills.values()]
+        opts = [
+            RouteOption(
+                id=s.id,
+                description=s.description,
+                examples=s.examples,
+                avoid=self._skill_avoid(s.id),
+                shots=self._skill_shots(s.id),
+            )
+            for s in self.skills.values()
+        ]
         globals_ = self.global_tools
-        opts.append(RouteOption(
-            id=GLOBAL_OPTION,
-            description="Assuntos transversais, sem skill específica: "
-            + " ".join(self.tool(n)["description"].split("\n", 1)[0] for n in globals_),
-            examples=[e for n in globals_ for e in self.meta(n, "examples", [])],
-            keywords=[k for n in globals_ for k in self.meta(n, "keywords", [])],
-        ))
+        opts.append(
+            RouteOption(
+                id=GLOBAL_OPTION,
+                description="Assuntos transversais, sem skill específica: "
+                + " ".join(self.tool(n)["description"].split("\n", 1)[0] for n in globals_),
+                examples=[e for n in globals_ for e in self.meta(n, "examples", [])],
+                keywords=[k for n in globals_ for k in self.meta(n, "keywords", [])],
+                avoid=self._skill_avoid(GLOBAL_OPTION),
+                shots=self._skill_shots(GLOBAL_OPTION),
+            )
+        )
         return opts
 
     def tool_option(self, name: str) -> RouteOption:
-        return RouteOption(id=name, description=self.tool(name)["description"],
-                           examples=list(self.meta(name, "examples", [])),
-                           keywords=list(self.meta(name, "keywords", [])))
+        lines = self.tool(name)["description"].split("\n")
+        description = "\n".join(
+            ln for ln in lines if not ln.lstrip().startswith(ROUTING_EXCLUDED_SECTIONS)
+        )
+        return RouteOption(
+            id=name,
+            description=description,
+            examples=list(self.meta(name, "examples", [])),
+            keywords=list(self.meta(name, "keywords", [])),
+            avoid=self.avoid_clauses(name),
+            shots=list(self.meta(name, "examples", [])),
+        )
 
     def tool_options(self, skill_id: str) -> list[RouteOption]:
         names = self.tools_for(skill_id) if skill_id != GLOBAL_OPTION else []
@@ -127,12 +263,47 @@ class Catalog:
     def openai_tool(self, name: str) -> dict[str, Any]:
         """Server description and inputSchema verbatim (no host rewrite)."""
         t = self.tool(name)
-        return {"type": "function", "function": {
-            "name": name, "description": t.get("description", ""),
-            "parameters": t.get("inputSchema") or {"type": "object", "properties": {}}}}
+        return {
+            "type": "function",
+            "function": {
+                "name": name,
+                "description": t.get("description", ""),
+                "parameters": t.get("inputSchema") or {"type": "object", "properties": {}},
+            },
+        }
+
+
+def _normalize(value: Any, *, keep_order: bool = False) -> Any:
+    """Sort JSON-object keys recursively; `keep_order` keeps one object's member order (a
+    JSON Schema `properties` map) while still normalizing the members themselves."""
+    if isinstance(value, dict):
+        items = list(value.items()) if keep_order else sorted(value.items())
+        return {k: _normalize(v, keep_order=k == "properties" and not keep_order) for k, v in items}
+    if isinstance(value, list):
+        return [_normalize(v) for v in value]
+    return value
 
 
 # ---------------------------------------------------------------- MCP client
+
+
+async def _inject_traceparent(request: Any) -> None:
+    """httpx request hook: W3C context of the current span as HTTP headers. The MCP transport
+    sends each POST in the sender's context (inside `MCP send <method>`)."""
+    for key, value in traceparent().items():
+        request.headers[key] = value
+
+
+def traced_http_client(
+    headers: dict[str, str] | None = None,
+    timeout: Any = None,
+    auth: Any = None,
+    **_: Any,  # fastmcp passes follow_redirects=True; the MCP SDK default (off) is kept
+) -> Any:
+    """`create_mcp_http_client` + the traceparent request hook."""
+    client = create_mcp_http_client(headers=headers, timeout=timeout, auth=auth)
+    client.event_hooks["request"].append(_inject_traceparent)
+    return client
 
 
 def mcp_client(settings: Settings, customer_id: str | None = None) -> Client:
@@ -141,8 +312,11 @@ def mcp_client(settings: Settings, customer_id: str | None = None) -> Client:
         headers["Authorization"] = f"Bearer {settings.mcp_token.get_secret_value()}"
     if customer_id:
         headers["X-Customer-Id"] = customer_id
-    transport = StreamableHttpTransport(settings.mcp_url, headers=headers)
-    return Client(transport, timeout=settings.request_timeout_s)
+    transport = StreamableHttpTransport(
+        settings.mcp_url, headers=headers, httpx_client_factory=traced_http_client
+    )
+    # pinned, never "auto": no silent fallback to the 2025-11-25 handshake
+    return Client(transport, timeout=settings.request_timeout_s, mode=PROTOCOL_VERSION)
 
 
 def parse_skill(skill_id: str, markdown: str) -> tuple[Skill, set[str]]:
@@ -151,8 +325,12 @@ def parse_skill(skill_id: str, markdown: str) -> tuple[Skill, set[str]]:
     if markdown.startswith("---"):
         _, raw, _ = markdown.split("---", 2)
         front = yaml.safe_load(raw) or {}
-    skill = Skill(id=front.get("name", skill_id), description=front.get("description", ""),
-                  examples=list(front.get("examples") or []), markdown=markdown)
+    skill = Skill(
+        id=front.get("name", skill_id),
+        description=front.get("description", ""),
+        examples=list(front.get("examples") or []),
+        markdown=markdown,
+    )
     return skill, set(front.get("allowed-tools") or [])
 
 
@@ -160,8 +338,20 @@ def _text(result: list[Any]) -> str:
     return "\n".join(getattr(c, "text", "") for c in result)
 
 
-async def fetch_catalog(settings: Settings) -> Catalog:
-    async with mcp_client(settings) as client:
+async def fetch_catalog(settings: Settings, client: Client | None = None) -> Catalog:
+    """`client`: an unopened client to use instead of `mcp_client(settings)` (e.g. an
+    in-process `Client(mcp_server.server.mcp)` for offline tuning)."""
+    async with client or mcp_client(settings) as client:
+        if client.protocol_version != PROTOCOL_VERSION:
+            raise RuntimeError(
+                f"MCP client negotiated {client.protocol_version}, expected {PROTOCOL_VERSION} "
+                "(pin the client: Client(..., mode=PROTOCOL_VERSION))"
+            )
+        # an explicit server/discover: a pinned client adopts a synthesized result without
+        # the server's instructions, and this call fails loudly instead of falling back
+        discovered = mt.DiscoverResult.model_validate(
+            await client.session.send_discover(PROTOCOL_VERSION)
+        )
         tools: list[mt.Tool] = []
         cursor: str | None = None
         ttl_ms: int | None = None
@@ -180,20 +370,25 @@ async def fetch_catalog(settings: Settings) -> Catalog:
             if uri.startswith("skill://") and uri.endswith("/SKILL.md"):
                 skill_id = uri.removeprefix("skill://").split("/", 1)[0]
                 skill, allowed[skill_id] = parse_skill(
-                    skill_id, _text(await client.read_resource(uri)))
+                    skill_id, _text(await client.read_resource(uri))
+                )
                 skills[skill_id] = skill
         catalog = Catalog(
             url=settings.mcp_url,
-            protocol_version=client.protocol_version or PROTOCOL_VERSION,
-            instructions=client.instructions or "",
+            protocol_version=client.protocol_version,
+            instructions=discovered.instructions or "",
             tools=[t.model_dump(by_alias=True, exclude_none=True, mode="json") for t in tools],
             skills=skills,
             ttl_s=int(ttl_ms / 1000) if ttl_ms else DEFAULT_TTL_S,
         )
     for skill_id, names in allowed.items():  # SKILL.md frontmatter vs tools/list `_meta`
         if names != set(catalog.tools_for(skill_id)):
-            raise ValueError(f"skill {skill_id}: allowed-tools {sorted(names)} != _meta "
-                             f"{sorted(catalog.tools_for(skill_id))}")
+            raise ValueError(
+                f"skill {skill_id}: allowed-tools {sorted(names)} != _meta "
+                f"{sorted(catalog.tools_for(skill_id))}"
+            )
+    if settings.catalog.exclude_tools:  # after the consistency check: it is about the server
+        catalog = catalog.without(settings.catalog.exclude_tools)
     return catalog
 
 
@@ -204,6 +399,8 @@ class CatalogProvider:
         self.settings = settings
         self.redis = redis
         self.key = f"mcp:catalog:{settings.mcp_url}:{PROTOCOL_VERSION}"
+        if excluded := settings.catalog.exclude_tools:  # a reduced view never overwrites the full
+            self.key += ":exclude=" + ",".join(sorted(excluded))
         self._memo: tuple[Catalog, float] | None = None
 
     async def get(self) -> tuple[Catalog, str]:
@@ -211,12 +408,21 @@ class CatalogProvider:
         now = time.monotonic()
         if self._memo and now < self._memo[1]:
             return self._memo[0], "memory"
-        catalog, source = None, "server"
+        catalog, source, ttl_s = None, "server", None
         if self.redis is not None:
             try:
                 raw = await self.redis.get(self.key)
-                if raw:
-                    catalog, source = Catalog.from_json(raw), "redis"
+                cached = Catalog.from_json(raw) if raw else None
+                if cached is not None and cached.protocol_version != PROTOCOL_VERSION:
+                    # written by an unpinned client of older code: never served
+                    log.warning(
+                        "redis catalog %s holds protocol %s: refetching",
+                        self.key,
+                        cached.protocol_version,
+                    )
+                elif cached is not None:
+                    catalog, source = cached, "redis"
+                    ttl_s = await self.redis.ttl(self.key)  # memo ends with the Redis key
             except Exception:  # cache is an optimization; the server is authoritative
                 log.warning("redis catalog read failed", exc_info=True)
         if catalog is None:
@@ -226,7 +432,8 @@ class CatalogProvider:
                     await self.redis.set(self.key, catalog.to_json(), ex=catalog.ttl_s)
                 except Exception:
                     log.warning("redis catalog write failed", exc_info=True)
-        self._memo = (catalog, now + catalog.ttl_s)
+        remaining = ttl_s if ttl_s is not None and 0 <= ttl_s <= catalog.ttl_s else catalog.ttl_s
+        self._memo = (catalog, now + remaining)
         return catalog, source
 
 
@@ -260,8 +467,16 @@ class McpTools:
     async def call(self, name: str, args: dict[str, Any]) -> ToolOutcome:
         try:
             r = await self._client.call_tool_mcp(name, args, meta=traceparent() or None)
-        except Exception as exc:  # protocol errors (-32602 etc.) are tool-visible failures
-            return ToolOutcome(text=f"{type(exc).__name__}: {exc}"[:500], is_error=True,
-                               structured={"status": "error", "code": "PROTOCOL_ERROR"})
-        return ToolOutcome(text=_text(r.content), structured=r.structured_content,
-                           is_error=bool(r.is_error))
+        except MCPError as exc:
+            # Only -32602 (the model's arguments) is tool-visible. Transport/session failures
+            # (closed, timeout, HTTP 5xx, session terminated) raise: a top-level case error.
+            if exc.code != mt.INVALID_PARAMS:
+                raise
+            return ToolOutcome(
+                text=f"{type(exc).__name__}: {exc.message}"[:500],
+                is_error=True,
+                structured={"status": "error", "code": "PROTOCOL_ERROR"},
+            )
+        return ToolOutcome(
+            text=_text(r.content), structured=r.structured_content, is_error=bool(r.is_error)
+        )

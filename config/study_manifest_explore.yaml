@@ -1,0 +1,29 @@
+version: 1
+split: test_v2
+results_dir: results
+error_budget: 0.02
+max_infra_retries: 2
+runs:
+  - name: x-e9-fullskill-e2e-r1
+    config_hash: 3011c95c0e12
+    prompt_hash: c61ad0a7b7f8
+    config: config/experiments/e9_regex_jev_llm.yaml
+    prompt_track: tuned
+    mode: e2e
+    reps: 1
+    priority: 200
+    purpose: 'EXPLORATORY (post-hoc, deviation D-002): route the skill, expose ALL 5 skill tools (+globals) to the executor'
+    overrides:
+      routing.tool.expose_top_k: 5
+  - name: x-e7-fullskill-e2e-r1
+    config_hash: fd6bdc46c867
+    prompt_hash: c61ad0a7b7f8
+    config: config/experiments/e7_regex_jev.yaml
+    prompt_track: tuned
+    mode: e2e
+    reps: 1
+    priority: 201
+    purpose: 'EXPLORATORY (post-hoc, deviation D-002): regex->Jev skill routing, ALL 5 skill tools exposed'
+    overrides:
+      routing.tool.expose_top_k: 5
+contrasts: []

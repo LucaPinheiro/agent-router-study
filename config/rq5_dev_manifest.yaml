@@ -1,0 +1,55 @@
+# RQ5 leave-tools-out (docs/rq5-design.md) on DEV, free strategies only: the end-to-end
+# validation of the harness (same runner / rescorer / manifest path as the test-v2 entries in
+# config/study_manifest.yaml, section 10).
+#   uv run study run-manifest config/rq5_dev_manifest.yaml
+#   uv run study rq5 config/rq5_dev_manifest.yaml --retrain config/experiments/e10_classifier.yaml
+# Conditions (manifest `overrides`):
+#   base: 3 tools excluded from the catalog + regex rules without them
+#   zero: full catalog, regex rules still without them (zero-effort add)
+#   eng:  full catalog + agent-written, timeboxed regex overlay (engineered add)
+#   full: production config (reference; regex / hybrid only)
+version: 1
+split: dev
+results_dir: results
+error_budget: 0.02
+max_infra_retries: 2
+
+runs:
+  - name: rq5-dev-regex-base
+    config: config/experiments/e1_regex.yaml
+    mode: routing-only
+    priority: 10
+    purpose: "RQ5 base"
+    overrides: &base
+      catalog.exclude_tools: [get_refund_status, reschedule_delivery, generate_return_label]
+      strategies.regex.rules_path: config/rq5/regex_rules_base.yaml
+  - name: rq5-dev-regex-zero
+    config: config/experiments/e1_regex.yaml
+    mode: routing-only
+    priority: 10
+    purpose: "RQ5 zero-effort add"
+    overrides: &zero
+      strategies.regex.rules_path: config/rq5/regex_rules_base.yaml
+  - name: rq5-dev-regex-eng
+    config: config/experiments/e1_regex.yaml
+    mode: routing-only
+    priority: 10
+    purpose: "RQ5 engineered add (agent-written rules, timeboxed)"
+    overrides: &eng
+      strategies.regex.rules_path: config/rq5/regex_rules_base.yaml
+      strategies.regex.overlay_paths: [config/rq5/regex_overlay_engineered.yaml]
+  - { name: rq5-dev-regex-full, config: config/experiments/e1_regex.yaml, mode: routing-only, priority: 10, purpose: "RQ5 reference: production rules" }
+
+  - { name: rq5-dev-bm25-base, config: config/experiments/e2_bm25.yaml, mode: routing-only, priority: 11, overrides: *base, purpose: "RQ5 base" }
+  - { name: rq5-dev-bm25-zero, config: config/experiments/e2_bm25.yaml, mode: routing-only, priority: 11, overrides: *zero, purpose: "RQ5 zero-effort add (= eng)" }
+
+  - { name: rq5-dev-classifier-base, config: config/experiments/e10_classifier.yaml, mode: routing-only, priority: 12, overrides: *base, purpose: "RQ5 base" }
+  - { name: rq5-dev-classifier-zero, config: config/experiments/e10_classifier.yaml, mode: routing-only, priority: 12, overrides: *zero, purpose: "RQ5 zero-effort add (= eng)" }
+
+  - { name: rq5-dev-embedding-base, config: config/experiments/e3_embedding.yaml, mode: routing-only, priority: 13, overrides: *base, purpose: "RQ5 base" }
+  - { name: rq5-dev-embedding-zero, config: config/experiments/e3_embedding.yaml, mode: routing-only, priority: 13, overrides: *zero, purpose: "RQ5 zero-effort add (= eng)" }
+
+  - { name: rq5-dev-hybrid-base, config: config/experiments/e11_hybrid.yaml, mode: routing-only, priority: 14, overrides: *base, purpose: "RQ5 base" }
+  - { name: rq5-dev-hybrid-zero, config: config/experiments/e11_hybrid.yaml, mode: routing-only, priority: 14, overrides: *zero, purpose: "RQ5 zero-effort add" }
+  - { name: rq5-dev-hybrid-eng, config: config/experiments/e11_hybrid.yaml, mode: routing-only, priority: 14, overrides: *eng, purpose: "RQ5 engineered add" }
+  - { name: rq5-dev-hybrid-full, config: config/experiments/e11_hybrid.yaml, mode: routing-only, priority: 14, purpose: "RQ5 reference: production rules" }

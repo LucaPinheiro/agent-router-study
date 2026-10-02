@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+import pytest
 import yaml
 from fastmcp import Client
 from mcp_fixtures import meta
@@ -61,8 +62,9 @@ async def test_span_joins_caller_trace(client: Client) -> None:
     trace.set_tracer_provider(provider)  # global; no exporter is configured in tests otherwise
     with provider.get_tracer("host").start_as_current_span("turn") as turn:
         await client.call_tool("get_order_status", {"order_id": "O0001"}, meta=meta("C001"))
-        await client.call_tool("cancel_order", {"order_id": "O9999"}, meta=meta("C001"),
-                               raise_on_error=False)
+        await client.call_tool(
+            "cancel_order", {"order_id": "O9999"}, meta=meta("C001"), raise_on_error=False
+        )
     spans = {s.name: s for s in exporter.get_finished_spans()}
     ok = spans["mcp.tools/call get_order_status"]
     assert ok.context.trace_id == turn.get_span_context().trace_id
@@ -86,10 +88,11 @@ def test_parent_context_from_meta_or_header() -> None:
     )
 
 
-def test_http_app_health_and_auth() -> None:
-    from mcp_server.app import app
+def test_http_app_health_and_auth(monkeypatch: pytest.MonkeyPatch) -> None:
+    from mcp_server import app as app_mod
 
-    with TestClient(app) as http:
+    monkeypatch.setattr(app_mod, "MCP_TOKEN", "t" * 32)
+    with TestClient(app_mod.app) as http:
         assert http.get("/healthz").status_code == 200
         assert http.get("/readyz").json()["tools"] == 18
         denied = http.post("/mcp", json={})
@@ -97,3 +100,19 @@ def test_http_app_health_and_auth() -> None:
         assert denied.headers["www-authenticate"].startswith("Bearer")
         wrong = http.post("/mcp", json={}, headers={"Authorization": "Bearer nope"})
         assert wrong.status_code == 401
+
+
+def test_security_mcp_token_has_no_default_and_needs_16_chars(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from mcp_server import app as app_mod
+
+    for weak in ("", "dev-token", "x" * 15):
+        monkeypatch.setattr(app_mod, "MCP_TOKEN", weak)
+        with pytest.raises(RuntimeError, match="MCP_TOKEN"), TestClient(app_mod.app):
+            pass
+    good = "s3cr3t-token-0123456789"
+    monkeypatch.setattr(app_mod, "MCP_TOKEN", good)
+    with TestClient(app_mod.app) as http:
+        ok = http.post("/mcp", json={}, headers={"Authorization": f"Bearer {good}"})
+        assert ok.status_code != 401

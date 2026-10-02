@@ -21,6 +21,10 @@ def setup_tracing() -> bool:
 
     Langfuse: OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:3000/api/public/otel and
     LANGFUSE_PUBLIC_KEY/LANGFUSE_SECRET_KEY (basic auth) unless OTEL_EXPORTER_OTLP_HEADERS is set.
+
+    Only spans inside a caller's trace are recorded (`ParentBased(ALWAYS_OFF)`): a request
+    without a W3C `traceparent` (health probes, untraced clients) would otherwise open a root
+    trace per HTTP request in Langfuse.
     """
     global _configured
     endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
@@ -30,17 +34,18 @@ def setup_tracing() -> bool:
     from opentelemetry.sdk.resources import Resource
     from opentelemetry.sdk.trace import TracerProvider
     from opentelemetry.sdk.trace.export import BatchSpanProcessor
+    from opentelemetry.sdk.trace.sampling import ALWAYS_OFF, ParentBased
 
     headers: dict[str, str] | None = None
     pk, sk = os.getenv("LANGFUSE_PUBLIC_KEY"), os.getenv("LANGFUSE_SECRET_KEY")
     if pk and sk and not os.getenv("OTEL_EXPORTER_OTLP_HEADERS"):
         token = base64.b64encode(f"{pk}:{sk}".encode()).decode()
         headers = {"Authorization": f"Basic {token}"}
-    exporter = OTLPSpanExporter(
-        endpoint=f"{endpoint.rstrip('/')}/v1/traces", headers=headers
-    )
+    exporter = OTLPSpanExporter(endpoint=f"{endpoint.rstrip('/')}/v1/traces", headers=headers)
     service = os.getenv("OTEL_SERVICE_NAME", "mcp-server")
-    provider = TracerProvider(resource=Resource.create({"service.name": service}))
+    provider = TracerProvider(
+        resource=Resource.create({"service.name": service}), sampler=ParentBased(ALWAYS_OFF)
+    )
     provider.add_span_processor(BatchSpanProcessor(exporter))
     trace.set_tracer_provider(provider)
     _configured = True

@@ -17,9 +17,11 @@ from mcp_server.core import (
     TODAY,
     WRITE,
     ToolFailure,
+    after_delivery_next_step,
     brl,
     catalog_tool,
     fmt_address,
+    money_back_next_step,
     ok,
     order_ref,
     protocol,
@@ -58,7 +60,8 @@ UFS = set(
     description="""
 Consulta a situação de um pedido: status, itens, valor, forma de pagamento, previsão ou data \
 de entrega e endereço.
-WHEN TO USE: "como está meu pedido?", "meu pedido foi enviado?", ver itens ou valor de um pedido.
+WHEN TO USE: "qual a situação da minha compra?", "meu pedido foi enviado?", ver itens ou valor \
+de um pedido.
 DON'T USE FOR: onde está o pacote e eventos de rastreio (use track_shipment); situação do \
 pagamento (use get_payment_status) ou do reembolso (use get_refund_status).
 PARAMETERS: order_id opcional se o cliente tem um só pedido; nunca invente o número.
@@ -66,10 +69,10 @@ CONFIRMATION: não requer.
 RESULT: dados do pedido; repasse datas, valores e IDs sem alterar.
 """,
     examples=[
-        "Como está meu pedido O0002?",
+        "Em que etapa está a compra que fiz semana passada?",
         "Meu pedido já foi enviado?",
         "Quais itens vieram no meu último pedido?",
-        "Qual a previsão de entrega da minha compra?",
+        "Até quando devo receber o que comprei?",
     ],
     keywords=["status", "situacao", "pedido", "andamento", "previsao", "itens"],
 )
@@ -78,8 +81,10 @@ async def get_order_status(order_id: OrderId = None) -> ToolResult:
     pay = PAYMENTS[o["payment_id"]]
     result = OrderStatusResult(
         order=order_ref(o),
-        items=[OrderItem(**{k: i[k] for k in ("sku", "name", "quantity", "unit_price")})
-               for i in o["items"]],
+        items=[
+            OrderItem(**{k: i[k] for k in ("sku", "name", "quantity", "unit_price")})
+            for i in o["items"]
+        ],
         payment_method=pay["method"],
         estimated_delivery=o["estimated_delivery"],
         delivered_at=o["delivered_at"],
@@ -88,8 +93,10 @@ async def get_order_status(order_id: OrderId = None) -> ToolResult:
         shipment_id=o["shipment_id"],
     )
     when = (
-        f"entregue em {o['delivered_at']}" if o["delivered_at"]
-        else f"cancelado em {o['cancelled_at']}" if o["cancelled_at"]
+        f"entregue em {o['delivered_at']}"
+        if o["delivered_at"]
+        else f"cancelado em {o['cancelled_at']}"
+        if o["cancelled_at"]
         else f"previsão de entrega {o['estimated_delivery']}"
     )
     return ok(
@@ -129,7 +136,7 @@ RESULT: eventos em ordem cronológica; repasse códigos e datas sem alterar.
 """,
     examples=[
         "Cadê minha encomenda?",
-        "Qual o código de rastreio do pedido O0005?",
+        "Em que cidade a encomenda está neste momento?",
         "Meu pacote está parado na transportadora",
         "Onde está minha entrega agora?",
     ],
@@ -166,8 +173,8 @@ async def track_shipment(order_id: OrderId = None) -> ToolResult:
 Altera o endereço de entrega de um pedido que ainda não foi enviado.
 WHEN TO USE: o cliente quer receber em outro endereço ou corrigir o endereço de um pedido em \
 preparação.
-DON'T USE FOR: mudar a data de entrega (use reschedule_delivery); pedido já enviado (use \
-escalate_to_human); alterar o cadastro.
+DON'T USE FOR: reagendar o dia (use reschedule_delivery); se o pedido já foi enviado \
+(use escalate_to_human); alterar o cadastro.
 PARAMETERS: só o endereço novo dito pelo cliente; nunca copie o atual. complement opcional; \
 state = UF; postal_code = CEP de 8 dígitos.
 CONFIRMATION: não requer.
@@ -177,7 +184,7 @@ RESULT: protocolo e endereço novo; repasse sem alterar.
         "Quero mudar o endereço de entrega do meu pedido",
         "Errei o número da casa no pedido, é 250",
         "Posso receber no meu trabalho em vez de em casa?",
-        "Troca o endereço do pedido O0003 para Rua Bahia, 90",
+        "Manda para a Rua Bahia, 90 em vez do endereço antigo",
     ],
     keywords=["endereco", "mudar endereco", "alterar endereco", "entregar em outro lugar", "cep"],
 )
@@ -210,16 +217,24 @@ async def update_delivery_address(
             recoverable=True,
         )
     new = Address(
-        street=street.strip(), number=number.strip(), complement=complement,
-        neighborhood=neighborhood.strip(), city=city.strip(), state=uf, postal_code=cep,
+        street=street.strip(),
+        number=number.strip(),
+        complement=complement,
+        neighborhood=neighborhood.strip(),
+        city=city.strip(),
+        state=uf,
+        postal_code=cep,
     )
     proto = protocol("END", "update_delivery_address", {"order_id": o["id"], **new.model_dump()})
     result = AddressUpdateResult(
-        order_id=o["id"], protocol=proto,
-        previous_address=Address(**o["delivery_address"]), new_address=new,
+        order_id=o["id"],
+        protocol=proto,
+        previous_address=Address(**o["delivery_address"]),
+        new_address=new,
     )
-    return ok(result, f"Endereço do pedido {o['id']} alterado para {fmt_address(new)}. "
-                      f"Protocolo {proto}.")
+    return ok(
+        result, f"Endereço do pedido {o['id']} alterado para {fmt_address(new)}. Protocolo {proto}."
+    )
 
 
 @catalog_tool(
@@ -229,7 +244,7 @@ async def update_delivery_address(
     annotations=WRITE,
     result=RescheduleResult,
     description="""
-Reagenda a entrega de um pedido já enviado e ainda não entregue para uma nova data e período.
+Marca nova data e período de entrega para um pedido em trânsito (enviado, ainda não entregue).
 WHEN TO USE: o cliente não estará em casa, quer receber em outro dia ou perdeu a tentativa de \
 entrega.
 DON'T USE FOR: trocar o endereço (use update_delivery_address); saber onde está o pacote (use \
@@ -239,7 +254,7 @@ CONFIRMATION: não requer.
 RESULT: protocolo e nova janela de entrega; repasse sem alterar.
 """,
     examples=[
-        "Não vou estar em casa amanhã, dá para entregar outro dia?",
+        "Na quinta não tem ninguém no apartamento, dá para vir em outra data?",
         "O entregador veio e eu não estava, quero reagendar",
         "Pode entregar o pedido na sexta à tarde?",
         "Quero remarcar a entrega para semana que vem",
@@ -257,13 +272,13 @@ async def reschedule_delivery(
     o = resolve_order(order_id)
     s = _shipment(o)
     if s["status"] == "delivered":
-        raise ToolFailure("NOT_ELIGIBLE", f"O pedido {o['id']} já foi entregue.",
-                          recoverable=False)
+        raise ToolFailure("NOT_ELIGIBLE", f"O pedido {o['id']} já foi entregue.", recoverable=False)
     if s["status"] == "lost":
         raise ToolFailure(
             "NOT_ELIGIBLE",
             f"A entrega do pedido {o['id']} foi extraviada e não pode ser reagendada.",
-            recoverable=False, suggested_tool="request_refund",
+            recoverable=False,
+            suggested_tool=money_back_next_step(o),
         )
     try:
         wanted = date.fromisoformat(new_date.strip())
@@ -275,12 +290,23 @@ async def reschedule_delivery(
             f"new_date deve estar no formato AAAA-MM-DD, entre 1 e 15 dias após {TODAY}.",
             recoverable=True,
         )
-    proto = protocol("AGD", "reschedule_delivery",
-                     {"order_id": o["id"], "new_date": wanted.isoformat(), "period": period})
-    result = RescheduleResult(order_id=o["id"], protocol=proto, shipment_id=s["id"],
-                              new_date=wanted.isoformat(), period=period)
-    return ok(result, f"Entrega do pedido {o['id']} reagendada para {wanted.isoformat()}, "
-                      f"período {period}. Protocolo {proto}.")
+    proto = protocol(
+        "AGD",
+        "reschedule_delivery",
+        {"order_id": o["id"], "new_date": wanted.isoformat(), "period": period},
+    )
+    result = RescheduleResult(
+        order_id=o["id"],
+        protocol=proto,
+        shipment_id=s["id"],
+        new_date=wanted.isoformat(),
+        period=period,
+    )
+    return ok(
+        result,
+        f"Entrega do pedido {o['id']} reagendada para {wanted.isoformat()}, "
+        f"período {period}. Protocolo {proto}.",
+    )
 
 
 @catalog_tool(
@@ -291,16 +317,17 @@ async def reschedule_delivery(
     result=CancellationResult,
     description="""
 Cancela um pedido que ainda não foi enviado; o estorno do pagamento é automático. Irreversível.
-WHEN TO USE: "quero cancelar meu pedido", desistência antes do envio.
-DON'T USE FOR: pedido já entregue (use create_return_request); dinheiro de volta de pedido já \
-cancelado ou extraviado (use request_refund); cobrança não reconhecida (use dispute_charge).
+WHEN TO USE: "não quero mais, anula antes de despachar", desistência antes do envio.
+DON'T USE FOR: se o pedido já foi entregue (use create_return_request); dinheiro de volta de \
+pedido já cancelado ou extraviado (use request_refund); cobrança não reconhecida (use \
+dispute_charge).
 PARAMETERS: order_id opcional se o cliente tem um só pedido; reason opcional.
 CONFIRMATION: o servidor não pede confirmação; a ação é irreversível.
 RESULT: protocolo, valor e prazo do estorno; repasse sem alterar.
 """,
     examples=[
-        "Quero cancelar meu pedido",
-        "Desisti da compra, cancela o O0004 por favor",
+        "Não quero mais a compra, podem cancelar?",
+        "Pode anular a encomenda que ainda não saiu do estoque?",
         "Comprei errado, dá para cancelar antes de enviar?",
         "Cancela a compra que fiz ontem",
     ],
@@ -314,20 +341,27 @@ async def cancel_order(
 ) -> ToolResult:
     o = resolve_order(order_id)
     if o["status"] == "cancelled":
-        raise ToolFailure("NOT_ELIGIBLE", f"O pedido {o['id']} já está cancelado.",
-                          recoverable=False, suggested_tool="get_refund_status")
+        raise ToolFailure(
+            "NOT_ELIGIBLE",
+            f"O pedido {o['id']} já está cancelado.",
+            recoverable=False,
+            suggested_tool=money_back_next_step(o),
+        )
     if o["status"] == "delivered":
         raise ToolFailure(
             "NOT_ELIGIBLE",
             f"O pedido {o['id']} já foi entregue e não pode ser cancelado; abra uma devolução.",
-            recoverable=False, suggested_tool="create_return_request",
+            recoverable=False,
+            suggested_tool=after_delivery_next_step(o),
         )
     if o["status"] not in NOT_SHIPPED:
+        lost = SHIPMENTS[o["shipment_id"]]["status"] == "lost" if o["shipment_id"] else False
         raise ToolFailure(
             "NOT_ELIGIBLE",
             f"O pedido {o['id']} já foi enviado e não pode ser cancelado; recuse a entrega "
             "ou abra uma devolução após o recebimento.",
-            recoverable=False, suggested_tool="escalate_to_human",
+            recoverable=False,
+            suggested_tool=money_back_next_step(o) if lost else "escalate_to_human",
         )
     pay = PAYMENTS[o["payment_id"]]
     paid = pay["status"] == "approved"
@@ -336,11 +370,16 @@ async def cancel_order(
     deadline = refund_deadline(pay["method"]) if paid else TODAY.isoformat()
     proto = protocol("CAN", "cancel_order", {"order_id": o["id"], "reason": reason})
     result = CancellationResult(
-        order_id=o["id"], protocol=proto, cancelled_at=TODAY.isoformat(),
-        refund_amount=refund, refund_method=method, refund_deadline=deadline,
+        order_id=o["id"],
+        protocol=proto,
+        cancelled_at=TODAY.isoformat(),
+        refund_amount=refund,
+        refund_method=method,
+        refund_deadline=deadline,
     )
     refund_text = (
         f"Estorno de {brl(refund)}: {REFUND_TEXT[pay['method']]} (até {deadline})."
-        if paid else "Não houve cobrança, então não há estorno."
+        if paid
+        else "Não houve cobrança, então não há estorno."
     )
     return ok(result, f"Pedido {o['id']} cancelado. Protocolo {proto}. {refund_text}")

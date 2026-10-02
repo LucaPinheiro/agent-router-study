@@ -21,10 +21,10 @@ health:
 	@curl -fsS localhost:8765/healthz 2>/dev/null && echo || echo "mcp-server: not running (make up-app)"
 
 test:
-	uv run pytest -q --ignore=tests/integration
+	uv run pytest -q -m "not integration"
 
 lint:
 	uv run ruff check . && uv run ruff format --check .
 
 e2e:
-	uv run pytest -q tests/integration
+	uv run pytest -q -rs -m integration tests/integration tests/routers/test_router_live.py

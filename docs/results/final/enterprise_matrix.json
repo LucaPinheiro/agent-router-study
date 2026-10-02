@@ -1,0 +1,632 @@
+{
+  "candidates": [
+    {
+      "key": "E1",
+      "label": "E1 regex",
+      "status": "estimation",
+      "joint": {
+        "point": 0.5272206303724928,
+        "lo": 0.47277936962750716,
+        "hi": 0.5787965616045845
+      },
+      "cost": {
+        "point": 0.0,
+        "lo": 0.0,
+        "hi": 0.0
+      },
+      "cost_list": {
+        "point": 0.0,
+        "lo": 0.0,
+        "hi": 0.0
+      },
+      "p95": {
+        "point": 0.3605522433645092,
+        "lo": 0.26241700106766075,
+        "hi": 0.49637549818726256
+      },
+      "local": true
+    },
+    {
+      "key": "E2",
+      "label": "E2 BM25",
+      "status": "estimation",
+      "joint": {
+        "point": 0.4899713467048711,
+        "lo": 0.4383954154727794,
+        "hi": 0.5415472779369628
+      },
+      "cost": {
+        "point": 0.0,
+        "lo": 0.0,
+        "hi": 0.0
+      },
+      "cost_list": {
+        "point": 0.0,
+        "lo": 0.0,
+        "hi": 0.0
+      },
+      "p95": {
+        "point": 7.247822504723445,
+        "lo": 5.63614600469009,
+        "hi": 8.197301998734474
+      },
+      "local": true
+    },
+    {
+      "key": "E3",
+      "label": "E3 embedding (qwen3-emb 8B)",
+      "status": "estimation",
+      "joint": {
+        "point": 0.7363896848137536,
+        "lo": 0.6876790830945558,
+        "hi": 0.7822349570200573
+      },
+      "cost": {
+        "point": 0.0,
+        "lo": 0.0,
+        "hi": 0.0
+      },
+      "cost_list": {
+        "point": 0.0,
+        "lo": 0.0,
+        "hi": 0.0
+      },
+      "p95": {
+        "point": 710.2092489985807,
+        "lo": 573.9865712333994,
+        "hi": 1491.510958505387
+      },
+      "local": true
+    },
+    {
+      "key": "E10",
+      "label": "E10 classifier (probe)",
+      "status": "estimation",
+      "joint": {
+        "point": 0.7478510028653295,
+        "lo": 0.7020057306590258,
+        "hi": 0.7936962750716332
+      },
+      "cost": {
+        "point": 0.0,
+        "lo": 0.0,
+        "hi": 0.0
+      },
+      "cost_list": {
+        "point": 0.0,
+        "lo": 0.0,
+        "hi": 0.0
+      },
+      "p95": {
+        "point": 1048.0758335252176,
+        "lo": 635.4390349493771,
+        "hi": 4633.524157488864
+      },
+      "local": true
+    },
+    {
+      "key": "E11",
+      "label": "E11 hybrid regex+classifier",
+      "status": "estimation",
+      "joint": {
+        "point": 0.7277936962750716,
+        "lo": 0.6790830945558739,
+        "hi": 0.7736389684813754
+      },
+      "cost": {
+        "point": 0.0,
+        "lo": 0.0,
+        "hi": 0.0
+      },
+      "cost_list": {
+        "point": 0.0,
+        "lo": 0.0,
+        "hi": 0.0
+      },
+      "p95": {
+        "point": 1036.7467195173958,
+        "lo": 633.6467751030797,
+        "hi": 4624.494981220778
+      },
+      "local": true
+    },
+    {
+      "key": "E6b",
+      "label": "E6b Qwen3-8B local",
+      "status": "estimation",
+      "joint": {
+        "point": 0.7994269340974212,
+        "lo": 0.7564469914040115,
+        "hi": 0.839541547277937
+      },
+      "cost": {
+        "point": 0.0,
+        "lo": 0.0,
+        "hi": 0.0
+      },
+      "cost_list": {
+        "point": 0.0,
+        "lo": 0.0,
+        "hi": 0.0
+      },
+      "p95": {
+        "point": 11983.17983450761,
+        "lo": 10393.841582990717,
+        "hi": 12264.23694875848
+      },
+      "local": true
+    },
+    {
+      "key": "E4",
+      "label": "E4 Jev",
+      "status": "estimation",
+      "joint": {
+        "point": 0.8471824259789876,
+        "lo": 0.8099331423113658,
+        "hi": 0.8815663801337154
+      },
+      "cost": {
+        "point": 0.817641935052531,
+        "lo": 0.7388389018863419,
+        "hi": 0.9003578472063036
+      },
+      "cost_list": {
+        "point": 0.817641935052531,
+        "lo": 0.7388389018863419,
+        "hi": 0.9003578472063036
+      },
+      "p95": {
+        "point": 6851.080968252063,
+        "lo": 6303.046812514367,
+        "hi": 7531.248355007847
+      },
+      "local": false
+    },
+    {
+      "key": "E5",
+      "label": "E5 Sonnet 5",
+      "status": "confirmatory",
+      "joint": {
+        "point": 0.8414517669531996,
+        "lo": 0.8032473734479465,
+        "hi": 0.87774594078319
+      },
+      "cost": {
+        "point": 4.980531900668577,
+        "lo": 4.908635969436485,
+        "hi": 5.051871153295128
+      },
+      "cost_list": {
+        "point": 11.819904489016237,
+        "lo": 11.662617430754537,
+        "hi": 11.975158930276981
+      },
+      "p95": {
+        "point": 10994.467104999785,
+        "lo": 9333.082166736858,
+        "hi": 13065.375582253182
+      },
+      "local": false
+    },
+    {
+      "key": "E6",
+      "label": "E6 Haiku 4.5",
+      "status": "estimation",
+      "joint": {
+        "point": 0.8452722063037249,
+        "lo": 0.8051575931232091,
+        "hi": 0.8825214899713467
+      },
+      "cost": {
+        "point": 5.2279512893982805,
+        "lo": 5.153752865329513,
+        "hi": 5.299433739255014
+      },
+      "cost_list": {
+        "point": 5.2279512893982805,
+        "lo": 5.153752865329513,
+        "hi": 5.299433739255014
+      },
+      "p95": {
+        "point": 5918.659937502525,
+        "lo": 5026.6553952715185,
+        "hi": 6860.9861560034915
+      },
+      "local": false
+    },
+    {
+      "key": "E7",
+      "label": "E7 regex->Jev",
+      "status": "confirmatory",
+      "joint": {
+        "point": 0.7994269340974212,
+        "lo": 0.7583572110792741,
+        "hi": 0.839541547277937
+      },
+      "cost": {
+        "point": 0.7270647765042979,
+        "lo": 0.6536029456303726,
+        "hi": 0.805056137488061
+      },
+      "cost_list": {
+        "point": 0.7270647765042979,
+        "lo": 0.6536029456303726,
+        "hi": 0.805056137488061
+      },
+      "p95": {
+        "point": 7128.856791496219,
+        "lo": 5785.113624755468,
+        "hi": 8469.78329272315
+      },
+      "local": false
+    },
+    {
+      "key": "E8",
+      "label": "E8 regex->Sonnet",
+      "status": "estimation",
+      "joint": {
+        "point": 0.8147086914995224,
+        "lo": 0.7745940783190067,
+        "hi": 0.8529130850047756
+      },
+      "cost": {
+        "point": 4.351376599808979,
+        "lo": 4.258235191021966,
+        "hi": 4.4483525835721105
+      },
+      "cost_list": {
+        "point": 10.10706017191977,
+        "lo": 9.878446991404012,
+        "hi": 10.338216236867238
+      },
+      "p95": {
+        "point": 7955.551870680936,
+        "lo": 7149.483750006766,
+        "hi": 14653.23084438859
+      },
+      "local": false
+    },
+    {
+      "key": "E9",
+      "label": "E9 regex->Jev->Sonnet",
+      "status": "confirmatory",
+      "joint": {
+        "point": 0.8175740210124164,
+        "lo": 0.778414517669532,
+        "hi": 0.8557784145176696
+      },
+      "cost": {
+        "point": 0.9889416838586437,
+        "lo": 0.8682437893027697,
+        "hi": 1.115855788276027
+      },
+      "cost_list": {
+        "point": 1.3509999455587391,
+        "lo": 1.1336740007879655,
+        "hi": 1.5888927552292265
+      },
+      "p95": {
+        "point": 9892.13993823796,
+        "lo": 6902.559500013012,
+        "hi": 11874.43009400522
+      },
+      "local": false
+    }
+  ],
+  "cells": [
+    {
+      "floor": 0.75,
+      "slo_ms": 50,
+      "cost_1k": 0.0,
+      "best": null
+    },
+    {
+      "floor": 0.75,
+      "slo_ms": 50,
+      "cost_1k": 0.5,
+      "best": null
+    },
+    {
+      "floor": 0.75,
+      "slo_ms": 50,
+      "cost_1k": 2.0,
+      "best": null
+    },
+    {
+      "floor": 0.75,
+      "slo_ms": 50,
+      "cost_1k": 10.0,
+      "best": null
+    },
+    {
+      "floor": 0.75,
+      "slo_ms": 500,
+      "cost_1k": 0.0,
+      "best": null
+    },
+    {
+      "floor": 0.75,
+      "slo_ms": 500,
+      "cost_1k": 0.5,
+      "best": null
+    },
+    {
+      "floor": 0.75,
+      "slo_ms": 500,
+      "cost_1k": 2.0,
+      "best": null
+    },
+    {
+      "floor": 0.75,
+      "slo_ms": 500,
+      "cost_1k": 10.0,
+      "best": null
+    },
+    {
+      "floor": 0.75,
+      "slo_ms": 2000,
+      "cost_1k": 0.0,
+      "best": null
+    },
+    {
+      "floor": 0.75,
+      "slo_ms": 2000,
+      "cost_1k": 0.5,
+      "best": null
+    },
+    {
+      "floor": 0.75,
+      "slo_ms": 2000,
+      "cost_1k": 2.0,
+      "best": null
+    },
+    {
+      "floor": 0.75,
+      "slo_ms": 2000,
+      "cost_1k": 10.0,
+      "best": null
+    },
+    {
+      "floor": 0.75,
+      "slo_ms": 10000,
+      "cost_1k": 0.0,
+      "best": null
+    },
+    {
+      "floor": 0.75,
+      "slo_ms": 10000,
+      "cost_1k": 0.5,
+      "best": null
+    },
+    {
+      "floor": 0.75,
+      "slo_ms": 10000,
+      "cost_1k": 2.0,
+      "best": "E4",
+      "robust": true,
+      "qualifying": [
+        "E4",
+        "E7",
+        "E9"
+      ]
+    },
+    {
+      "floor": 0.75,
+      "slo_ms": 10000,
+      "cost_1k": 10.0,
+      "best": "E4",
+      "robust": true,
+      "qualifying": [
+        "E4",
+        "E6",
+        "E7",
+        "E8",
+        "E9"
+      ]
+    },
+    {
+      "floor": 0.8,
+      "slo_ms": 50,
+      "cost_1k": 0.0,
+      "best": null
+    },
+    {
+      "floor": 0.8,
+      "slo_ms": 50,
+      "cost_1k": 0.5,
+      "best": null
+    },
+    {
+      "floor": 0.8,
+      "slo_ms": 50,
+      "cost_1k": 2.0,
+      "best": null
+    },
+    {
+      "floor": 0.8,
+      "slo_ms": 50,
+      "cost_1k": 10.0,
+      "best": null
+    },
+    {
+      "floor": 0.8,
+      "slo_ms": 500,
+      "cost_1k": 0.0,
+      "best": null
+    },
+    {
+      "floor": 0.8,
+      "slo_ms": 500,
+      "cost_1k": 0.5,
+      "best": null
+    },
+    {
+      "floor": 0.8,
+      "slo_ms": 500,
+      "cost_1k": 2.0,
+      "best": null
+    },
+    {
+      "floor": 0.8,
+      "slo_ms": 500,
+      "cost_1k": 10.0,
+      "best": null
+    },
+    {
+      "floor": 0.8,
+      "slo_ms": 2000,
+      "cost_1k": 0.0,
+      "best": null
+    },
+    {
+      "floor": 0.8,
+      "slo_ms": 2000,
+      "cost_1k": 0.5,
+      "best": null
+    },
+    {
+      "floor": 0.8,
+      "slo_ms": 2000,
+      "cost_1k": 2.0,
+      "best": null
+    },
+    {
+      "floor": 0.8,
+      "slo_ms": 2000,
+      "cost_1k": 10.0,
+      "best": null
+    },
+    {
+      "floor": 0.8,
+      "slo_ms": 10000,
+      "cost_1k": 0.0,
+      "best": null
+    },
+    {
+      "floor": 0.8,
+      "slo_ms": 10000,
+      "cost_1k": 0.5,
+      "best": null
+    },
+    {
+      "floor": 0.8,
+      "slo_ms": 10000,
+      "cost_1k": 2.0,
+      "best": "E4",
+      "robust": true,
+      "qualifying": [
+        "E4",
+        "E9"
+      ]
+    },
+    {
+      "floor": 0.8,
+      "slo_ms": 10000,
+      "cost_1k": 10.0,
+      "best": "E4",
+      "robust": true,
+      "qualifying": [
+        "E4",
+        "E6",
+        "E8",
+        "E9"
+      ]
+    },
+    {
+      "floor": 0.85,
+      "slo_ms": 50,
+      "cost_1k": 0.0,
+      "best": null
+    },
+    {
+      "floor": 0.85,
+      "slo_ms": 50,
+      "cost_1k": 0.5,
+      "best": null
+    },
+    {
+      "floor": 0.85,
+      "slo_ms": 50,
+      "cost_1k": 2.0,
+      "best": null
+    },
+    {
+      "floor": 0.85,
+      "slo_ms": 50,
+      "cost_1k": 10.0,
+      "best": null
+    },
+    {
+      "floor": 0.85,
+      "slo_ms": 500,
+      "cost_1k": 0.0,
+      "best": null
+    },
+    {
+      "floor": 0.85,
+      "slo_ms": 500,
+      "cost_1k": 0.5,
+      "best": null
+    },
+    {
+      "floor": 0.85,
+      "slo_ms": 500,
+      "cost_1k": 2.0,
+      "best": null
+    },
+    {
+      "floor": 0.85,
+      "slo_ms": 500,
+      "cost_1k": 10.0,
+      "best": null
+    },
+    {
+      "floor": 0.85,
+      "slo_ms": 2000,
+      "cost_1k": 0.0,
+      "best": null
+    },
+    {
+      "floor": 0.85,
+      "slo_ms": 2000,
+      "cost_1k": 0.5,
+      "best": null
+    },
+    {
+      "floor": 0.85,
+      "slo_ms": 2000,
+      "cost_1k": 2.0,
+      "best": null
+    },
+    {
+      "floor": 0.85,
+      "slo_ms": 2000,
+      "cost_1k": 10.0,
+      "best": null
+    },
+    {
+      "floor": 0.85,
+      "slo_ms": 10000,
+      "cost_1k": 0.0,
+      "best": null
+    },
+    {
+      "floor": 0.85,
+      "slo_ms": 10000,
+      "cost_1k": 0.5,
+      "best": null
+    },
+    {
+      "floor": 0.85,
+      "slo_ms": 10000,
+      "cost_1k": 2.0,
+      "best": null
+    },
+    {
+      "floor": 0.85,
+      "slo_ms": 10000,
+      "cost_1k": 10.0,
+      "best": null
+    }
+  ]
+}

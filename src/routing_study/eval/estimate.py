@@ -1,5 +1,7 @@
 """Cost estimate before a run: measured $/case from earlier results of the same config when
-available, else an a-priori upper bound from OpenRouter prices and token assumptions."""
+available, else an a-priori upper bound from list prices and token assumptions. List prices:
+OpenRouter `/models` for OpenRouter slugs, the local price table (`budget.prices_path`) for
+Bedrock, 0 for Ollama. The per-provider upper bound also feeds the budget guard of `run`."""
 
 from __future__ import annotations
 
@@ -9,13 +11,41 @@ from typing import Any
 
 import httpx
 
-from routing_study.eval.report import load_results
-from routing_study.settings import Settings
+from routing_study.budget import prices_for
+from routing_study.eval.rescore import load_raw
+from routing_study.graph.nodes import max_tool_rounds
+from routing_study.settings import Settings, is_llm_strategy
 
-# a-priori token assumptions per case (upper bound: every cascade step runs, no prompt cache)
+# a-priori token assumptions per case (upper bound: every cascade step runs, every Jev parse
+# retry fires, the executor uses its whole tool budget + wrap-up, no prompt cache)
 ROUTER_PROMPT, ROUTER_COMPLETION = 900, 80  # per LLM/Jev routing call
 EMBED_TOKENS = 40  # per embedded query
-EXECUTOR_CALLS, EXECUTOR_PROMPT, EXECUTOR_COMPLETION = 3, 6000, 250
+EXECUTOR_PROMPT, EXECUTOR_COMPLETION = 6000, 250  # per executor call
+
+
+def executor_calls(settings: Settings) -> int:
+    """Max executor calls per turn: one per tool round, then the wrap-up answer."""
+    return max_tool_rounds(settings) + 1
+
+
+def _uses_openrouter(settings: Settings) -> bool:
+    from routing_study.llm import model_configs
+
+    return any(cfg.provider == "openrouter" for _, cfg in model_configs(settings))
+
+
+async def list_prices(settings: Settings) -> dict[str, tuple[float, float]]:
+    """model -> (USD per prompt token, USD per completion token), every provider."""
+    from routing_study.llm import model_configs
+
+    out = await _prices(settings) if _uses_openrouter(settings) else {}
+    table = prices_for(settings)
+    for _, cfg in model_configs(settings):
+        if cfg.provider == "ollama":
+            out[cfg.model] = (0.0, 0.0)
+        elif cfg.provider == "bedrock" and (price := table.get(("bedrock", cfg.model))):
+            out[cfg.model] = (price.input / 1e6, price.output / 1e6)
+    return out
 
 
 async def _prices(settings: Settings) -> dict[str, tuple[float, float]]:
@@ -33,48 +63,68 @@ async def _prices(settings: Settings) -> dict[str, tuple[float, float]]:
 
 
 def measured_cost(config: str, mode: str, results_dir: Path = Path("results")) -> float | None:
-    rows = [r for r in load_results(sorted(results_dir.glob("*.jsonl")))
-            if r.get("config") == config and r.get("mode") == mode and not r.get("error")]
+    rows = [
+        r
+        for r in load_raw(sorted(results_dir.glob("*.jsonl")))
+        if r.get("config") == config and r.get("mode") == mode and not r.get("error")
+    ]
     return mean(r["cost_usd"]["total"] for r in rows) if rows else None
 
 
-def apriori_cost(settings: Settings, mode: str,
-                 prices: dict[str, tuple[float, float]]) -> tuple[float, list[str]]:
+def apriori_costs(
+    settings: Settings, mode: str, prices: dict[str, tuple[float, float]]
+) -> tuple[dict[str, float], list[str]]:
+    """Upper-bound USD per case, by provider (openrouter / bedrock / ollama)."""
     notes: list[str] = []
+    by: dict[str, float] = {}
 
-    def call(model: str, prompt: int, completion: int) -> float:
-        pin, pout = prices.get(model, (0.0, 0.0))
+    def call(cfg: Any, prompt: int, completion: int, times: int = 1) -> None:
+        model = cfg.model
+        if model not in prices:  # never price an unknown slug as free
+            raise ValueError(f"no {cfg.provider} price for configured model {model!r}")
+        pin, pout = prices[model]
         if pin < 0 or pout < 0:
             notes.append(f"{model}: no list price (pricing -1); counted as 0")
-            return 0.0
-        return pin * prompt + pout * completion
+            pin = pout = 0.0
+        by[cfg.provider] = by.get(cfg.provider, 0.0) + times * (pin * prompt + pout * completion)
 
-    total = 0.0
     r, s = settings.routing, settings.strategies
     if r.mode != "native":
         steps = [st.strategy for stage in (r.skill, r.tool) for st in stage.pipeline]
         if r.mode == "shadow":
-            steps = [n for n in ("regex", "bm25", "embedding", "llm", "jev", "hybrid")
-                     if getattr(s, n)] * 2
+            from routing_study.routers.pipeline import shadow_set
+
+            steps = list(dict.fromkeys([*steps, *shadow_set(settings)])) * 2
         for name in steps:
-            if name in ("llm", "jev") and (cfg := getattr(s, name)):
-                total += call(cfg.model, ROUTER_PROMPT, ROUTER_COMPLETION)
+            if is_llm_strategy(name) and s.get(name):
+                call(s.get(name), ROUTER_PROMPT, ROUTER_COMPLETION)
+            elif name == "jev" and s.jev:
+                call(s.jev, ROUTER_PROMPT, ROUTER_COMPLETION, s.jev.parse_retries + 1)
             elif name in ("embedding", "hybrid") and s.embedding:
-                total += call(s.embedding.model, EMBED_TOKENS, 0)
+                call(s.embedding, EMBED_TOKENS, 0)
     if mode == "e2e" and settings.executor:
-        total += EXECUTOR_CALLS * call(settings.executor.model, EXECUTOR_PROMPT,
-                                       EXECUTOR_COMPLETION)
-    return total, sorted(set(notes))
+        call(settings.executor, EXECUTOR_PROMPT, EXECUTOR_COMPLETION, executor_calls(settings))
+    return by, sorted(set(notes))
+
+
+def apriori_cost(
+    settings: Settings, mode: str, prices: dict[str, tuple[float, float]]
+) -> tuple[float, list[str]]:
+    by, notes = apriori_costs(settings, mode, prices)
+    return sum(by.values()), notes
 
 
 async def estimate(settings: Settings, n_cases: int, reps: int, mode: str) -> str:
     runs = n_cases * reps
     measured = measured_cost(settings.experiment_id, mode)
-    per_case, notes = apriori_cost(settings, mode, await _prices(settings))
-    lines: list[Any] = [f"{settings.experiment_id} [{mode}] {n_cases} cases x {reps} reps = "
-                        f"{runs} turns"]
+    by, notes = apriori_costs(settings, mode, await list_prices(settings))
+    per_case = sum(by.values())
+    lines: list[Any] = [
+        f"{settings.experiment_id} [{mode}] {n_cases} cases x {reps} reps = {runs} turns"
+    ]
     if measured is not None:
         lines.append(f"  measured : ${measured:.5f}/case -> ${measured * runs:.2f}")
     lines.append(f"  a priori : ${per_case:.5f}/case -> ${per_case * runs:.2f} (upper bound)")
+    lines += [f"    {prov:<10} ${v * runs:.2f}" for prov, v in sorted(by.items())]
     lines += [f"  note: {n}" for n in notes]
     return "\n".join(lines)
