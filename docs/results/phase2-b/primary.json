@@ -1,0 +1,748 @@
+{
+  "status": "CONFIRMATORY (prereg-v2 Part B, Holm across H1-L..H3-L, alpha 0.05)",
+  "split": "test_l",
+  "smoke": false,
+  "itt": [
+    {
+      "id": "H1-L",
+      "run": "E9@e2e",
+      "reference": "E0@e2e",
+      "kind": "two_sided",
+      "margin": 0.03,
+      "n_cases": 300,
+      "delta": {
+        "point": -0.0033333333333333335,
+        "lo": -0.04,
+        "hi": 0.03333333333333333
+      },
+      "mcnemar_case": {
+        "run_only": 16,
+        "ref_only": 17,
+        "p": 1.0
+      },
+      "p": 1.0,
+      "p_holm": 1.0,
+      "reject_holm_0.05": false,
+      "verdict": "CI includes 0 (no directional claim)",
+      "verdict_ci": null
+    },
+    {
+      "id": "H2-L",
+      "run": "E6m",
+      "reference": "E6",
+      "kind": "non_inferiority",
+      "margin": 0.03,
+      "n_cases": 300,
+      "delta": {
+        "point": -0.02666666666666667,
+        "lo": -0.07,
+        "hi": 0.016666666666666666
+      },
+      "mcnemar_case": {
+        "run_only": 18,
+        "ref_only": 26,
+        "p": 0.2912152365458951
+      },
+      "p": 0.43975602439756023,
+      "p_holm": 0.8795120487951205,
+      "reject_holm_0.05": false,
+      "verdict": "non-inferiority NOT shown",
+      "verdict_ci": {
+        "lo": -0.07,
+        "hi": 0.016666666666666666
+      }
+    },
+    {
+      "id": "H3-L",
+      "run": "E4",
+      "reference": "E6",
+      "kind": "non_inferiority",
+      "margin": 0.03,
+      "n_cases": 300,
+      "delta": {
+        "point": 0.02888888888888888,
+        "lo": -0.006666666666666671,
+        "hi": 0.06555555555555555
+      },
+      "mcnemar_case": {
+        "run_only": 26,
+        "ref_only": 12,
+        "p": 0.03355243967962451
+      },
+      "p": 0.0008999100089991,
+      "p_holm": 0.0026997300269973002,
+      "reject_holm_0.05": true,
+      "verdict": "non-inferior (CI lower bound > -3 pp)",
+      "verdict_ci": {
+        "lo": -0.006666666666666671,
+        "hi": 0.06555555555555555
+      }
+    }
+  ],
+  "h1l_legacy": {
+    "contrast": {
+      "id": "H1-L legacy",
+      "run": "E9@e2e",
+      "reference": "E0@e2e",
+      "kind": "two_sided",
+      "margin": 0.03,
+      "n_cases": 300,
+      "delta": {
+        "point": -0.03333333333333333,
+        "lo": -0.07666666666666666,
+        "hi": 0.01
+      },
+      "mcnemar_case": {
+        "run_only": 18,
+        "ref_only": 28,
+        "p": 0.18392482137699062
+      },
+      "p": 0.18768123187681232,
+      "p_holm": 0.18768123187681232,
+      "reject_holm_0.05": false,
+      "verdict": "CI includes 0 (no directional claim)",
+      "verdict_ci": null
+    },
+    "verdict_changes": {
+      "E9": {
+        "turns": 300,
+        "fail_to_success": 17,
+        "success_to_fail": 0
+      },
+      "E0": {
+        "turns": 300,
+        "fail_to_success": 8,
+        "success_to_fail": 0
+      }
+    },
+    "pair_outcome_changes": 21
+  },
+  "co_primary": {
+    "h1l_cost_ratio": {
+      "point": 1.1010695804338795,
+      "lo": 1.0138249082876993,
+      "hi": 1.1963129143665492,
+      "n_cases": 300
+    },
+    "h2l_p95_ratio": {
+      "point": 0.26207316842383743,
+      "lo": 0.18870995676728664,
+      "hi": 0.28321644259135575,
+      "n_cases": 96
+    }
+  },
+  "sensitivity": [
+    {
+      "id": "H1-L",
+      "variant": "first-label joint (H2-L, H3-L)",
+      "n_cases": 300,
+      "delta": {
+        "point": -0.0033333333333333335,
+        "lo": -0.04,
+        "hi": 0.03333333333333333
+      }
+    },
+    {
+      "id": "H2-L",
+      "variant": "first-label joint (H2-L, H3-L)",
+      "n_cases": 300,
+      "delta": {
+        "point": -0.06,
+        "lo": -0.1,
+        "hi": -0.02
+      }
+    },
+    {
+      "id": "H3-L",
+      "variant": "first-label joint (H2-L, H3-L)",
+      "n_cases": 300,
+      "delta": {
+        "point": 0.005555555555555551,
+        "lo": -0.031111111111111114,
+        "hi": 0.04222222222222222
+      }
+    },
+    {
+      "id": "H1-L",
+      "variant": "ambiguo excluded",
+      "n_cases": 240,
+      "delta": {
+        "point": -0.020833333333333332,
+        "lo": -0.04583333333333333,
+        "hi": 0.004166666666666667
+      }
+    },
+    {
+      "id": "H2-L",
+      "variant": "ambiguo excluded",
+      "n_cases": 240,
+      "delta": {
+        "point": -0.05,
+        "lo": -0.09166666666666666,
+        "hi": -0.008333333333333333
+      }
+    },
+    {
+      "id": "H3-L",
+      "variant": "ambiguo excluded",
+      "n_cases": 240,
+      "delta": {
+        "point": -0.001388888888888895,
+        "lo": -0.0375,
+        "hi": 0.03333333333333333
+      }
+    },
+    {
+      "id": "H1-L",
+      "variant": "ambiguo only (reported apart)",
+      "n_cases": 60,
+      "delta": {
+        "point": 0.06666666666666667,
+        "lo": -0.08333333333333333,
+        "hi": 0.21666666666666667
+      }
+    },
+    {
+      "id": "H2-L",
+      "variant": "ambiguo only (reported apart)",
+      "n_cases": 60,
+      "delta": {
+        "point": 0.06666666666666667,
+        "lo": -0.06666666666666667,
+        "hi": 0.2
+      }
+    },
+    {
+      "id": "H3-L",
+      "variant": "ambiguo only (reported apart)",
+      "n_cases": 60,
+      "delta": {
+        "point": 0.14999999999999997,
+        "lo": 0.044444444444444425,
+        "hi": 0.2611111111111111
+      }
+    },
+    {
+      "id": "H1-L",
+      "variant": "audit-flagged cases excluded (85 flagged)",
+      "n_cases": 215,
+      "delta": {
+        "point": -0.018604651162790697,
+        "lo": -0.06046511627906977,
+        "hi": 0.023255813953488372
+      }
+    },
+    {
+      "id": "H2-L",
+      "variant": "audit-flagged cases excluded (85 flagged)",
+      "n_cases": 215,
+      "delta": {
+        "point": -0.046511627906976744,
+        "lo": -0.09302325581395349,
+        "hi": 0.0
+      }
+    },
+    {
+      "id": "H3-L",
+      "variant": "audit-flagged cases excluded (85 flagged)",
+      "n_cases": 215,
+      "delta": {
+        "point": 0.02170542635658914,
+        "lo": -0.01395348837209303,
+        "hi": 0.05891472868217054
+      }
+    },
+    {
+      "id": "H1-L",
+      "variant": "error-free cases of both runs",
+      "n_cases": 300,
+      "delta": {
+        "point": -0.0033333333333333335,
+        "lo": -0.04,
+        "hi": 0.03333333333333333
+      }
+    },
+    {
+      "id": "H2-L",
+      "variant": "error-free cases of both runs",
+      "n_cases": 299,
+      "delta": {
+        "point": -0.026755852842809364,
+        "lo": -0.07023411371237458,
+        "hi": 0.016722408026755852
+      }
+    },
+    {
+      "id": "H3-L",
+      "variant": "error-free cases of both runs",
+      "n_cases": 299,
+      "delta": {
+        "point": 0.031215161649944256,
+        "lo": -0.004459308807134899,
+        "hi": 0.06688963210702341
+      }
+    }
+  ],
+  "inventory": [
+    [
+      "routing",
+      "E1",
+      "results/rescored/l-e1-regex-routing-r1.jsonl",
+      300,
+      "300 / 300",
+      0,
+      "n/a",
+      "used"
+    ],
+    [
+      "routing",
+      "E2",
+      "results/rescored/l-e2-bm25-routing-r1.jsonl",
+      300,
+      "300 / 300",
+      0,
+      "n/a",
+      "used"
+    ],
+    [
+      "routing",
+      "E3",
+      "results/rescored/l-e3-embedding-routing-r1.jsonl",
+      300,
+      "300 / 300",
+      0,
+      "n/a",
+      "used"
+    ],
+    [
+      "routing",
+      "E3c",
+      "l-e3c-cohere-routing-r1",
+      "-",
+      "-",
+      "-",
+      "-",
+      "**NOT RUN** (no file)"
+    ],
+    [
+      "routing",
+      "E3t",
+      "l-e3t-titan-routing-r1",
+      "-",
+      "-",
+      "-",
+      "-",
+      "**NOT RUN** (no file)"
+    ],
+    [
+      "routing",
+      "E10",
+      "results/rescored/l-e10-classifier-routing-r1.jsonl",
+      300,
+      "300 / 300",
+      0,
+      "n/a",
+      "used"
+    ],
+    [
+      "routing",
+      "E10c",
+      "l-e10c-cohere-routing-r1",
+      "-",
+      "-",
+      "-",
+      "-",
+      "**NOT RUN** (no file)"
+    ],
+    [
+      "routing",
+      "E11",
+      "results/rescored/l-e11-hybrid-routing-r1.jsonl",
+      300,
+      "300 / 300",
+      0,
+      "n/a",
+      "used"
+    ],
+    [
+      "routing",
+      "E4",
+      "results/rescored/l-e4-jev-canonical-routing-r3.jsonl",
+      900,
+      "300 / 300",
+      1,
+      "n/a",
+      "used"
+    ],
+    [
+      "routing",
+      "E6",
+      "results/rescored/l-e6-haiku-canonical-routing-r1.jsonl",
+      300,
+      "300 / 300",
+      0,
+      "n/a",
+      "used"
+    ],
+    [
+      "routing",
+      "E6m",
+      "results/rescored/l-e6m-ministral-canonical-routing-r1.jsonl",
+      300,
+      "300 / 300",
+      1,
+      "n/a",
+      "used"
+    ],
+    [
+      "routing",
+      "E6n",
+      "results/rescored/l-e6n-nemotron-canonical-routing-r1.jsonl",
+      300,
+      "300 / 300",
+      11,
+      "n/a",
+      "used"
+    ],
+    [
+      "routing",
+      "E7",
+      "results/rescored/l-e7-tuned-routing-r3.jsonl",
+      900,
+      "300 / 300",
+      0,
+      "n/a",
+      "used"
+    ],
+    [
+      "routing",
+      "E9",
+      "results/rescored/l-e9-tuned-routing-r3.jsonl",
+      900,
+      "300 / 300",
+      0,
+      "n/a",
+      "used"
+    ],
+    [
+      "routing",
+      "E12",
+      "results/rescored/x-l-e12-hybrid-tuned-routing-r3.jsonl",
+      900,
+      "300 / 300",
+      0,
+      "n/a",
+      "used"
+    ],
+    [
+      "e2e",
+      "E0",
+      "results/rescored/l-e0-native-e2e-r1.jsonl",
+      300,
+      "300 / 300",
+      0,
+      "yes",
+      "used"
+    ],
+    [
+      "e2e",
+      "E9",
+      "results/rescored/l-e9-tuned-e2e-r1.jsonl",
+      300,
+      "300 / 300",
+      0,
+      "yes",
+      "used"
+    ],
+    [
+      "e2e",
+      "E9-full",
+      "results/rescored/l-e9-fullskill-e2e-r1.jsonl",
+      300,
+      "300 / 300",
+      0,
+      "yes",
+      "used"
+    ],
+    [
+      "variance",
+      "E0",
+      "results/rescored/l-e0-native-e2e-rep2-60.jsonl",
+      60,
+      "60 / 300",
+      0,
+      "yes",
+      "used"
+    ],
+    [
+      "variance",
+      "E9",
+      "results/rescored/l-e9-tuned-e2e-rep2-60.jsonl",
+      60,
+      "60 / 300",
+      0,
+      "yes",
+      "used"
+    ],
+    [
+      "repeat",
+      "E1",
+      "results/rescored/l-e1-regex-routing-repeat20.jsonl",
+      40,
+      "20 / 300",
+      0,
+      "n/a",
+      "used"
+    ],
+    [
+      "repeat",
+      "E6",
+      "results/rescored/l-e6-haiku-canonical-rep2-60.jsonl",
+      120,
+      "60 / 300",
+      0,
+      "n/a",
+      "used"
+    ],
+    [
+      "repeat",
+      "E6m",
+      "results/rescored/l-e6m-ministral-canonical-repeat50.jsonl",
+      100,
+      "50 / 300",
+      0,
+      "n/a",
+      "used"
+    ],
+    [
+      "repeat",
+      "E6n",
+      "results/rescored/l-e6n-nemotron-canonical-repeat50.jsonl",
+      100,
+      "50 / 300",
+      4,
+      "n/a",
+      "used"
+    ],
+    [
+      "x2",
+      "E1",
+      "results/rescored/l-x2-small-e1-routing-r1.jsonl",
+      114,
+      "114 / 300",
+      0,
+      "n/a",
+      "used"
+    ],
+    [
+      "x2",
+      "E2",
+      "results/rescored/l-x2-small-e2-routing-r1.jsonl",
+      114,
+      "114 / 300",
+      0,
+      "n/a",
+      "used"
+    ],
+    [
+      "x2",
+      "E3",
+      "results/rescored/l-x2-small-e3-routing-r1.jsonl",
+      114,
+      "114 / 300",
+      0,
+      "n/a",
+      "used"
+    ],
+    [
+      "x2",
+      "E10",
+      "results/rescored/l-x2-small-e10-routing-r1.jsonl",
+      114,
+      "114 / 300",
+      0,
+      "n/a",
+      "used"
+    ],
+    [
+      "x2",
+      "E11",
+      "l-x2-small-e11-routing-r1",
+      "-",
+      "-",
+      "-",
+      "-",
+      "**NOT RUN** (no file)"
+    ],
+    [
+      "x2",
+      "E4",
+      "results/rescored/l-x2-small-e4-routing-r1.jsonl",
+      114,
+      "114 / 300",
+      0,
+      "n/a",
+      "used"
+    ],
+    [
+      "x2",
+      "E6m",
+      "results/rescored/l-x2-small-e6m-routing-r1.jsonl",
+      114,
+      "114 / 300",
+      0,
+      "n/a",
+      "used"
+    ],
+    [
+      "x2",
+      "E6",
+      "results/rescored/l-x2-small-e6-routing-r1.jsonl",
+      114,
+      "114 / 300",
+      0,
+      "n/a",
+      "used"
+    ],
+    [
+      "lat",
+      "regex",
+      "lat-l-regex-b1..4",
+      100,
+      "-",
+      0,
+      "n/a",
+      "used (4 blocks)"
+    ],
+    [
+      "lat",
+      "bm25",
+      "lat-l-bm25-b1..4",
+      100,
+      "-",
+      0,
+      "n/a",
+      "used (4 blocks)"
+    ],
+    [
+      "lat",
+      "embedding",
+      "lat-l-embedding-b1..4",
+      100,
+      "-",
+      0,
+      "n/a",
+      "used (4 blocks)"
+    ],
+    [
+      "lat",
+      "e3c",
+      "lat-l-e3c-b1..4",
+      "-",
+      "-",
+      "-",
+      "n/a",
+      "**NOT RUN**"
+    ],
+    [
+      "lat",
+      "e3t",
+      "lat-l-e3t-b1..4",
+      "-",
+      "-",
+      "-",
+      "n/a",
+      "**NOT RUN**"
+    ],
+    [
+      "lat",
+      "classifier",
+      "lat-l-classifier-b1..4",
+      100,
+      "-",
+      0,
+      "n/a",
+      "used (4 blocks)"
+    ],
+    [
+      "lat",
+      "hybrid",
+      "lat-l-hybrid-b1..4",
+      100,
+      "-",
+      0,
+      "n/a",
+      "used (4 blocks)"
+    ],
+    [
+      "lat",
+      "jev",
+      "lat-l-jev-b1..4",
+      100,
+      "-",
+      1,
+      "n/a",
+      "used (4 blocks)"
+    ],
+    [
+      "lat",
+      "haiku",
+      "lat-l-haiku-b1..4",
+      100,
+      "-",
+      0,
+      "n/a",
+      "used (4 blocks)"
+    ],
+    [
+      "lat",
+      "e6m",
+      "lat-l-e6m-b1..4",
+      100,
+      "-",
+      0,
+      "n/a",
+      "used (4 blocks)"
+    ],
+    [
+      "lat",
+      "e6n",
+      "lat-l-e6n-b1..4",
+      100,
+      "-",
+      5,
+      "n/a",
+      "used (4 blocks)"
+    ],
+    [
+      "lat",
+      "e7",
+      "lat-l-e7-b1..4",
+      100,
+      "-",
+      1,
+      "n/a",
+      "used (4 blocks)"
+    ],
+    [
+      "lat",
+      "e9",
+      "lat-l-e9-b1..4",
+      100,
+      "-",
+      0,
+      "n/a",
+      "used (4 blocks)"
+    ],
+    [
+      "manifest",
+      "-",
+      "unmapped runs: l-shadow-tuned-routing-r3",
+      "",
+      "",
+      "",
+      "",
+      "ignored"
+    ]
+  ]
+}

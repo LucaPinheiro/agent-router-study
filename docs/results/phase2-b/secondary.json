@@ -1,0 +1,129 @@
+{
+  "smoke": false,
+  "S-e2e": [
+    {
+      "id": "S1",
+      "run": "E9-full@e2e",
+      "reference": "E9@e2e",
+      "kind": "greater",
+      "margin": 0.03,
+      "n_cases": 300,
+      "delta": {
+        "point": -0.0033333333333333335,
+        "lo": -0.02666666666666667,
+        "hi": 0.016666666666666666
+      },
+      "mcnemar_case": {
+        "run_only": 5,
+        "ref_only": 6,
+        "p": 1.0
+      },
+      "p": 0.7255859375,
+      "p_holm": 0.7255859375,
+      "reject_holm_0.05": false,
+      "verdict": "CI includes 0 (no directional claim)",
+      "verdict_ci": null
+    },
+    {
+      "id": "S2",
+      "run": "E9@e2e#same",
+      "reference": "E0@e2e#same",
+      "kind": "equivalence",
+      "margin": 0.03,
+      "n_cases": 225,
+      "delta": {
+        "point": 0.017777777777777778,
+        "lo": 0.0044444444444444444,
+        "hi": 0.035555555555555556
+      },
+      "mcnemar_case": {
+        "run_only": 4,
+        "ref_only": 0,
+        "p": 0.125
+      },
+      "p": 0.07589241075892411,
+      "p_holm": 0.15178482151784822,
+      "reject_holm_0.05": false,
+      "verdict": "inconclusive",
+      "verdict_ci": {
+        "lo": 0.0044444444444444444,
+        "hi": 0.03111111111111111
+      }
+    }
+  ],
+  "S2_same_calls_n": 225,
+  "S3": {
+    "dev_fixed": 0.827,
+    "test": {
+      "point": 0.5633333333333334,
+      "lo": 0.5066666666666667,
+      "hi": 0.62
+    },
+    "gap": {
+      "point": -0.2636666666666666,
+      "lo": -0.32033333333333325,
+      "hi": -0.20699999999999996
+    },
+    "verdict": "gap < 0 (test CI entirely below dev)"
+  },
+  "S-routing": [
+    {
+      "id": "S4",
+      "run": "E3",
+      "reference": "E1",
+      "kind": "two_sided",
+      "margin": 0.03,
+      "n_cases": 300,
+      "delta": {
+        "point": 0.03666666666666667,
+        "lo": -0.03333333333333333,
+        "hi": 0.10333333333333333
+      },
+      "mcnemar_case": {
+        "run_only": 58,
+        "ref_only": 47,
+        "p": 0.3291371261661389
+      },
+      "p": 0.34296570342965704,
+      "p_holm": 0.34296570342965704,
+      "reject_holm_0.05": false,
+      "verdict": "CI includes 0 (no directional claim)",
+      "verdict_ci": null
+    },
+    {
+      "id": "S5",
+      "missing": "E3c",
+      "verdict": "**DROPPED** (constraint update; out of the Holm family)",
+      "reason": "run missing or not COMPLETE"
+    },
+    {
+      "id": "S6",
+      "missing": "E6b",
+      "verdict": "**DROPPED** (constraint update; out of the Holm family)",
+      "reason": "no local model in phase 2 (constraint 2026-10-02): no Qwen3-8B arm on test-L"
+    },
+    {
+      "id": "S7",
+      "run": "E10",
+      "reference": "E4",
+      "kind": "two_sided",
+      "margin": 0.03,
+      "n_cases": 300,
+      "delta": {
+        "point": -0.25888888888888884,
+        "lo": -0.31666666666666665,
+        "hi": -0.2
+      },
+      "mcnemar_case": {
+        "run_only": 11,
+        "ref_only": 94,
+        "p": 1.3869287779064768e-17
+      },
+      "p": 9.999000099990002e-05,
+      "p_holm": 0.00019998000199980003,
+      "reject_holm_0.05": true,
+      "verdict": "CI excludes 0 (run lower)",
+      "verdict_ci": null
+    }
+  ]
+}
