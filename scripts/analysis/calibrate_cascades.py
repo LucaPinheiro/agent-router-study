@@ -467,7 +467,7 @@ def main() -> None:
     args = ap.parse_args()
 
     prov, rows = read_rescored(args.shadow)
-    if prov["dataset"]["split"] != "dev":
+    if prov["dataset"]["split"] not in ("dev", "dev_l"):  # dev splits only (dev_l: phase 2)
         raise SystemExit(f"thresholds are calibrated on dev only, got {prov['dataset']['split']}")
     if not any((r.get("skill") or {}).get("shadow") for r in rows):
         raise SystemExit(f"{args.shadow} has no shadow decisions (run with --routing-mode shadow)")

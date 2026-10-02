@@ -78,7 +78,12 @@ from routing_study.settings import (
     load_settings,
 )
 
-DEV = Path("data/dataset_dev.jsonl")  # the only split this script reads
+DEV = Path("data/dataset_dev.jsonl")  # the default split
+# dev splits only (the test splits are never read): split -> (file, in-process catalog profile)
+DEV_SPLITS = {
+    "dev": (DEV, "small"),
+    "dev_l": (Path("data/dataset_dev_l.jsonl"), "large"),
+}
 CATEGORIES = ("direto", "parafrase", "ambiguo", "multiturno", "fora_escopo", "adversarial")
 METRICS = ("skill_correct", "tool_correct", "joint_correct")
 LEVELS = ("skill", "tool")
@@ -89,8 +94,9 @@ ERROR_RETRIES = 3
 # ---------------------------------------------------------------- data / config
 
 
-def load_dev() -> list[dict[str, Any]]:
-    return [json.loads(ln) for ln in DEV.read_text(encoding="utf-8").splitlines() if ln.strip()]
+def load_dev(split: str = "dev") -> list[dict[str, Any]]:
+    path = DEV_SPLITS[split][0]
+    return [json.loads(ln) for ln in path.read_text(encoding="utf-8").splitlines() if ln.strip()]
 
 
 def folds_of(rows: list[dict[str, Any]], k: int, seed: int) -> dict[str, int]:
@@ -153,10 +159,13 @@ def patched(settings: Settings, assigns: list[tuple[list[str], Any]]) -> Setting
     )
 
 
-async def dev_catalog(settings: Settings) -> Catalog:
-    from mcp_server.server import mcp
+async def dev_catalog(settings: Settings, split: str = "dev") -> Catalog:
+    """In-process catalog of the split's profile (dev: the env default, i.e. small; dev_l:
+    the large profile, the catalog the :8766 service serves)."""
+    from mcp_server.server import build_server, mcp
 
-    return await fetch_catalog(settings, Client(mcp, mode=PROTOCOL_VERSION))
+    server = mcp if split == "dev" else build_server(DEV_SPLITS[split][1])
+    return await fetch_catalog(settings, Client(server, mode=PROTOCOL_VERSION))
 
 
 # ---------------------------------------------------------------- evaluation
@@ -351,6 +360,7 @@ def main() -> None:
     ap.add_argument("config")
     ap.add_argument("--set", action="append", default=[], help="fixed override key.path=value")
     ap.add_argument("--grid", action="append", default=[], help="key.path=v1,v2,... (cartesian)")
+    ap.add_argument("--split", choices=sorted(DEV_SPLITS), default="dev", help="dev split")
     ap.add_argument("--folds", type=int, default=5)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--calibrate", action="store_true", help="fit isotonic maps on train folds")
@@ -394,11 +404,12 @@ def main() -> None:
         tuple(zip([k for k, _ in grid_axes], combo, strict=True))
         for combo in itertools.product(*(vs for _, vs in grid_axes))
     ]
-    rows = load_dev()
+    rows = load_dev(args.split)
     if args.subset:
         rows = subset_of(rows, args.subset, args.seed)
     fold = folds_of(rows, args.folds, args.seed)
-    catalog = asyncio.run(dev_catalog(base))
+    catalog = asyncio.run(dev_catalog(base, args.split))
+    print(f"# split {args.split}: n={len(rows)} catalog {catalog.hash}", flush=True)
     if args.preload:
         from routing_study.llm import preload_ollama
 
@@ -436,7 +447,7 @@ def main() -> None:
     # ---- full-dev table per grid point (optimistic: chosen on the same data)
     # best first: joint accuracy, then lower cost, then lower latency (stable: grid order)
     order = sorted(range(len(points)), key=lambda i: selection_key(metrics[i]), reverse=True)
-    print(f"# {args.config}  dev n={len(rows)}  folds={args.folds} seed={args.seed}")
+    print(f"# {args.config}  {args.split} n={len(rows)}  folds={args.folds} seed={args.seed}")
     if fixed:
         print("# fixed:", " ".join(f"{'.'.join(p)}={v}" for p, v in fixed))
     if len(points) > 1:

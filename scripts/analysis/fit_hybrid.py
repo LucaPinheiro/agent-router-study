@@ -37,6 +37,7 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from tune_router import (  # noqa: E402
+    DEV_SPLITS,
     LEVELS,
     METRICS,
     _input,
@@ -130,6 +131,7 @@ def main() -> None:
     ap.add_argument("config")
     ap.add_argument("--members", default="")
     ap.add_argument("--l2", default="0.1,1,10")
+    ap.add_argument("--split", choices=sorted(DEV_SPLITS), default="dev", help="dev split")
     ap.add_argument("--folds", type=int, default=5)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--concurrency", type=int, default=2)
@@ -142,9 +144,9 @@ def main() -> None:
         base = patched(base, [(["strategies", "hybrid", "members"], members)])
     names = stack_feature_names(members)
     l2s = [float(v) for v in args.l2.split(",")]
-    rows = load_dev()
+    rows = load_dev(args.split)
     fold = folds_of(rows, args.folds, args.seed)
-    catalog = asyncio.run(dev_catalog(base))
+    catalog = asyncio.run(dev_catalog(base, args.split))
     data = asyncio.run(member_decisions(base, rows, catalog, members))
     by_id = {r["id"]: r for r in rows}
 
