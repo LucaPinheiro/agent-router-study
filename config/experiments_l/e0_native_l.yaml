@@ -1,0 +1,21 @@
+# E0-L — baseline: no router; the native agent calls load_skill over the 10 skills.
+# Large catalog (CATALOG_PROFILE=large, mcp-server-large on :8766). Derived from
+# config/experiments/e0_native.yaml (phase 1, read-only) by T3.3: mcp_url -> :8766, regex rules ->
+# config/regex_rules_l.yaml, no local model (Ollama blocks removed; embedding/classifier on
+# Bedrock: strategies.embedding.model is the single switch Cohere <-> Titan).
+# PROVISIONAL: thresholds and calibration maps are the phase-1 / Part-A dev values; every
+# strategy is re-tuned on dev-L (T5) and the results are written here before the freeze.
+mcp_url: http://localhost:8766/mcp
+routing:
+  mode: native
+  skill:
+    pipeline: []
+    on_abstain: escalate
+  tool:
+    expose_top_k: 2
+    pipeline: []
+executor:
+  provider: bedrock
+  model: global.anthropic.claude-sonnet-5
+  temperature: null
+  max_tool_iterations: 3

@@ -1,0 +1,105 @@
+# E6n-L — Nemotron Nano 9B v2 router (Bedrock, reasoning off), P0.
+# Large catalog (CATALOG_PROFILE=large, mcp-server-large on :8766). Derived from
+# config/experiments/e6n_llm_nemotron.yaml (phase 1, read-only) by T3.3: mcp_url -> :8766, regex rules ->
+# config/regex_rules_l.yaml, no local model (Ollama blocks removed; embedding/classifier on
+# Bedrock: strategies.embedding.model is the single switch Cohere <-> Titan).
+# PROVISIONAL: thresholds and calibration maps are the phase-1 / Part-A dev values; every
+# strategy is re-tuned on dev-L (T5) and the results are written here before the freeze.
+mcp_url: http://localhost:8766/mcp
+routing:
+  mode: single
+  skill:
+    pipeline:
+    - {strategy: llm}
+    on_abstain: escalate
+  tool:
+    expose_top_k: 2
+    pipeline:
+    - {strategy: llm}
+strategies:
+  regex:
+    rules_path: config/regex_rules_l.yaml
+    history_turns: 2
+    history_weight: 0.3
+    calibration:
+      skill: {x: [0.165, 0.290455, 0.516429, 0.926568], y: [0.5, 0.692308, 0.818182, 0.97561]}
+      tool: {x: [0.156, 0.3425, 0.834878], y: [0.571429, 0.681818, 0.925234]}
+  bm25:
+    index: utterance
+    aggregate: topk_sum
+    agg_k: 4
+    analyzer: char
+    ngram_min: 3
+    ngram_max: 5
+    fold_accents: false
+    shots: true
+    quotes: true
+    variant: okapi
+    k1: 0.6
+    b: 0.5
+    history_turns: 2
+    calibration:
+      skill: {x: [0.002006, 0.03753, 0.073053, 0.108576, 0.144099, 0.179623, 0.215146, 0.250669, 0.286192,
+          0.321715, 0.357239, 0.392762, 0.428285, 0.463808, 0.499332, 0.534855, 0.570378, 0.605901, 0.641425,
+          0.676948, 0.712471], y: [0.388214, 0.448019, 0.509366, 0.570433, 0.629428, 0.684798, 0.735373,
+          0.780435, 0.819705, 0.853272, 0.881493, 0.904891, 0.924067, 0.939635, 0.952176, 0.962217, 0.970215,
+          0.976562, 0.981582, 0.985542, 0.988661]}
+      tool: {x: [0.000842, 0.022289, 0.128491, 0.253802, 0.364955, 0.469964, 0.523546, 0.626912], y: [
+          0.333333, 0.4375, 0.462963, 0.5, 0.594595, 0.631579, 0.666667, 0.928571]}
+  embedding:
+    provider: bedrock
+    model: global.cohere.embed-v4:0
+    region: sa-east-1
+    similarity: topk_vote
+    top_k: 5
+    confidence: softmax
+    softmax_temperature: 0.1
+    history_turns: 2
+    shots: true
+    query_instruction: null
+  llm:
+    provider: bedrock
+    model: nvidia.nemotron-nano-9b-v2
+    region: sa-east-1
+    temperature: 0
+    confidence: self_reported
+    prompt_track: canonical
+    prompt_variant: P0
+    calibration:
+      skill: {x: [0.05, 0.946622], y: [0.25, 0.88]}
+      tool: {x: [0.1, 0.888889, 0.951079], y: [0.333333, 0.636364, 0.808511]}
+  jev:
+    provider: openrouter
+    model: typesafe/jev-router
+    parse_retries: 1
+    cache: true
+    prompt_track: canonical
+    prompt_variant: P0
+    calibration:
+      skill: {x: [0.756818, 0.927, 0.95, 0.981053], y: [0.73913, 0.833333, 0.869565, 0.987179]}
+  hybrid:
+    fusion: convex
+    members: [regex, classifier]
+    alpha: 0.5
+    calibration:
+      skill: {x: [0.390289, 0.419843, 0.449397, 0.478951, 0.508505, 0.538059, 0.567613, 0.597167, 0.626721,
+          0.656275, 0.685829, 0.715383, 0.744937, 0.774491, 0.804045, 0.833599, 0.863153, 0.892707, 0.922261,
+          0.951815, 0.98137], y: [0.745702, 0.771418, 0.795248, 0.817182, 0.837247, 0.855499, 0.872018,
+          0.886897, 0.900245, 0.912173, 0.922798, 0.932232, 0.940588, 0.947971, 0.954481, 0.960211, 0.965246,
+          0.969663, 0.973535, 0.976924, 0.979888]}
+      tool: {x: [0.343146, 0.456121, 0.617442, 0.822891, 0.916105], y: [0.166667, 0.7, 0.75, 0.952941,
+          0.952941]}
+  classifier:
+    model: probe
+    c: 10
+    shots: true
+    quotes: false
+    description: true
+    probe_instruction: false
+    history_turns: 0
+    history_weight: 0.3
+executor:
+  provider: bedrock
+  model: global.anthropic.claude-sonnet-5
+  temperature: null
+  max_tool_iterations: 3
