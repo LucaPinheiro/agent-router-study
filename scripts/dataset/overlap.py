@@ -31,6 +31,9 @@ LEXICAL_THRESHOLD = 0.9
 SEMANTIC_THRESHOLD = 0.9
 EMBED_MODEL = "qwen3-embedding:8b-q8_0"
 PHASE2_EMBED_MODEL = "amazon.titan-embed-text-v2:0"  # phase 2: no local model (Bedrock)
+# Titan cosine equivalent to the phase-1 qwen 0.9 (rank-matched on the 849 phase-1 cases;
+# data/audit/titan_threshold.json, scripts/dataset/calibrate_titan_threshold.py)
+PHASE2_SEMANTIC_THRESHOLD = 0.71
 MIN_UNIT_WORDS = 3
 
 CATALOG_FILES = [

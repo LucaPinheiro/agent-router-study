@@ -1,0 +1,13 @@
+{
+  "qwen_threshold": 0.9,
+  "n_texts": 849,
+  "pairs": 359976,
+  "pairs_qwen_ge_thr": 111,
+  "titan_threshold_pair_rank": 0.7089,
+  "texts_qwen_nn_ge_thr": 109,
+  "titan_threshold_nn_rank": 0.7289,
+  "linear_fit_titan_at_qwen_thr": 0.5532,
+  "spearman_pairs_q_gt_0.6": 0.476,
+  "titan_model": "amazon.titan-embed-text-v2:0",
+  "titan_threshold": 0.7089
+}
