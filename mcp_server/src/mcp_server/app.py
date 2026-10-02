@@ -1,6 +1,7 @@
 """FastAPI app: FastMCP streamable HTTP (stateless) at /mcp, /healthz, /readyz, bearer auth.
 
 Run: uv run uvicorn mcp_server.app:app --port 8765
+     CATALOG_PROFILE=large uv run uvicorn mcp_server.app:app --port 8766   # 62-tool catalog
 """
 
 from __future__ import annotations
@@ -16,8 +17,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from starlette.responses import Response
 
-from mcp_server.core import REGISTRY
-from mcp_server.server import mcp
+from mcp_server.server import TOOL_COUNTS, mcp, profile_from_env, profile_tools
 from mcp_server.telemetry import setup_tracing
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(message)s")
@@ -26,6 +26,7 @@ logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(message)s")
 # `python -c "import secrets; print(secrets.token_urlsafe(32))"` (see .env.example).
 MCP_TOKEN = os.getenv("MCP_TOKEN", "")
 MIN_TOKEN_LEN = 16
+PROFILE = profile_from_env()
 
 
 def check_token(token: str) -> None:
@@ -96,9 +97,10 @@ async def healthz() -> dict[str, str]:
 
 @app.get("/readyz")
 async def readyz() -> JSONResponse:
-    ready = len(REGISTRY) == 18
+    tools = len(profile_tools(PROFILE))
+    ready = tools == TOOL_COUNTS[PROFILE]
     return JSONResponse(
-        {"status": "ready" if ready else "not_ready", "tools": len(REGISTRY)},
+        {"status": "ready" if ready else "not_ready", "tools": tools, "profile": PROFILE},
         status_code=200 if ready else 503,
     )
 

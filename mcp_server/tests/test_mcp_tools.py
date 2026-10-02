@@ -31,6 +31,77 @@ EXPECTED_TOOLS = {
         "open_warranty_claim",
     },
 }
+EXPECTED_TOOLS_LARGE = {
+    **EXPECTED_TOOLS,
+    "global": EXPECTED_TOOLS["global"] | {"update_contact_info", "check_protocol_status"},
+    "assistencia_tecnica": {
+        "schedule_installation",
+        "request_technical_visit",
+        "reschedule_technical_visit",
+        "get_service_order_status",
+        "cancel_service_order",
+        "check_extended_warranty",
+    },
+    "marketplace_vendedores": {
+        "get_seller_info",
+        "contact_seller",
+        "track_seller_shipment",
+        "open_seller_mediation",
+        "report_seller_issue",
+        "rate_seller",
+    },
+    "assinaturas": {
+        "get_subscription",
+        "pause_subscription",
+        "cancel_subscription",
+        "change_subscription_date",
+        "change_subscription_items",
+        "update_subscription_payment",
+    },
+    "notas_fiscais_cadastro": {
+        "get_invoice",
+        "resend_invoice",
+        "request_invoice_correction",
+        "issue_return_invoice",
+        "get_purchase_receipt",
+        "update_billing_data",
+    },
+    "promocoes_precos": {
+        "validate_coupon",
+        "report_coupon_not_applied",
+        "get_promotion_terms",
+        "request_price_protection",
+        "get_gift_card_balance",
+        "redeem_gift_card",
+    },
+    "fidelidade_cashback": {
+        "get_points_balance",
+        "get_points_statement",
+        "redeem_points",
+        "claim_missing_points",
+        "get_cashback_status",
+        "get_loyalty_tier",
+    },
+    "cartao_loja_crediario": {
+        "get_card_bill",
+        "generate_card_bill_copy",
+        "contest_card_transaction",
+        "request_limit_increase",
+        "block_store_card",
+        "renegotiate_debt",
+    },
+}
+EXPECTED_BY_PROFILE = {"small": EXPECTED_TOOLS, "large": EXPECTED_TOOLS_LARGE}
+DESTRUCTIVE_BY_PROFILE = {
+    "small": {"cancel_order", "dispute_charge"},
+    "large": {
+        "cancel_order",
+        "dispute_charge",
+        "cancel_subscription",
+        "cancel_service_order",
+        "block_store_card",
+    },
+}
 RDNS = "br.routingstudy"
 ADDRESS = {
     "street": "Rua Bahia",
@@ -217,12 +288,13 @@ async def schemas(client: Client) -> dict[str, dict[str, Any]]:
     return {t.name: t.output_schema for t in await client.list_tools()}
 
 
-async def test_tools_list_catalog(client: Client) -> None:
+async def test_tools_list_catalog(client: Client, profile: str) -> None:
     result = await client.list_tools_mcp()
     names = [t.name for t in result.tools]
-    assert len(names) == 18
+    expected = EXPECTED_BY_PROFILE[profile]
+    assert len(names) == {"small": 18, "large": 62}[profile]
     assert names == sorted(names)
-    assert set(names) == set().union(*EXPECTED_TOOLS.values())
+    assert set(names) == set().union(*expected.values())
     assert "load_skill" not in names
     assert result.ttl_ms and result.cache_scope == "public"
     for t in result.tools:
@@ -231,7 +303,7 @@ async def test_tools_list_catalog(client: Client) -> None:
             f"{RDNS}/{k}" for k in ("skill", "examples", "keywords", "confirmation", "scope")
         }
         assert "fastmcp" not in m
-        assert name_in_skill(t.name, m[f"{RDNS}/skill"])
+        assert t.name in expected[m[f"{RDNS}/skill"]]
         assert 3 <= len(m[f"{RDNS}/examples"]) <= 5
         assert m[f"{RDNS}/keywords"] and m[f"{RDNS}/confirmation"] == "none"
         for section in ("WHEN TO USE", "DON'T USE FOR", "PARAMETERS", "CONFIRMATION", "RESULT"):
@@ -241,14 +313,10 @@ async def test_tools_list_catalog(client: Client) -> None:
         assert len(out["oneOf"]) == 2 and {"Money", "Address", "OrderRef"} <= set(out["$defs"])
         ann = t.annotations
         assert ann is not None and ann.open_world_hint is False
-        destructive = t.name in ("cancel_order", "dispute_charge")
+        destructive = t.name in DESTRUCTIVE_BY_PROFILE[profile]
         assert ann.destructive_hint is destructive
         if ann.read_only_hint:
             assert ann.idempotent_hint is True and not destructive
-
-
-def name_in_skill(name: str, skill: str) -> bool:
-    return name in EXPECTED_TOOLS[skill]
 
 
 def test_cases_cover_all_tools() -> None:

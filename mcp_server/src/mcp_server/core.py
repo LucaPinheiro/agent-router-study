@@ -283,8 +283,11 @@ def catalog_tool(
     result: type[BaseModel],
     examples: list[str],
     keywords: list[str],
+    registry: list[CatalogTool] | None = None,
 ) -> Callable[[Callable[..., Awaitable[ToolResult]]], Callable[..., Awaitable[ToolResult]]]:
-    """Register a tool: business errors raised as ToolFailure become isError results."""
+    """Register a tool: business errors raised as ToolFailure become isError results.
+
+    `registry`: where to register (default REGISTRY, the small profile's 18 tools)."""
     assert 3 <= len(examples) <= 5, "3-5 examples per tool"
 
     def decorator(
@@ -306,7 +309,7 @@ def catalog_tool(
         }
         if not annotations.read_only_hint:
             meta[f"{RDNS}/elicitation"] = []
-        REGISTRY.append(
+        (REGISTRY if registry is None else registry).append(
             CatalogTool.from_function(
                 wrapper,
                 name=fn.__name__,
