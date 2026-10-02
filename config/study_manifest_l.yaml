@@ -1,0 +1,173 @@
+# Part B run manifest (large catalog, 62 tools, split test-L): prereg-v2 (docs/prereg/prereg-v2.md).
+# Frozen at the git tag `prereg-v2`, before the first test-L row.
+#   uv run study run-manifest config/study_manifest_l.yaml --dry-run   # status + projected cost
+#   uv run study run-manifest config/study_manifest_l.yaml             # priority order
+#   uv run python scripts/analysis/phase2_b.py --manifest config/study_manifest_l.yaml
+# Run with BUDGET__AWS_USD_CAP=92.11 (phase-2 AWS mark 52.11 + 40) and
+# BUDGET__OPENROUTER_USD_CAP=9.43 (OpenRouter mark 5.83 + 3.6). Same guard, resume, completion and
+# retry rules as config/study_manifest.yaml (src/routing_study/eval/manifest.py): error_budget 2%,
+# at most 2 infra retries of the error rows, a run still above budget is FLAGGED, never patched.
+#
+# Phase-2 constraints (binding, 2026-10-02): no LOCAL model is run (no Ollama; regex and BM25 are
+# CPU code, not models, and stay); OpenRouter only for typesafe/jev-router; everything else on
+# Bedrock. Sonnet 5 is NEVER a standalone router here: it appears only as the last step of the
+# E9-L / E12-L cascades and as the e2e executor. The large-profile embedder is Titan v2
+# (amazon.titan-embed-text-v2:0, the Part-A dev winner), so E3-L / E10-L / E11-L are the Titan
+# arms; E3c / E3t / E10c are not separate test-L runs (E3t == E3-L; Cohere lost Part-A dev CV).
+#
+# Every large-profile entry asserts catalog_hash bc7cd75fce87 (mcp-server-large on :8766); the
+# X2 entries (small profile, phase-1 / Part-A configs on :8765) assert 128584617807.
+#
+# Run names are the ones pinned by the frozen analysis (scripts/analysis/phase2_b.py, ROUTING_L,
+# E2E_L, VARIANCE_L, REPEATS_L, LAT_L, X2_KEYS). The shadow pass is a cache-filling run the
+# analysis does not read (reported as "unmapped").
+#
+# Priority order = the plan's drop order (autopilot-impl.md §5): the guard refuses, never
+# reorders, so the lowest-priority entries are the first ones a cap removes: executor variance
+# (B16, 90), then E9-L-fullskill (B15, 85), then X2-Haiku (B18, 81), then latency (B17, 70).
+#
+# Case-id files written after T4.3 (they read only ids/categories/labels, never message text):
+#   uv run python scripts/analysis/latency_ids.py --split test_l     # latency_test_l_b{1..4}.ids
+#   uv run python scripts/analysis/x2_orig_ids.py                    # x2_test_l_orig.ids
+#
+# Response cache (M8): Jev / Haiku / Ministral / Nemotron / Sonnet decisions are cached per (case,
+# rep, rendered prompt). The shadow pass runs first, so the Jev samples of E4 and of the E7-L /
+# E9-L / E12-L cascades are cache hits of the SAME samples (paired by construction). e2e routers
+# are cache hits of the routing runs' rep 1; the executor is never cached.
+version: 1
+split: test_l
+results_dir: results
+error_budget: 0.02
+max_infra_retries: 2
+
+runs:
+  # ---- 10. free routers (regex, BM25: CPU; E3/E10/E11: Bedrock Titan v2 vectors), 1 rep
+  - { name: l-e1-regex-routing-r1, config_hash: 9edc10d85a4e, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e1_regex_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, reps: 1, priority: 10, purpose: "S3, S4 reference (E1 regex)" }
+  - { name: l-e2-bm25-routing-r1, config_hash: 047a16011d05, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e2_bm25_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, reps: 1, priority: 10, purpose: "estimation (E2 BM25)" }
+  - { name: l-e3-embedding-routing-r1, config_hash: 3cd09a609c93, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e3_embedding_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, reps: 1, priority: 10, purpose: "S4 (E3 Titan v2 embedding)" }
+  - { name: l-e10-classifier-routing-r1, config_hash: 61260135d35a, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e10_classifier_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, reps: 1, priority: 10, purpose: "S7 (E10 probe on Titan v2 vectors)" }
+  - { name: l-e11-hybrid-routing-r1, config_hash: 0078bcc597f8, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e11_hybrid_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, reps: 1, priority: 10, purpose: "estimation (E11 hybrid regex+probe)" }
+  - { name: l-e1-regex-routing-repeat20, config_hash: 9edc10d85a4e, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e1_regex_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, reps: 2, cases: { limit: 20 }, priority: 11, purpose: "determinism check (0 flips expected)" }
+
+  # ---- 20. shadow pass (E9-L decider, tuned track = P0), 3 reps, WITHOUT Sonnet as a shadow
+  #         strategy: pays the Jev samples that E4 / E7-L / E9-L / E12-L reuse; cascade replay
+  #         only, never an isolated-strategy headline.
+  - name: l-shadow-tuned-routing-r3
+    config_hash: ae7dda1ab390
+    prompt_hash: c61ad0a7b7f8
+    config: config/experiments_l/e9_regex_jev_llm_l.yaml
+    catalog_hash: bc7cd75fce87
+    prompt_track: tuned
+    mode: routing-only
+    routing_mode: shadow
+    reps: 3
+    priority: 20
+    purpose: "cascade replay / threshold sensitivity (cache filler; not analysed as an arm)"
+    overrides:
+      routing.shadow_strategies: [regex, bm25, embedding, classifier, hybrid, jev]
+
+  # ---- 25. LLM / Jev singles, canonical track (P0)
+  - { name: l-e4-jev-canonical-routing-r3, config_hash: d8d2f8940050, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e4_jev_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, reps: 3, priority: 25, purpose: "H3-L (E4 Jev), S7 reference; shared with the shadow / E7-L / E9-L" }
+  - { name: l-e6-haiku-canonical-routing-r1, config_hash: 8b7b8fb00143, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e6_llm_haiku_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, reps: 1, priority: 25, purpose: "H2-L and H3-L reference (E6 Haiku 4.5)" }
+  - { name: l-e6m-ministral-canonical-routing-r1, config_hash: 1ce8c6004c5f, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e6m_llm_ministral_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, reps: 1, priority: 25, purpose: "H2-L (E6m Ministral 3 8B vs Haiku 4.5, NI 3 pp)" }
+  - { name: l-e6n-nemotron-canonical-routing-r1, config_hash: ae768b0a8656, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e6n_llm_nemotron_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, reps: 1, priority: 25, purpose: "estimation (E6n Nemotron Nano 9B v2)" }
+
+  # ---- 30. cascades on the tuned track, thresholds frozen from the dev-L shadow (rule (a)), 3 reps
+  - { name: l-e9-tuned-routing-r3, config_hash: 8236c879738c, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e9_regex_jev_llm_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: tuned, mode: routing-only, reps: 3, priority: 30, purpose: "E9-L routing (H1-L router; estimation)" }
+  - { name: l-e7-tuned-routing-r3, config_hash: babfafa1bdae, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e7_regex_jev_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: tuned, mode: routing-only, reps: 3, priority: 30, purpose: "estimation (E7-L regex -> Jev)" }
+  - { name: x-l-e12-hybrid-tuned-routing-r3, config_hash: fd13e06c82a4, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e12_hybrid_jev_llm_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: tuned, mode: routing-only, reps: 3, priority: 31, purpose: "EXPLORATORY (E12-L hybrid -> Jev -> Sonnet)" }
+
+  # ---- 40. end-to-end, 1 rep, Sonnet 5 executor (H1-L, symmetric scorer)
+  - { name: l-e0-native-e2e-r1, config_hash: 93c7c3ea1e02, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e0_native_l.yaml, catalog_hash: bc7cd75fce87, mode: e2e, reps: 1, priority: 40, concurrency: 2, purpose: "H1-L reference (E0-L native)" }
+  - { name: l-e9-tuned-e2e-r1, config_hash: 8236c879738c, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e9_regex_jev_llm_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: tuned, mode: e2e, reps: 1, priority: 40, concurrency: 2, purpose: "H1-L (E9-L e2e; routing = cache hits of l-e9-tuned-routing-r3 rep 1)" }
+
+  # ---- 50. repeat checks (M7): rep 1 = cache hit of the r1 run, rep 2 a fresh sample
+  - { name: l-e6-haiku-canonical-rep2-60, config_hash: 8b7b8fb00143, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e6_llm_haiku_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, reps: 2, cases: { limit: 60 }, priority: 50, purpose: "flip rate (rep 1 = cache hit of the r1 run)" }
+  - { name: l-e6m-ministral-canonical-repeat50, config_hash: 1ce8c6004c5f, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e6m_llm_ministral_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, reps: 2, cases: { limit: 50 }, priority: 50, purpose: "flip rate (rep 1 = cache hit of the r1 run)" }
+  - { name: l-e6n-nemotron-canonical-repeat50, config_hash: ae768b0a8656, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e6n_llm_nemotron_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, reps: 2, cases: { limit: 50 }, priority: 50, purpose: "flip rate (rep 1 = cache hit of the r1 run)" }
+
+  # ---- 70. latency benchmark (M8, as phase 1 / Part A): response caches off and a FRESH
+  #         cache_dir (.cache/latency-l), concurrency 1, 100 stratified test-L cases in 4 blocks
+  #         of 25 (config/manifest/latency_test_l_b*.ids); every strategy runs block 1, then
+  #         block 2, ... (block-level interleaving: one time window). First case of each run =
+  #         cold. Managed / CPU strategies only (no local model); no Sonnet router block.
+  - { name: lat-l-regex-b1, config_hash: d341905fd5ca, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e1_regex_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b1.ids }, concurrency: 1, priority: 70, overrides: &lat_l { cache_dir: .cache/latency-l, strategies.llm.cache: false, strategies.jev.cache: false, strategies.embedding.cache: false }, purpose: "latency benchmark block 1" }
+  - { name: lat-l-bm25-b1, config_hash: 09e347ca67bb, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e2_bm25_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b1.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 1" }
+  - { name: lat-l-embedding-b1, config_hash: b57d9830966f, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e3_embedding_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b1.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 1" }
+  - { name: lat-l-classifier-b1, config_hash: 8158869c2b7d, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e10_classifier_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b1.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 1" }
+  - { name: lat-l-hybrid-b1, config_hash: 31b1ccbfcf66, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e11_hybrid_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b1.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 1" }
+  - { name: lat-l-jev-b1, config_hash: bf67bc0d09bf, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e4_jev_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b1.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 1" }
+  - { name: lat-l-haiku-b1, config_hash: 170370d07bed, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e6_llm_haiku_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b1.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 1" }
+  - { name: lat-l-e6m-b1, config_hash: 127123dc6afa, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e6m_llm_ministral_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b1.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 1" }
+  - { name: lat-l-e6n-b1, config_hash: 5afc47143514, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e6n_llm_nemotron_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b1.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 1" }
+  - { name: lat-l-e7-b1, config_hash: 86b20f674287, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e7_regex_jev_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b1.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 1" }
+  - { name: lat-l-e9-b1, config_hash: 987a841f839f, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e9_regex_jev_llm_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b1.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 1" }
+  - { name: lat-l-regex-b2, config_hash: d341905fd5ca, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e1_regex_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b2.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 2" }
+  - { name: lat-l-bm25-b2, config_hash: 09e347ca67bb, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e2_bm25_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b2.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 2" }
+  - { name: lat-l-embedding-b2, config_hash: b57d9830966f, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e3_embedding_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b2.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 2" }
+  - { name: lat-l-classifier-b2, config_hash: 8158869c2b7d, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e10_classifier_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b2.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 2" }
+  - { name: lat-l-hybrid-b2, config_hash: 31b1ccbfcf66, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e11_hybrid_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b2.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 2" }
+  - { name: lat-l-jev-b2, config_hash: bf67bc0d09bf, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e4_jev_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b2.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 2" }
+  - { name: lat-l-haiku-b2, config_hash: 170370d07bed, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e6_llm_haiku_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b2.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 2" }
+  - { name: lat-l-e6m-b2, config_hash: 127123dc6afa, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e6m_llm_ministral_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b2.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 2" }
+  - { name: lat-l-e6n-b2, config_hash: 5afc47143514, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e6n_llm_nemotron_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b2.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 2" }
+  - { name: lat-l-e7-b2, config_hash: 86b20f674287, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e7_regex_jev_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b2.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 2" }
+  - { name: lat-l-e9-b2, config_hash: 987a841f839f, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e9_regex_jev_llm_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b2.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 2" }
+  - { name: lat-l-regex-b3, config_hash: d341905fd5ca, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e1_regex_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b3.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 3" }
+  - { name: lat-l-bm25-b3, config_hash: 09e347ca67bb, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e2_bm25_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b3.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 3" }
+  - { name: lat-l-embedding-b3, config_hash: b57d9830966f, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e3_embedding_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b3.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 3" }
+  - { name: lat-l-classifier-b3, config_hash: 8158869c2b7d, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e10_classifier_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b3.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 3" }
+  - { name: lat-l-hybrid-b3, config_hash: 31b1ccbfcf66, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e11_hybrid_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b3.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 3" }
+  - { name: lat-l-jev-b3, config_hash: bf67bc0d09bf, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e4_jev_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b3.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 3" }
+  - { name: lat-l-haiku-b3, config_hash: 170370d07bed, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e6_llm_haiku_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b3.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 3" }
+  - { name: lat-l-e6m-b3, config_hash: 127123dc6afa, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e6m_llm_ministral_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b3.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 3" }
+  - { name: lat-l-e6n-b3, config_hash: 5afc47143514, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e6n_llm_nemotron_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b3.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 3" }
+  - { name: lat-l-e7-b3, config_hash: 86b20f674287, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e7_regex_jev_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b3.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 3" }
+  - { name: lat-l-e9-b3, config_hash: 987a841f839f, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e9_regex_jev_llm_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b3.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 3" }
+  - { name: lat-l-regex-b4, config_hash: d341905fd5ca, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e1_regex_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b4.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 4" }
+  - { name: lat-l-bm25-b4, config_hash: 09e347ca67bb, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e2_bm25_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b4.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 4" }
+  - { name: lat-l-embedding-b4, config_hash: b57d9830966f, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e3_embedding_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b4.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 4" }
+  - { name: lat-l-classifier-b4, config_hash: 8158869c2b7d, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e10_classifier_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b4.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 4" }
+  - { name: lat-l-hybrid-b4, config_hash: 31b1ccbfcf66, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e11_hybrid_l.yaml, catalog_hash: bc7cd75fce87, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b4.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 4" }
+  - { name: lat-l-jev-b4, config_hash: bf67bc0d09bf, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e4_jev_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b4.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 4" }
+  - { name: lat-l-haiku-b4, config_hash: 170370d07bed, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e6_llm_haiku_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b4.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 4" }
+  - { name: lat-l-e6m-b4, config_hash: 127123dc6afa, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e6m_llm_ministral_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b4.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 4" }
+  - { name: lat-l-e6n-b4, config_hash: 5afc47143514, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e6n_llm_nemotron_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b4.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 4" }
+  - { name: lat-l-e7-b4, config_hash: 86b20f674287, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e7_regex_jev_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b4.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 4" }
+  - { name: lat-l-e9-b4, config_hash: 987a841f839f, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e9_regex_jev_llm_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: tuned, mode: routing-only, cases: { ids_file: config/manifest/latency_test_l_b4.ids }, concurrency: 1, priority: 70, overrides: *lat_l, purpose: "latency benchmark block 4" }
+
+  # ---- 80. X2 paired catalog-size subset (secondary estimation): the SMALL-profile routers
+  #         (phase-1 / Part-A configs, frozen, mcp :8765, catalog 128584617807) on the test-L
+  #         orig subset (config/manifest/x2_test_l_orig.ids); the large arm is the main run
+  #         restricted to the same cases. No local model: E3 / E10 use the Part-A Titan configs
+  #         (the large E3-L / E10-L embedder); E11 (phase-1 hybrid = LOCAL probe) has no
+  #         admissible small-profile config and is not run. Haiku last (drop order B18-Haiku).
+  - { name: l-x2-small-e1-routing-r1, config_hash: 2da827d0effb, prompt_hash: c61ad0a7b7f8, config: config/experiments/e1_regex.yaml, catalog_hash: "128584617807", mode: routing-only, reps: 1, cases: { ids_file: config/manifest/x2_test_l_orig.ids }, priority: 80, purpose: "X2 small profile: E1 regex" }
+  - { name: l-x2-small-e2-routing-r1, config_hash: 7bb5a5960490, prompt_hash: c61ad0a7b7f8, config: config/experiments/e2_bm25.yaml, catalog_hash: "128584617807", mode: routing-only, reps: 1, cases: { ids_file: config/manifest/x2_test_l_orig.ids }, priority: 80, purpose: "X2 small profile: E2 BM25" }
+  - { name: l-x2-small-e3-routing-r1, config_hash: 73f81417a487, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding_titan.yaml, catalog_hash: "128584617807", mode: routing-only, reps: 1, cases: { ids_file: config/manifest/x2_test_l_orig.ids }, priority: 80, purpose: "X2 small profile: E3 Titan v2 embedding (Part-A E3t)" }
+  - { name: l-x2-small-e10-routing-r1, config_hash: 70374caa4b59, prompt_hash: c61ad0a7b7f8, config: config/experiments/e10_classifier_titan.yaml, catalog_hash: "128584617807", mode: routing-only, reps: 1, cases: { ids_file: config/manifest/x2_test_l_orig.ids }, priority: 80, purpose: "X2 small profile: E10 Titan probe (Part-A E10t)" }
+  - { name: l-x2-small-e4-routing-r1, config_hash: acd7ff96155b, prompt_hash: c61ad0a7b7f8, config: config/experiments/e4_jev.yaml, catalog_hash: "128584617807", prompt_track: canonical, mode: routing-only, reps: 1, cases: { ids_file: config/manifest/x2_test_l_orig.ids }, priority: 80, purpose: "X2 small profile: E4 Jev" }
+  - { name: l-x2-small-e6m-routing-r1, config_hash: 0d8fbee553f3, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6m_llm_ministral.yaml, catalog_hash: "128584617807", prompt_track: canonical, mode: routing-only, reps: 1, cases: { ids_file: config/manifest/x2_test_l_orig.ids }, priority: 80, purpose: "X2 small profile: E6m Ministral" }
+  - { name: l-x2-small-e6-routing-r1, config_hash: f6c0edce210b, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6_llm_haiku.yaml, catalog_hash: "128584617807", prompt_track: canonical, mode: routing-only, reps: 1, cases: { ids_file: config/manifest/x2_test_l_orig.ids }, priority: 81, purpose: "X2 small profile: E6 Haiku 4.5 (drop order B18-Haiku)" }
+
+  # ---- 85. S1 (secondary): E9-L with every skill tool exposed (large skills have 5-6 tools, so
+  #         expose_top_k 6 = all; phase-1 D-002 used 5 = all of the 18-tool skills). Routing =
+  #         cache hits of l-e9-tuned-routing-r3 rep 1; drop order B15.
+  - name: l-e9-fullskill-e2e-r1
+    config_hash: 2741f7281d8b
+    prompt_hash: c61ad0a7b7f8
+    config: config/experiments_l/e9_regex_jev_llm_l.yaml
+    catalog_hash: bc7cd75fce87
+    prompt_track: tuned
+    mode: e2e
+    reps: 1
+    priority: 85
+    concurrency: 2
+    purpose: "S1 (E9-L-fullskill vs E9-L, one-sided; confirms D-002 on a fresh split)"
+    overrides:
+      routing.tool.expose_top_k: 6
+
+  # ---- 90. executor variance (M6): a second run of E0-L and E9-L on 60 stratified cases; the
+  #         routers are cache hits of the main e2e rep 1, the executor samples again; drop order B16.
+  - { name: l-e0-native-e2e-rep2-60, config_hash: 93c7c3ea1e02, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e0_native_l.yaml, catalog_hash: bc7cd75fce87, mode: e2e, cases: { limit: 60 }, priority: 90, concurrency: 2, purpose: "executor variance" }
+  - { name: l-e9-tuned-e2e-rep2-60, config_hash: 8236c879738c, prompt_hash: c61ad0a7b7f8, config: config/experiments_l/e9_regex_jev_llm_l.yaml, catalog_hash: bc7cd75fce87, prompt_track: tuned, mode: e2e, cases: { limit: 60 }, priority: 90, concurrency: 2, purpose: "executor variance" }

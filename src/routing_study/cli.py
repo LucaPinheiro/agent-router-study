@@ -33,7 +33,7 @@ def _setup() -> None:
 @app.command()
 def run(
     config: Config,
-    split: Annotated[str, typer.Option(help="dev | test")] = "dev",
+    split: Annotated[str, typer.Option(help="dev | test | test_v2 | dev_l | test_l")] = "dev",
     mode: Annotated[Literal["e2e", "routing-only"], typer.Option()] = "e2e",
     limit: Annotated[
         int | None,
@@ -87,6 +87,7 @@ def run(
 
 
 RESCORED = Path("results/rescored")
+RESCORED_SYM = Path("results/rescored-sym")
 
 
 @app.command()
@@ -94,9 +95,13 @@ def rescore(
     files: Annotated[list[Path], typer.Argument(exists=True, help="raw results/*.jsonl")],
     out: Annotated[Path, typer.Option(help="output directory")] = RESCORED,
     data_dir: Annotated[Path, typer.Option(help="dir with dataset_<split>.jsonl")] = Path("data"),
-    tools: Annotated[Path, typer.Option(help="MCP tools/list snapshot")] = Path(
-        "mcp_server/tools_list.json"
-    ),
+    tools: Annotated[
+        Path | None,
+        typer.Option(
+            help="MCP tools/list snapshot (default: mcp_server/tools_list.json; the large "
+            "splits dev_l/test_l: mcp_server/tools_list_large.json)"
+        ),
+    ] = None,
     prices: Annotated[
         Path | None,
         typer.Option(help="saved OpenRouter GET /models JSON: adds the list-price column"),
@@ -104,10 +109,21 @@ def rescore(
     run_git_sha: Annotated[
         str | None, typer.Option(help="run code version when the rows do not record it")
     ] = None,
+    scorer: Annotated[
+        str,
+        typer.Option(
+            help="legacy (pre-registered phase-1 scorer) | sym (symmetric e2e scorer, "
+            "prereg-v2); sym writes to results/rescored-sym unless --out is given"
+        ),
+    ] = "legacy",
 ) -> None:
     """Recompute every score offline from raw rows + dataset + tool schemas (with provenance)."""
     from routing_study.eval.rescore import describe, rescore_file
 
+    if scorer not in ("legacy", "sym"):
+        raise typer.BadParameter(f"unknown scorer {scorer!r} (legacy | sym)")
+    if scorer == "sym" and out == RESCORED:
+        out = RESCORED_SYM
     for f in files:
         path, prov = rescore_file(
             f,
@@ -116,6 +132,7 @@ def rescore(
             tools_path=tools,
             prices_path=prices,
             run_git_sha=run_git_sha,
+            scorer=scorer,
         )
         typer.echo(describe(path, prov))
 

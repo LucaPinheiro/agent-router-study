@@ -1,0 +1,335 @@
+{
+  "splits": {
+    "dev_l": {
+      "n_cases": 150,
+      "n_both_verdicts": 150,
+      "between_auditors": {
+        "gold_acceptable": {
+          "n": 150,
+          "raw_agreement": 0.8467,
+          "kappa": 0.3824
+        },
+        "args_correct": {
+          "n": 150,
+          "raw_agreement": 0.8933,
+          "kappa": 0.6032
+        },
+        "out_of_scope": {
+          "n": 150,
+          "raw_agreement": 0.9867,
+          "kappa": 0.9337
+        },
+        "escalation_acceptable": {
+          "n": 150,
+          "raw_agreement": 0.9333,
+          "kappa": 0.7133
+        },
+        "first_proposed_tool": {
+          "n": 150,
+          "raw_agreement": 0.8533,
+          "kappa": 0.849
+        }
+      },
+      "auditor_vs_gold": {
+        "A": {
+          "model": "openai.gpt-oss-120b-1:0",
+          "gold_acceptable_rate": 0.82,
+          "gold_acceptable_ci95": [
+            0.7508,
+            0.8732
+          ],
+          "args_correct_rate": 0.84,
+          "vs_gold_out_of_scope": {
+            "n": 150,
+            "raw_agreement": 0.98,
+            "kappa": 0.9031
+          },
+          "vs_gold_escalation": {
+            "n": 150,
+            "raw_agreement": 0.9867,
+            "kappa": 0.93
+          },
+          "vs_gold_first_tool": {
+            "n": 150,
+            "raw_agreement": 0.9,
+            "kappa": 0.897
+          },
+          "first_proposed_in_gold_rate": 0.94
+        },
+        "B": {
+          "model": "deepseek.v3.2",
+          "gold_acceptable_rate": 0.8933,
+          "gold_acceptable_ci95": [
+            0.8338,
+            0.9333
+          ],
+          "args_correct_rate": 0.84,
+          "vs_gold_out_of_scope": {
+            "n": 150,
+            "raw_agreement": 0.9933,
+            "kappa": 0.9692
+          },
+          "vs_gold_escalation": {
+            "n": 150,
+            "raw_agreement": 0.9467,
+            "kappa": 0.7706
+          },
+          "vs_gold_first_tool": {
+            "n": 150,
+            "raw_agreement": 0.88,
+            "kappa": 0.8762
+          },
+          "first_proposed_in_gold_rate": 0.9333
+        }
+      },
+      "gold_acceptable_by_category": {
+        "adversarial": {
+          "n": 8,
+          "A": 6,
+          "B": 8,
+          "both": 6
+        },
+        "ambiguo": {
+          "n": 30,
+          "A": 16,
+          "B": 23,
+          "both": 14
+        },
+        "direto": {
+          "n": 45,
+          "A": 40,
+          "B": 42,
+          "both": 38
+        },
+        "fora_escopo": {
+          "n": 15,
+          "A": 15,
+          "B": 15,
+          "both": 15
+        },
+        "multiturno": {
+          "n": 15,
+          "A": 10,
+          "B": 11,
+          "both": 9
+        },
+        "parafrase": {
+          "n": 37,
+          "A": 36,
+          "B": 35,
+          "both": 35
+        }
+      },
+      "decisions": {
+        "keep": 102,
+        "flagged": 40,
+        "fixed": 8
+      },
+      "decisions_by_category": {
+        "adversarial": {
+          "keep": 5,
+          "flagged": 2,
+          "fixed": 1
+        },
+        "ambiguo": {
+          "keep": 14,
+          "flagged": 15,
+          "fixed": 1
+        },
+        "direto": {
+          "keep": 34,
+          "flagged": 9,
+          "fixed": 2
+        },
+        "fora_escopo": {
+          "keep": 15
+        },
+        "multiturno": {
+          "keep": 7,
+          "flagged": 5,
+          "fixed": 3
+        },
+        "parafrase": {
+          "keep": 27,
+          "flagged": 9,
+          "fixed": 1
+        }
+      },
+      "both_missing_alternatives_cases": 2
+    },
+    "test_l": {
+      "n_cases": 300,
+      "n_both_verdicts": 300,
+      "between_auditors": {
+        "gold_acceptable": {
+          "n": 300,
+          "raw_agreement": 0.8,
+          "kappa": 0.2181
+        },
+        "args_correct": {
+          "n": 300,
+          "raw_agreement": 0.8867,
+          "kappa": 0.5294
+        },
+        "out_of_scope": {
+          "n": 300,
+          "raw_agreement": 0.9667,
+          "kappa": 0.8493
+        },
+        "escalation_acceptable": {
+          "n": 300,
+          "raw_agreement": 0.9267,
+          "kappa": 0.6863
+        },
+        "first_proposed_tool": {
+          "n": 300,
+          "raw_agreement": 0.8533,
+          "kappa": 0.8486
+        }
+      },
+      "auditor_vs_gold": {
+        "A": {
+          "model": "openai.gpt-oss-120b-1:0",
+          "gold_acceptable_rate": 0.83,
+          "gold_acceptable_ci95": [
+            0.7834,
+            0.8683
+          ],
+          "args_correct_rate": 0.8633,
+          "vs_gold_out_of_scope": {
+            "n": 300,
+            "raw_agreement": 0.99,
+            "kappa": 0.9543
+          },
+          "vs_gold_escalation": {
+            "n": 300,
+            "raw_agreement": 0.9933,
+            "kappa": 0.963
+          },
+          "vs_gold_first_tool": {
+            "n": 300,
+            "raw_agreement": 0.9033,
+            "kappa": 0.9003
+          },
+          "first_proposed_in_gold_rate": 0.9467
+        },
+        "B": {
+          "model": "deepseek.v3.2",
+          "gold_acceptable_rate": 0.87,
+          "gold_acceptable_ci95": [
+            0.8272,
+            0.9034
+          ],
+          "args_correct_rate": 0.8567,
+          "vs_gold_out_of_scope": {
+            "n": 300,
+            "raw_agreement": 0.97,
+            "kappa": 0.8629
+          },
+          "vs_gold_escalation": {
+            "n": 300,
+            "raw_agreement": 0.9333,
+            "kappa": 0.7201
+          },
+          "vs_gold_first_tool": {
+            "n": 300,
+            "raw_agreement": 0.85,
+            "kappa": 0.8453
+          },
+          "first_proposed_in_gold_rate": 0.88
+        }
+      },
+      "gold_acceptable_by_category": {
+        "adversarial": {
+          "n": 15,
+          "A": 11,
+          "B": 11,
+          "both": 10
+        },
+        "ambiguo": {
+          "n": 60,
+          "A": 34,
+          "B": 53,
+          "both": 32
+        },
+        "direto": {
+          "n": 90,
+          "A": 81,
+          "B": 82,
+          "both": 75
+        },
+        "fora_escopo": {
+          "n": 30,
+          "A": 30,
+          "B": 30,
+          "both": 30
+        },
+        "multiturno": {
+          "n": 30,
+          "A": 25,
+          "B": 17,
+          "both": 15
+        },
+        "parafrase": {
+          "n": 75,
+          "A": 68,
+          "B": 68,
+          "both": 63
+        }
+      },
+      "decisions": {
+        "keep": 203,
+        "flagged": 85,
+        "fixed": 12
+      },
+      "decisions_by_category": {
+        "adversarial": {
+          "flagged": 4,
+          "fixed": 3,
+          "keep": 8
+        },
+        "ambiguo": {
+          "keep": 32,
+          "flagged": 26,
+          "fixed": 2
+        },
+        "direto": {
+          "keep": 67,
+          "flagged": 19,
+          "fixed": 4
+        },
+        "fora_escopo": {
+          "keep": 28,
+          "flagged": 2
+        },
+        "multiturno": {
+          "flagged": 16,
+          "keep": 14
+        },
+        "parafrase": {
+          "keep": 54,
+          "flagged": 18,
+          "fixed": 3
+        }
+      },
+      "both_missing_alternatives_cases": 8
+    }
+  },
+  "auditors": {
+    "A": "openai.gpt-oss-120b-1:0",
+    "B": "deepseek.v3.2"
+  },
+  "provider": "bedrock:sa-east-1",
+  "dataset_sha256": {
+    "dev_l": "b02b3722f5c4e434dd97a4c6a4811ac18a1fd1945784a6375639acd0b376e238",
+    "test_l": "ae21a5dbce16eb90278612f7dbcf875cb6610b7b12a49cb6f7f57e503d680ff2"
+  },
+  "files_sha256": {
+    "verdicts_dev_l_A.jsonl": "88c9af9cf0ade2c64e46c34cb310b4327fbb02b2c3cc26207d88b959f2f11665",
+    "verdicts_dev_l_B.jsonl": "5725359534ba991e5f4cd721b9676d7f5106d95986027809187d5e0c9dc861e3",
+    "adjudication_dev_l.jsonl": "01cd47d69538744cc628184b97fea8653b282fffbafc07ac50543ab76176e818",
+    "verdicts_test_l_A.jsonl": "cff58bafc2af8fbb8432e099fce8a66cff820e268600fecc2a7ab882996f2d20",
+    "verdicts_test_l_B.jsonl": "404a40d79a9da244e4ea0e01e997d91e20965cb5eddfd74437b6ea47bff87967",
+    "adjudication_test_l.jsonl": "0ff641d9f149065097e6d8686c6d408d64a26273e211221f46fe6bbbe1568006"
+  }
+}

@@ -1,0 +1,3206 @@
+{
+ "config": "config/experiments_l/e2_bm25_l.yaml",
+ "fixed": [
+  "strategies.bm25.index=utterance",
+  "strategies.bm25.aggregate=topk_sum",
+  "strategies.bm25.analyzer=char",
+  "strategies.bm25.shots=true",
+  "strategies.bm25.quotes=false",
+  "strategies.bm25.variant=okapi"
+ ],
+ "grid_points": 432,
+ "best_point": {
+  "strategies.bm25.ngram_min": 2,
+  "strategies.bm25.ngram_max": 5,
+  "strategies.bm25.agg_k": 4,
+  "strategies.bm25.k1": 1.2,
+  "strategies.bm25.b": 0.75,
+  "strategies.bm25.history_turns": 2,
+  "strategies.bm25.fold_accents": true
+ },
+ "selected_per_fold": {
+  "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True": 4,
+  "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True": 1
+ },
+ "nested": {
+  "skill_correct": {
+   "mean": 0.6866666666666666,
+   "std": 0.11469767022723505
+  },
+  "tool_correct": {
+   "mean": 0.5333333333333333,
+   "std": 0.10749676997731399
+  },
+  "joint_correct": {
+   "mean": 0.5266666666666666,
+   "std": 0.10624918300339484
+  }
+ },
+ "nested_joint_pooled_ci": [
+  0.5266666666666666,
+  0.44666666666666666,
+  0.6066666666666667
+ ],
+ "best_fixed": {
+  "skill_correct_mean": 0.7066666666666667,
+  "tool_correct_mean": 0.5733333333333334,
+  "joint_correct_mean": 0.5599999999999999,
+  "skill_correct_std": 0.09285592184789417,
+  "tool_correct_std": 0.06798692684790378,
+  "joint_correct_std": 0.07118052168020872,
+  "skill_correct_all": 0.7066666666666667,
+  "tool_correct_all": 0.5733333333333334,
+  "joint_correct_all": 0.56
+ },
+ "calibration_stats": {
+  "skill": {
+   "n": 150,
+   "ece_raw": 0.5107753369991047,
+   "brier_raw": 0.44688751006875577,
+   "ece_isotonic": 0.09019679862652379,
+   "brier_isotonic": 0.18639672927699186,
+   "ece_platt": 0.06510430140491706,
+   "brier_platt": 0.18443889878923703
+  },
+  "tool": {
+   "n": 150,
+   "ece_raw": 0.3458231404358555,
+   "brier_raw": 0.3261161653056505,
+   "ece_isotonic": 0.08865260070991843,
+   "brier_isotonic": 0.2041779898670749,
+   "ece_platt": 0.10602868653030088,
+   "brier_platt": 0.20047237897997583
+  }
+ },
+ "calibrator": {
+  "skill": "platt",
+  "tool": "platt"
+ },
+ "calibration": {
+  "skill": {
+   "x": [
+    0.003798,
+    0.034632,
+    0.065465,
+    0.096299,
+    0.127133,
+    0.157967,
+    0.188801,
+    0.219635,
+    0.250469,
+    0.281303,
+    0.312136,
+    0.34297,
+    0.373804,
+    0.404638,
+    0.435472,
+    0.466306,
+    0.49714,
+    0.527973,
+    0.558807,
+    0.589641,
+    0.620475
+   ],
+   "y": [
+    0.419955,
+    0.491992,
+    0.564363,
+    0.634092,
+    0.698621,
+    0.756145,
+    0.805743,
+    0.847291,
+    0.881262,
+    0.908492,
+    0.929973,
+    0.946708,
+    0.959617,
+    0.9695,
+    0.977022,
+    0.982722,
+    0.987027,
+    0.99027,
+    0.992708,
+    0.994539,
+    0.995912
+   ]
+  },
+  "tool": {
+   "x": [
+    0.001862,
+    0.026361,
+    0.050861,
+    0.075361,
+    0.099861,
+    0.12436,
+    0.14886,
+    0.17336,
+    0.197859,
+    0.222359,
+    0.246859,
+    0.271359,
+    0.295858,
+    0.320358,
+    0.344858,
+    0.369358,
+    0.393857,
+    0.418357,
+    0.442857,
+    0.467356,
+    0.491856
+   ],
+   "y": [
+    0.271703,
+    0.310782,
+    0.352759,
+    0.397139,
+    0.443279,
+    0.490418,
+    0.537728,
+    0.584369,
+    0.629545,
+    0.672563,
+    0.712864,
+    0.750048,
+    0.783876,
+    0.81426,
+    0.841238,
+    0.864947,
+    0.885597,
+    0.903442,
+    0.918759,
+    0.931829,
+    0.942927
+   ]
+  }
+ },
+ "p50_ms": 18.67291699454654,
+ "p95_ms": 36.84558198438026,
+ "errors": 0,
+ "points": [
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5599999999999999,
+   "skill_correct_mean": 0.7066666666666667,
+   "tool_correct_mean": 0.5733333333333334,
+   "p50_ms": 18.67291699454654
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5533333333333333,
+   "skill_correct_mean": 0.6933333333333334,
+   "tool_correct_mean": 0.5666666666666667,
+   "p50_ms": 24.355791523703374
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5466666666666666,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5666666666666667,
+   "p50_ms": 18.689583506784402
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5466666666666666,
+   "skill_correct_mean": 0.7,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 21.816874490468763
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5466666666666666,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5599999999999999,
+   "p50_ms": 23.330770985921845
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5466666666666666,
+   "skill_correct_mean": 0.6933333333333334,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 23.70316698215902
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5466666666666666,
+   "skill_correct_mean": 0.6933333333333334,
+   "tool_correct_mean": 0.5666666666666667,
+   "p50_ms": 31.422478990862146
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.54,
+   "skill_correct_mean": 0.7,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 13.194438011851162
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.54,
+   "skill_correct_mean": 0.6933333333333334,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 13.736603505094536
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.54,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5599999999999999,
+   "p50_ms": 17.355563511955552
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.54,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.5599999999999999,
+   "p50_ms": 17.97170848294627
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.54,
+   "skill_correct_mean": 0.6933333333333334,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 19.27345898002386
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.54,
+   "skill_correct_mean": 0.7,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 20.970042009139434
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.54,
+   "skill_correct_mean": 0.7066666666666667,
+   "tool_correct_mean": 0.5599999999999999,
+   "p50_ms": 28.90600002137944
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.54,
+   "skill_correct_mean": 0.7,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 29.568020996521227
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.54,
+   "skill_correct_mean": 0.7,
+   "tool_correct_mean": 0.5466666666666666,
+   "p50_ms": 32.809250013087876
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.54,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 35.66604199295398
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.54,
+   "skill_correct_mean": 0.6933333333333334,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 41.670582999358885
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.54,
+   "skill_correct_mean": 0.6933333333333334,
+   "tool_correct_mean": 0.5466666666666666,
+   "p50_ms": 46.24443750071805
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5333333333333333,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5466666666666666,
+   "p50_ms": 12.590270984219387
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5333333333333333,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 13.187853968702257
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5333333333333333,
+   "skill_correct_mean": 0.7,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 18.22106199688278
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5333333333333333,
+   "skill_correct_mean": 0.6933333333333334,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 18.807167012710124
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5333333333333333,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 20.010875494335778
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5333333333333333,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 20.486562483711168
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5333333333333333,
+   "skill_correct_mean": 0.6799999999999999,
+   "tool_correct_mean": 0.5466666666666666,
+   "p50_ms": 22.124438008177094
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5333333333333333,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 23.140729521401227
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5333333333333333,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5466666666666666,
+   "p50_ms": 24.73135401669424
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5333333333333333,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5466666666666666,
+   "p50_ms": 25.253104002331384
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5333333333333333,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 31.462875005672686
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5333333333333333,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 33.06806202454027
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5266666666666666,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 10.962624990497716
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5266666666666666,
+   "skill_correct_mean": 0.6933333333333334,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 14.481207996141165
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5266666666666666,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 16.02699999057222
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5266666666666666,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 16.432563003036194
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5266666666666666,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.5466666666666666,
+   "p50_ms": 17.083624508813955
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5266666666666666,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 17.61554151016753
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5266666666666666,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 18.92422950186301
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5266666666666666,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 19.115208502626047
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5266666666666666,
+   "skill_correct_mean": 0.6933333333333334,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 19.45754150801804
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5266666666666666,
+   "skill_correct_mean": 0.6799999999999999,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 21.066729023004882
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5266666666666666,
+   "skill_correct_mean": 0.6799999999999999,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 21.77931199548766
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5266666666666666,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 21.87179149768781
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5266666666666666,
+   "skill_correct_mean": 0.6799999999999999,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 24.697500513866544
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5266666666666666,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 26.157999993301928
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5266666666666666,
+   "skill_correct_mean": 0.6799999999999999,
+   "tool_correct_mean": 0.5466666666666666,
+   "p50_ms": 36.84629198687617
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.7,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 9.954437497071922
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 10.645542002748698
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 10.743083010311238
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.6933333333333334,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 10.758937511127442
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5466666666666666,
+   "p50_ms": 10.839604001375847
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5599999999999999,
+   "p50_ms": 10.872874991036952
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 11.985063028987497
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 14.603270508814603
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.7,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 17.47229251486715
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5466666666666666,
+   "p50_ms": 18.136519996915013
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.5466666666666666,
+   "p50_ms": 18.284166493685916
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.5466666666666666,
+   "p50_ms": 18.659083507372998
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 19.030478506465442
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 21.429666987387463
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 21.614437995594926
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.5466666666666666,
+   "p50_ms": 22.225958004128188
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 23.952228992129676
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 27.93362451484427
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 36.410624990821816
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 38.70779198769014
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.7066666666666667,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 11.01497899799142
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 11.204895505215973
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 11.6992084949743
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.5466666666666666,
+   "p50_ms": 12.079165986506268
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 12.385207999614067
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.7,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 12.487791493185796
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.6933333333333334,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 12.762479003868066
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.6933333333333334,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 13.721249997615814
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.5466666666666666,
+   "p50_ms": 14.740104496013373
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 15.149500512052327
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 15.524645001278259
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.6933333333333334,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 16.758083482272923
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 17.078083008527756
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.5466666666666666,
+   "p50_ms": 17.942395512363873
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 19.477542009553872
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5466666666666666,
+   "p50_ms": 20.189708506222814
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 23.507208490627818
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 23.600625005201437
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 25.635437486926094
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.6799999999999999,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 28.364458004944026
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5466666666666666,
+   "p50_ms": 29.00333298020996
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5466666666666666,
+   "p50_ms": 30.593249990488403
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 32.3844164959155
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5133333333333333,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 39.1971039789496
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 10.405792505480349
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 10.733042028732598
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.7,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 11.179125489434227
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 11.826792499050498
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6799999999999999,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 12.933687990880571
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 13.323499995749444
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6933333333333334,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 13.325645995792001
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 16.40489599958528
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 17.55102101014927
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 17.85293700231705
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 17.87472900468856
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 18.488978981622495
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 18.83206250204239
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 19.124645506963134
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 21.823395014507696
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 22.157291998155415
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 22.491000505397096
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 26.424042007420212
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 27.626229013549164
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 28.524749985081144
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 29.219000003649853
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 30.711896004504524
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 33.662333502434194
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6466666666666666,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 35.62447901640553
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 44.36491697560996
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5066666666666667,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 51.20468800305389
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5066666666666666,
+   "skill_correct_mean": 0.6799999999999999,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 8.818458503810689
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.54,
+   "p50_ms": 8.54004148277454
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 8.771145978244022
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 9.295083480537869
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5066666666666666,
+   "p50_ms": 13.293854994117282
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 13.805187511024997
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 13.865646003978327
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 15.166042008786462
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 15.909771012957208
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 16.313917003571987
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 17.666333995293826
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 19.11604151246138
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.5066666666666667,
+   "p50_ms": 19.754083987209015
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 20.4308959946502
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 21.04139601578936
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.64,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 21.18122849788051
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5333333333333333,
+   "p50_ms": 21.201124996878207
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.64,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 21.897854487178847
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 24.203208507969975
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 25.241292009013705
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 25.393686999450438
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.5066666666666667,
+   "p50_ms": 26.67052100878209
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 27.113124990137294
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 32.31968650652561
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 39.732833014568314
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 50.881354516604915
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.6733333333333333,
+   "tool_correct_mean": 0.5066666666666666,
+   "p50_ms": 14.306979501270689
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 17.45985400339123
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 19.9091664981097
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.64,
+   "tool_correct_mean": 0.5066666666666667,
+   "p50_ms": 20.221374521497637
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.5066666666666667,
+   "p50_ms": 20.788979512872174
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 24.127937998855487
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.6466666666666666,
+   "tool_correct_mean": 0.5066666666666667,
+   "p50_ms": 25.74897848535329
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 26.614563510520384
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.6466666666666666,
+   "tool_correct_mean": 0.5066666666666667,
+   "p50_ms": 29.274833505041897
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.6466666666666666,
+   "tool_correct_mean": 0.5066666666666667,
+   "p50_ms": 31.60031199513469
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.64,
+   "tool_correct_mean": 0.5066666666666667,
+   "p50_ms": 32.24185400176793
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.52,
+   "p50_ms": 33.154416509205475
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 34.274311969056726
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.5066666666666667,
+   "p50_ms": 36.15243747481145
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4866666666666667,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 7.915166512248106
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4866666666666667,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 10.630667005898431
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4866666666666667,
+   "skill_correct_mean": 0.68,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 10.657958991941996
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4866666666666667,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.5066666666666667,
+   "p50_ms": 11.378812487237155
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4866666666666667,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 18.097895503160544
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4866666666666667,
+   "skill_correct_mean": 0.6466666666666666,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 21.306645998265594
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4866666666666667,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 21.8155414913781
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4866666666666667,
+   "skill_correct_mean": 0.6466666666666666,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 23.55606251512654
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4866666666666667,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 23.77783297561109
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4866666666666667,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 32.11706248112023
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4866666666666667,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 32.210250006755814
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4866666666666667,
+   "skill_correct_mean": 0.64,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 32.22668751550373
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4866666666666667,
+   "skill_correct_mean": 0.6266666666666667,
+   "tool_correct_mean": 0.5066666666666667,
+   "p50_ms": 32.50110399676487
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4866666666666667,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 35.18154150515329
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4866666666666667,
+   "skill_correct_mean": 0.6466666666666666,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 36.22289598570205
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.48666666666666664,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5066666666666666,
+   "p50_ms": 14.017791021615267
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 8.695562995853834
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 11.08339600614272
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 11.09547850501258
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 12.506479033618234
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6266666666666667,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 12.580896000145003
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.5066666666666667,
+   "p50_ms": 15.475062013138086
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 15.497250511543825
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 15.499604502110742
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 16.159916995093226
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 16.675958497216925
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6266666666666667,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 17.528354001115076
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 18.261687000631355
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 18.69916649593506
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 19.018375518498942
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 19.211062477552332
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6466666666666666,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 20.360000009532087
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 20.956499982276
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6466666666666666,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 21.12189499894157
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 22.146646020701155
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6466666666666666,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 22.846666513942182
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 24.384770513279364
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 24.473229495924897
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.64,
+   "tool_correct_mean": 0.5066666666666667,
+   "p50_ms": 25.24120852467604
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6466666666666666,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 26.30697999848053
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6466666666666666,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 27.4651040090248
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 28.162854505353607
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 33.783062506699935
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 10.812041480676271
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 10.8150835003471
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.6266666666666667,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 12.767562497174367
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 12.943541994900443
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 15.111395478015766
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 16.490562018589117
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 18.479062491678633
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 19.61208350257948
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 20.065458476892672
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 20.918270995025523
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 21.120520497788675
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 22.306624494376592
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.64,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 22.532833521836437
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.48666666666666664,
+   "p50_ms": 23.813499996322207
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 24.98402149649337
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 27.390541494241916
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 27.815020497655496
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 29.525104007916525
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 30.921000012313016
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.64,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 31.219480020808987
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 33.27064549375791
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 33.97608302475419
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 10.196687508141622
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6466666666666666,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 10.884708492085338
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 11.00939599564299
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 11.914062473806553
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 12.334083497989923
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6466666666666666,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 12.701311978162266
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 13.02129149553366
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 13.334854505956173
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 13.762457994744182
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 15.652666494133882
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6266666666666667,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 15.775332998600788
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 18.128207986592315
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 18.413854500977322
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 18.58564499707427
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 18.828228508937173
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.5066666666666667,
+   "p50_ms": 19.106645486317575
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6266666666666667,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 20.048624515766278
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 20.4052084882278
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 20.431395998457447
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.5066666666666667,
+   "p50_ms": 20.572291992721148
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 25.277979002567008
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 25.842334012850188
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6466666666666666,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 26.78129152627662
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 10.060270491521806
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 11.339750490151346
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 11.69639550789725
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 11.791562486905605
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 12.647354509681463
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 13.207207492087036
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6266666666666666,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 13.686562480870634
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 14.743583000381477
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 14.775937495869584
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 16.105207992950454
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 16.45581200136803
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 16.646312491502613
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 17.15702100773342
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 17.163375014206395
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 17.82539598934818
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 19.187603989848867
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 19.29524949810002
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 19.836811974528246
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 19.907062480342574
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 19.963207494583912
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 20.061229515704326
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6266666666666666,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 21.200999995926395
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 22.781499996199273
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 22.869291497045197
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 23.375312506686896
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 23.663771018618718
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 24.02774998336099
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6266666666666667,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 28.894938004668802
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6266666666666667,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 29.38197899493389
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.46,
+   "p50_ms": 30.0843114964664
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6266666666666667,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 30.200416498701088
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 40.35641699738335
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 42.222625503200106
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.5,
+   "p50_ms": 10.45575000171084
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 10.944104011286981
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 11.337479518260807
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 12.214853981276974
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 12.932104495121166
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 14.068686999962665
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 14.948812502552755
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 16.615312997600995
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 16.85983350034803
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 16.981395514449105
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 18.297145506949164
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 19.00370849762112
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 19.169082996086217
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.6266666666666666,
+   "tool_correct_mean": 0.45333333333333337,
+   "p50_ms": 19.329687478602864
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 21.01947899791412
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 22.15266651182901
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.49333333333333335,
+   "p50_ms": 23.725541002932005
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 23.99927150690928
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 24.579583492595702
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 24.847166991094127
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 26.240041508572176
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 28.001166501780972
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.45333333333333337,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 38.361375001841225
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4533333333333333,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 9.438104490982369
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4533333333333333,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 9.772896504728124
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4533333333333333,
+   "skill_correct_mean": 0.6266666666666667,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 11.45883351273369
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4533333333333333,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 13.592500006780028
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4533333333333333,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.46,
+   "p50_ms": 16.75941598659847
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4533333333333333,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 17.812915990361944
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4533333333333333,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 19.647979002911597
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4533333333333333,
+   "skill_correct_mean": 0.6266666666666666,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 20.733000492327847
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4533333333333333,
+   "skill_correct_mean": 0.6266666666666667,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 20.756019992404617
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4533333333333333,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.46,
+   "p50_ms": 21.254749488434754
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4533333333333333,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 30.236437494750135
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 7.673104017158039
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6266666666666667,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 8.739666009205393
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.46,
+   "p50_ms": 9.587312495568767
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 9.758979009347968
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 10.350437994929962
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6266666666666667,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 10.994854485034011
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 12.169833978987299
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 12.169895475381054
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 12.620396009879187
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.5933333333333334,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 13.499541499186307
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 15.501104004215449
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 15.654833012376912
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 15.868291491642594
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 16.283458506222814
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.46,
+   "p50_ms": 17.486896525952034
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 17.680145509075373
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.45333333333333337,
+   "p50_ms": 17.96420848404523
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.5933333333333334,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 17.987291517783888
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 18.61254200048279
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 18.674312988878228
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.46,
+   "p50_ms": 19.711083499714732
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 21.636125500663184
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 21.747228980530053
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.46,
+   "p50_ms": 22.408187520341016
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 23.45314600097481
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.45333333333333337,
+   "p50_ms": 23.594290993059985
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 23.633229517145082
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 25.05689550889656
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.46,
+   "p50_ms": 25.888186966767535
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.46,
+   "p50_ms": 26.400062488391995
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 26.431104517541826
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 29.56645800441038
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 31.293250009184703
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.4533333333333333,
+   "p50_ms": 35.0927289982792
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 7.6362079998943955
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 7.861791498726234
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.6266666666666667,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 7.995895502972417
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 8.421583988820203
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 9.53452050453052
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 10.414083008072339
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 11.045687992009334
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 11.14360500650946
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.6266666666666667,
+   "tool_correct_mean": 0.45333333333333337,
+   "p50_ms": 13.075104507151991
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 14.2165620054584
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 15.456229011761025
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 16.177875018911436
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.45333333333333337,
+   "p50_ms": 18.290958483703434
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 18.947311997180805
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.6266666666666666,
+   "tool_correct_mean": 0.44,
+   "p50_ms": 21.21645849547349
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 22.101416499936022
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 22.540812482475303
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.5866666666666667,
+   "tool_correct_mean": 0.46,
+   "p50_ms": 23.268874996574596
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.4533333333333333,
+   "p50_ms": 24.684791482286528
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.5866666666666667,
+   "tool_correct_mean": 0.46,
+   "p50_ms": 25.852521022898145
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.58,
+   "tool_correct_mean": 0.46,
+   "p50_ms": 27.7941044914769
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.46,
+   "p50_ms": 29.013583989581093
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.5866666666666667,
+   "tool_correct_mean": 0.46,
+   "p50_ms": 36.45154151308816
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.45333333333333337,
+   "p50_ms": 10.139374993741512
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.46,
+   "p50_ms": 11.161729009472765
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.45333333333333337,
+   "p50_ms": 15.878666497883387
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 18.225958512630314
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 18.830937013262883
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.5866666666666667,
+   "tool_correct_mean": 0.45333333333333337,
+   "p50_ms": 22.22793699183967
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.4533333333333333,
+   "p50_ms": 30.322771010105498
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.45333333333333337,
+   "p50_ms": 30.82602098584175
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.44,
+   "p50_ms": 34.63550050219055
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4533333333333333,
+   "p50_ms": 9.651166503317654
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 9.680771006969735
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 11.45568750507664
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4533333333333333,
+   "p50_ms": 11.474729020847008
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 15.41929149243515
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 15.701603988418356
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 15.731645515188575
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.5866666666666667,
+   "tool_correct_mean": 0.44,
+   "p50_ms": 16.67539551272057
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.5866666666666667,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 17.024250511894934
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.44,
+   "p50_ms": 17.154500019387342
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.44,
+   "p50_ms": 17.36183400498703
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 17.5283330027014
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 17.589458511793055
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.44,
+   "p50_ms": 17.877833495731466
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 22.078020992921665
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 23.059541505062953
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 23.18360451317858
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 27.051083496189676
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=6 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 27.268770500086248
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 28.027416512486525
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.5866666666666667,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 28.076103495550342
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4266666666666667,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 34.45329148962628
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.42666666666666664,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.45333333333333337,
+   "p50_ms": 7.637978997081518
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.42666666666666664,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 15.956729010213166
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.42666666666666664,
+   "skill_correct_mean": 0.58,
+   "tool_correct_mean": 0.44,
+   "p50_ms": 17.676728501101024
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.42666666666666664,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.44,
+   "p50_ms": 19.494374995701946
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.42,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 10.109208480571397
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.42,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.44,
+   "p50_ms": 11.808103503426537
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.42,
+   "skill_correct_mean": 0.62,
+   "tool_correct_mean": 0.42666666666666664,
+   "p50_ms": 13.783730013528839
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.42,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 13.94793699728325
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.42,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.4266666666666667,
+   "p50_ms": 20.46281297225505
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.42,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.4266666666666667,
+   "p50_ms": 20.5762295081513
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.42,
+   "skill_correct_mean": 0.5866666666666667,
+   "tool_correct_mean": 0.4266666666666667,
+   "p50_ms": 23.13743748527486
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=5 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.42,
+   "skill_correct_mean": 0.58,
+   "tool_correct_mean": 0.44,
+   "p50_ms": 24.535582517273724
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.42,
+   "skill_correct_mean": 0.6,
+   "tool_correct_mean": 0.42666666666666664,
+   "p50_ms": 30.374729496543296
+  },
+  {
+   "label": "strategies.bm25.ngram_min=3 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.41333333333333333,
+   "skill_correct_mean": 0.5866666666666667,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 11.519271487486549
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=2 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.41333333333333333,
+   "skill_correct_mean": 0.6133333333333333,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 16.602250500000082
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.41333333333333333,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 20.0137499923585
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.41333333333333333,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 21.92729149828665
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4066666666666667,
+   "skill_correct_mean": 0.5866666666666667,
+   "tool_correct_mean": 0.42,
+   "p50_ms": 14.790646004257724
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4066666666666667,
+   "skill_correct_mean": 0.58,
+   "tool_correct_mean": 0.4266666666666667,
+   "p50_ms": 16.344166491762735
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4066666666666667,
+   "skill_correct_mean": 0.58,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 16.71487500425428
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4066666666666667,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.42,
+   "p50_ms": 17.265166010474786
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.75 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.4066666666666667,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.42666666666666664,
+   "p50_ms": 19.14595848938916
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4066666666666667,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 20.577937990310602
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4066666666666667,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.42,
+   "p50_ms": 23.366312496364117
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.4,
+   "skill_correct_mean": 0.58,
+   "tool_correct_mean": 0.4066666666666667,
+   "p50_ms": 18.44906248152256
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=1.2 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.39999999999999997,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 15.207812990411185
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.39999999999999997,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.4066666666666667,
+   "p50_ms": 19.851541990647092
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.3933333333333333,
+   "skill_correct_mean": 0.5533333333333333,
+   "tool_correct_mean": 0.4066666666666667,
+   "p50_ms": 13.254312492790632
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.9 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.3933333333333333,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.4066666666666667,
+   "p50_ms": 19.067729503149167
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=True",
+   "joint_correct_mean": 0.38666666666666666,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.39999999999999997,
+   "p50_ms": 18.767812973237596
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=3 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.3933333333333333,
+   "p50_ms": 13.547645998187363
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=4 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5533333333333333,
+   "tool_correct_mean": 0.3933333333333333,
+   "p50_ms": 15.401687516714446
+  },
+  {
+   "label": "strategies.bm25.ngram_min=2 strategies.bm25.ngram_max=4 strategies.bm25.agg_k=2 strategies.bm25.k1=0.6 strategies.bm25.b=0.5 strategies.bm25.history_turns=0 strategies.bm25.fold_accents=False",
+   "joint_correct_mean": 0.37333333333333335,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.38,
+   "p50_ms": 13.947437502793036
+  }
+ ]
+}

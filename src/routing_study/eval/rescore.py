@@ -31,6 +31,16 @@ from routing_study.eval.scorers import (
 PROVENANCE = "_provenance"
 DATA_DIR = Path("data")
 TOOLS_LIST = Path("mcp_server/tools_list.json")
+# phase 2: the large-catalog splits are scored against the 62-tool snapshot (CATALOG_PROFILE=large)
+TOOLS_LIST_LARGE = Path("mcp_server/tools_list_large.json")
+LARGE_SPLITS = frozenset({"dev_l", "test_l"})
+
+
+def default_tools_path(split: str) -> Path:
+    """The tools/list snapshot a split was served from (large splits: the large catalog)."""
+    return TOOLS_LIST_LARGE if split in LARGE_SPLITS else TOOLS_LIST
+
+
 EXPERIMENTS_DIR = Path("config/experiments")
 UNKNOWN = "unknown (not recorded in rows)"
 NA = "n/a"  # a used model has no list price (OpenRouter pricing -1, e.g. the Jev meta-router)
@@ -211,9 +221,26 @@ def rescore_rows(
     cases: dict[str, dict[str, Any]],
     tools: list[dict[str, Any]],
     prices: dict[str, tuple[float, float]] | None = None,
+    scorer: str = "legacy",
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    """(rescored rows, checks) for rows of one split."""
+    """(rescored rows, checks) for rows of one split. `scorer`: "legacy" (the pre-registered
+    `score_turn`) or "sym" (`scorers_sym.score_turn_sym`, prereg-v2 e2e primary)."""
     schemas, read_only = tool_index(tools)
+    if scorer == "sym":
+        from routing_study.eval.scorers_sym import score_turn_sym, tool_skills
+
+        skills = tool_skills(tools)
+
+        def score(raw: dict[str, Any], case: dict[str, Any]) -> dict[str, Any]:
+            return score_turn_sym(raw, case["expected"], schemas, case["turns"], read_only, skills)
+    elif scorer == "legacy":
+
+        def score(raw: dict[str, Any], case: dict[str, Any]) -> dict[str, Any]:
+            return score_turn(
+                raw, case["expected"], schemas, turns=case["turns"], read_only=read_only
+            )
+    else:
+        raise ValueError(f"unknown scorer {scorer!r} (legacy | sym)")
     known = set(schemas)
     checks: Counter[str] = Counter()
     models_by_config: dict[str, dict[str, str]] = {}
@@ -238,11 +265,7 @@ def rescore_rows(
             for c in raw.get("calls") or []
             if c.get("name") != LOAD_SKILL and c.get("name") not in known
         )
-        row["scores"] = (
-            score_turn(raw, case["expected"], schemas, turns=case["turns"], read_only=read_only)
-            if "calls" in raw
-            else {}
-        )
+        row["scores"] = score(raw, case) if "calls" in raw else {}
         cost = dict(raw.get("cost_usd") or {})
         cost["billed_total"] = billed_total(raw)
         if prices is not None:
@@ -259,23 +282,27 @@ def rescore_file(
     out_dir: Path,
     *,
     data_dir: Path = DATA_DIR,
-    tools_path: Path = TOOLS_LIST,
+    tools_path: Path | None = None,
     prices_path: Path | None = None,
     run_git_sha: str | None = None,
+    scorer: str = "legacy",
 ) -> tuple[Path, dict[str, Any]]:
     """Rescore one raw results file into `out_dir/<name>.jsonl`; returns (path, provenance).
     `run_git_sha` fills the run's code version for rows written before rows carried it
     (e.g. from the Langfuse trace metadata); it is recorded as given, never guessed."""
     from routing_study.eval.runner import git_sha
+    from routing_study.eval.scorers_sym import scorer_sym_hash
 
     rows = load_raw([path])
     splits = sorted({r.get("split", "") for r in rows})
     if len(splits) != 1:
         raise ValueError(f"{path}: expected rows of one split, got {splits}")
     cases, data_path = load_dataset(splits[0], data_dir)
+    if tools_path is None:  # None: the split's own catalog snapshot (phase-1 splits: unchanged)
+        tools_path = default_tools_path(splits[0])
     tools = load_tools(tools_path)
     prices = load_prices(prices_path) if prices_path else None
-    rescored, checks = rescore_rows(rows, cases, tools, prices)
+    rescored, checks = rescore_rows(rows, cases, tools, prices, scorer)
 
     def recorded(key: str) -> list[str] | str:
         values = sorted({str(r[key]) for r in rows if r.get(key)})
@@ -283,7 +310,7 @@ def rescore_file(
 
     provenance = {
         "source": {"file": path.name, "sha256": sha256_file(path), "rows": len(rows)},
-        "scorer_hash": scorer_hash(),
+        "scorer_hash": scorer_hash() if scorer == "legacy" else scorer_sym_hash(),
         "rescore_git_sha": git_sha(),
         "run_git_sha": (
             recorded("git_sha") if any(r.get("git_sha") for r in rows) else run_git_sha or UNKNOWN
@@ -299,6 +326,8 @@ def rescore_file(
         "checks": checks,
         "round4": round4_check(rows),
     }
+    if scorer != "legacy":  # legacy provenance keeps its phase-1 bytes
+        provenance["scorer"] = scorer
     out_dir.mkdir(parents=True, exist_ok=True)
     out = out_dir / path.name
     lines = [json.dumps({PROVENANCE: provenance}, ensure_ascii=False, sort_keys=True)]

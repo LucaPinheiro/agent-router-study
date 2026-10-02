@@ -14,6 +14,15 @@ from routing_study.routers.common import tracing_active
 from routing_study.settings import load_settings
 
 EXPERIMENTS = sorted(Path("config/experiments").glob("e*.yaml"))
+# phase-2 Part A (prereg-v2a): managed routers on Bedrock, no local model in the config's pipeline
+PART_A = {
+    "e3_embedding_cohere": ("embedding", "global.cohere.embed-v4:0"),
+    "e3_embedding_titan": ("embedding", "amazon.titan-embed-text-v2:0"),
+    "e10_classifier_cohere": ("classifier", "global.cohere.embed-v4:0"),
+    "e10_classifier_titan": ("classifier", "amazon.titan-embed-text-v2:0"),
+    "e6m_llm_ministral": ("llm", "mistral.ministral-3-8b-instruct"),
+    "e6n_llm_nemotron": ("llm", "nvidia.nemotron-nano-9b-v2"),
+}
 
 
 SONNET = "global.anthropic.claude-sonnet-5"
@@ -25,9 +34,12 @@ def test_all_experiments_load():
     core = ["e0", "e1", "e2", "e3", "e4", "e5", "e6", "e6b", "e7", "e8", "e9"]
     assert set(core) <= set(names)
     # phase-2 additions: e10 classifier, e11 hybrid, e3 alt-embedder ablations; freeze: e12
-    # (exploratory hybrid -> Jev -> LLM cascade)
-    assert set(names) - set(core) <= {"e10", "e11", "e12"}
+    # (exploratory hybrid -> Jev -> LLM cascade); Part A: e6m / e6n managed 8B LLMs
+    assert set(names) - set(core) <= {"e10", "e11", "e12", "e6m", "e6n"}
+    assert set(PART_A) <= {p.stem for p in EXPERIMENTS}
     for path in EXPERIMENTS:
+        if path.stem in PART_A:
+            continue  # test_part_a_configs
         alt_embedder = path.stem.startswith("e3_embedding_")
         s = load_settings(path)
         ex = s.executor
@@ -53,6 +65,24 @@ def test_all_experiments_load():
     assert (by["e6"].strategies.llm.model, by["e6"].strategies.llm.temperature) == (HAIKU, 0)
     assert (by["e5"].strategies.llm.model, by["e5"].strategies.llm.temperature) == (SONNET, None)
     assert [st.strategy for st in by["e6b"].routing.skill.pipeline] == ["llm_local"]
+
+
+def test_part_a_configs():
+    """Part A (prereg-v2a): one managed strategy per stage, on Bedrock sa-east-1."""
+    for stem, (strategy, model) in PART_A.items():
+        s = load_settings(f"config/experiments/{stem}.yaml")
+        assert s.routing.mode == "single" and s.routing.tool.expose_top_k == 2
+        for stage in (s.routing.skill, s.routing.tool):
+            assert [st.strategy for st in stage.pipeline] == [strategy]
+        block = s.strategies.llm if strategy == "llm" else s.strategies.embedding
+        assert (block.provider, block.model, block.region) == ("bedrock", model, "sa-east-1")
+        if strategy == "llm":
+            assert (block.temperature, block.prompt_variant, block.prompt_track) == (
+                0,
+                "P0",
+                "canonical",
+            )
+        assert s.executor is not None and s.executor.model == SONNET
 
 
 def test_env_overrides_with_list_index_and_nesting(monkeypatch):

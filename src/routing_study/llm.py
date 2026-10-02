@@ -18,6 +18,7 @@ through the spend ledger (`routing_study.budget`): reserved before, recorded aft
 from __future__ import annotations
 
 import asyncio
+import json
 import random
 import time
 import weakref
@@ -32,7 +33,7 @@ import numpy as np
 import openai
 from langchain_aws import ChatBedrockConverse
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import AIMessage, BaseMessage
+from langchain_core.messages import AIMessage, BaseMessage, SystemMessage
 from langchain_core.outputs import ChatResult
 from langchain_core.runnables import Runnable
 from langchain_openai import ChatOpenAI
@@ -251,6 +252,37 @@ def bedrock_token_usage(msg: AIMessage, price: Price | None) -> dict[str, Any]:
     }
 
 
+# Non-Anthropic Bedrock models whose quirks langchain-aws does not infer from the id.
+# Verified 2026-10-01 against sa-east-1 Converse: both accept a forced `toolChoice: tool`
+# (langchain-aws infers no tool_choice support for them, so structured output would not be
+# forced); Nemotron Nano reasons by default and only switches it off with a `/no_think`
+# system prompt (with `toolChoice: any` it returns empty content).
+_BEDROCK_QUIRKS: dict[str, dict[str, Any]] = {
+    "mistral.ministral-3-": {"tool_choice": ("auto", "any", "tool")},
+    "nvidia.nemotron-nano-": {"tool_choice": ("auto", "any", "tool"), "no_think": "/no_think"},
+}
+
+
+def bedrock_quirks(model: str) -> dict[str, Any]:
+    base = (
+        model.split(".", 1)[1] if model.split(".", 1)[0] in ("us", "eu", "sa", "global") else model
+    )
+    return next((q for prefix, q in _BEDROCK_QUIRKS.items() if base.startswith(prefix)), {})
+
+
+def with_system_prefix(messages: list[BaseMessage], prefix: str) -> list[BaseMessage]:
+    """`prefix` as the first line of the system prompt (a new system message if none)."""
+    if messages and isinstance(messages[0], SystemMessage):
+        first = messages[0]
+        content = first.content
+        if isinstance(content, str):
+            new = SystemMessage(f"{prefix}\n{content}")
+        else:
+            new = SystemMessage([{"type": "text", "text": prefix}, *content])
+        return [new, *messages[1:]]
+    return [SystemMessage(prefix), *messages]
+
+
 class BedrockChat(_Metered, ChatBedrockConverse):
     """ChatBedrockConverse + cache points, unified `token_usage`/cost and metering.
 
@@ -266,10 +298,13 @@ class BedrockChat(_Metered, ChatBedrockConverse):
     ledger: Any = Field(default=None, exclude=True)
     price: Any = Field(default=None, exclude=True)
     provider_name: str = Field(default="bedrock", exclude=True)
+    system_prefix: str | None = Field(default=None, exclude=True)
 
     def _generate(
         self, messages: list[BaseMessage], stop: Any = None, run_manager: Any = None, **kw: Any
     ) -> ChatResult:
+        if self.system_prefix:
+            messages = with_system_prefix(messages, self.system_prefix)
         messages = bedrock_cache_points(messages)
         with self._meter(messages, **kw) as meter:
             result = super()._generate(messages, stop, run_manager, **kw)
@@ -444,6 +479,11 @@ def make_bedrock_chat(
         kwargs["temperature"] = temperature
     if max_tokens is not None:
         kwargs["max_tokens"] = max_tokens
+    quirks = bedrock_quirks(model)
+    if "tool_choice" in quirks:
+        kwargs["supports_tool_choice_values"] = quirks["tool_choice"]
+    if "no_think" in quirks:  # reasoning is always off on Bedrock in this study (see above)
+        kwargs["system_prefix"] = quirks["no_think"]
     return BedrockChat(**kwargs)
 
 
@@ -880,12 +920,15 @@ class EmbeddingsClient:
         backend: str = "openrouter",
         base_url: str | None = None,
         query_instruction: str | None = None,
+        region: str | None = None,
     ) -> None:
         self.settings = settings
         self.model = model
         self.provider = provider
         self.backend = backend
         self.query_instruction = query_instruction
+        self.region = region
+        self._boto: Any = None
         default = settings.ollama_base_url if backend == "ollama" else settings.openrouter_base_url
         self.base_url = (base_url or default).rstrip("/")
         self._http = http
@@ -899,6 +942,7 @@ class EmbeddingsClient:
             backend=cfg.provider,
             base_url=cfg.base_url,
             query_instruction=cfg.query_instruction,
+            region=cfg.region,
         )
 
     def _client(self) -> httpx.AsyncClient:
@@ -912,7 +956,14 @@ class EmbeddingsClient:
     async def embed_query(self, text: str) -> EmbeddingResult:
         return await self.embed([self.query_text(text)])
 
-    async def embed(self, texts: list[str]) -> EmbeddingResult:
+    async def embed_search_query(self, texts: list[str]) -> EmbeddingResult:
+        """Query-side embedding. Asymmetric Bedrock models (Cohere `input_type`) embed
+        queries and documents differently; elsewhere the same as `embed`."""
+        return await self.embed(texts, input_type="search_query")
+
+    async def embed(self, texts: list[str], input_type: str = "search_document") -> EmbeddingResult:
+        if self.backend == "bedrock":
+            return await self._embed_bedrock(texts, input_type)
         if self.backend not in ("openrouter", "ollama"):
             raise ValueError(f"embeddings provider {self.backend!r} is not supported")
         body: dict[str, Any] = {"model": self.model, "input": texts}
@@ -955,6 +1006,75 @@ class EmbeddingsClient:
             provider=data.get("provider")
             or (self.backend if self.backend != "openrouter" else None),
             prompt_tokens=int(usage.get("prompt_tokens") or 0),
+            latency_ms=stats.call_ms,
+            attempts=stats.attempts,
+            queue_ms=stats.queue_ms,
+            retry_ms=stats.retry_ms,
+        )
+
+    def _bedrock(self) -> Any:
+        if self._boto is None:
+            import boto3
+
+            self._boto = boto3.client(
+                "bedrock-runtime", region_name=self.region or self.settings.bedrock_region
+            )
+        return self._boto
+
+    async def _embed_bedrock(self, texts: list[str], input_type: str) -> EmbeddingResult:
+        """Bedrock InvokeModel. Cohere Embed takes a batch (≤ 96 texts) and an `input_type`
+        (search_query / search_document); Titan v2 takes one text per call. Tokens come from
+        the `x-amzn-bedrock-input-token-count` header; cost = tokens x the price table."""
+        price = prices_for(self.settings).get(("bedrock", self.model))
+        if price is None:
+            raise ValueError(
+                f"no bedrock price for {self.model!r} in {self.settings.budget.prices_path}"
+            )
+        cohere = "cohere.embed" in self.model
+        if cohere:
+            batches = [texts[i : i + 96] for i in range(0, len(texts), 96)]
+        else:
+            batches = [[t] for t in texts]
+
+        def _invoke(batch: list[str]) -> tuple[list[list[float]], int]:
+            if cohere:
+                body = {"texts": batch, "input_type": input_type, "embedding_types": ["float"]}
+            else:
+                body = {"inputText": batch[0], "dimensions": 1024, "normalize": True}
+            resp = self._bedrock().invoke_model(modelId=self.model, body=json.dumps(body))
+            tokens = int(
+                resp["ResponseMetadata"]["HTTPHeaders"].get("x-amzn-bedrock-input-token-count", 0)
+            )
+            data = json.loads(resp["body"].read())
+            vecs = data["embeddings"]["float"] if cohere else [data["embedding"]]
+            return vecs, tokens
+
+        stats = RetryStats()
+        vectors: list[list[float]] = []
+        tokens = 0
+        with CallMeter(ledger_for(self.settings), "bedrock", self.model, 0.0) as meter:
+            for batch in batches:
+                vecs, n = await call_with_retry(
+                    lambda b=batch: asyncio.to_thread(_invoke, b),
+                    model=self.model,
+                    settings=self.settings,
+                    stats=stats,
+                    provider="bedrock",
+                )
+                vectors += vecs
+                tokens += n
+            cost = tokens * price.input / 1e6
+            meter.done(
+                {"cost_usd": cost, "prompt_tokens": tokens, "served_model": self.model},
+                kind="embedding",
+                inputs=len(texts),
+            )
+        return EmbeddingResult(
+            vectors=np.asarray(vectors, dtype=np.float32),
+            cost_usd=cost,
+            served_model=self.model,
+            provider="bedrock",
+            prompt_tokens=tokens,
             latency_ms=stats.call_ms,
             attempts=stats.attempts,
             queue_ms=stats.queue_ms,

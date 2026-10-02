@@ -7,7 +7,9 @@ executes the entries in priority order and follows these rules:
 - **Version guard.** The config's LLM / Jev strategies must be on the entry's `prompt_track`.
   When the entry freezes `config_hash` / `prompt_hash` (pre-registration), the current code
   must reproduce them. Rows already written must carry the same hashes. Any mismatch stops
-  the entry: rows of different versions never mix.
+  the entry: rows of different versions never mix. An entry may also freeze `catalog_hash`
+  (v2 manifests, optional): the MCP server at the config's `mcp_url` must then serve exactly
+  that catalog (e.g. the large profile on :8766, never the small one by mistake).
 - **Budget pre-check.** It projects the MEASURED cost per turn (`estimate.measured_cost`, from
   earlier results of the same config and mode) over the missing turns and checks it against
   the ledger caps. The a-priori upper bound is used only when nothing was measured.
@@ -70,6 +72,7 @@ class ManifestRun(BaseModel):
     overrides: dict[str, Any] = Field(default_factory=dict)
     config_hash: str | None = None  # frozen at pre-registration (asserted)
     prompt_hash: str | None = None
+    catalog_hash: str | None = None  # v2: the catalog served at the config's mcp_url (asserted)
     purpose: str = ""
 
 
@@ -211,6 +214,14 @@ def run_roles(settings: Any, run: ManifestRun, split: str) -> set[str]:
     return Runner(settings, split=split, mode=run.mode, run_name=run.name).model_roles()
 
 
+def current_catalog_hash(settings: Any) -> str:
+    """Hash of the catalog the run would see (fetched from `settings.mcp_url`, exclusions
+    applied), the same value the runner records as provenance `catalog_hash`."""
+    from routing_study.catalog import fetch_catalog
+
+    return asyncio.run(fetch_catalog(settings)).hash
+
+
 def version_problems(run: ManifestRun, settings: Any, split: str) -> list[str]:
     """Why this entry must not run with the current code/config (empty = fine)."""
     from routing_study.eval.runner import prompt_tracks
@@ -225,6 +236,16 @@ def version_problems(run: ManifestRun, settings: Any, split: str) -> list[str]:
         out.append(f"config_hash {config_hash(settings)} != frozen {run.config_hash}")
     if run.prompt_hash and run_prompt_hash() != run.prompt_hash:
         out.append(f"prompt_hash {run_prompt_hash()} != frozen {run.prompt_hash}")
+    if run.catalog_hash:
+        try:
+            served = current_catalog_hash(settings)
+        except Exception as exc:  # unreachable server: the entry cannot be checked, so it stops
+            out.append(f"catalog at {settings.mcp_url} unavailable: {type(exc).__name__}")
+        else:
+            if served != run.catalog_hash:
+                out.append(
+                    f"catalog_hash {served} at {settings.mcp_url} != frozen {run.catalog_hash}"
+                )
     return out
 
 

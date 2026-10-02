@@ -1,0 +1,335 @@
+{
+ "version": "2026-09-29-large",
+ "currency": "BRL",
+ "windows": {
+  "arrependimento_days_after_delivery": 7,
+  "return_or_exchange_days_after_delivery": 30,
+  "warranty_days_after_delivery": 365,
+  "return_post_by_days": 10,
+  "boleto_second_copy_due_days": 3,
+  "reschedule_min_days_ahead": 1,
+  "reschedule_max_days_ahead": 15,
+  "dispute_max_days_after_payment": 90,
+  "service_schedule_min_days_ahead": 1,
+  "service_schedule_max_days_ahead": 15,
+  "subscription_date_min_days_ahead": 1,
+  "subscription_date_max_days_ahead": 30,
+  "subscription_pause_max_cycles": 3,
+  "invoice_correction_days_after_issue": 30,
+  "return_invoice_days_after_delivery": 30,
+  "price_protection_days_after_purchase": 15,
+  "points_credit_days_after_delivery": 7,
+  "cashback_release_days_after_delivery": 30,
+  "points_min_redeem": 500,
+  "store_card_bill_copy_due_days": 3,
+  "store_card_max_overdue_days_for_copy": 30,
+  "store_card_limit_increase_max_factor": 1.5,
+  "debt_renegotiation_max_installments": 12,
+  "card_contest_max_days_after_transaction": 90
+ },
+ "sla": {
+  "delivery_capitals_business_days": "3 a 7",
+  "delivery_other_cities_business_days": "5 a 12",
+  "refund_credit_card": "estorno em até 2 faturas",
+  "refund_pix_business_days": 5,
+  "refund_boleto_business_days": 10,
+  "human_support_hours": 24,
+  "warranty_response_business_days": 15,
+  "dispute_resolution_days": 60,
+  "seller_response_hours_max": 72,
+  "seller_mediation_resolution_days": 10,
+  "seller_report_review_days": 7,
+  "invoice_correction_business_days": 5,
+  "coupon_adjustment_days": 5,
+  "missing_points_days": 10,
+  "store_card_contest_days": 30,
+  "store_card_replacement_business_days": 7,
+  "billing_update_effective": "próxima nota fiscal emitida"
+ },
+ "out_of_scope": [
+  "vagas de emprego e trabalhe conosco",
+  "lançamentos, estoque e recomendação de produtos",
+  "senha, login e recuperação de acesso",
+  "vendas para empresas (atacado e cotações)",
+  "seguros e empréstimos pessoais fora do cartão da loja"
+ ],
+ "articles": [
+  {
+   "id": "HC-001",
+   "title": "Prazo para desistir da compra (direito de arrependimento)",
+   "summary": "Compras online podem ser devolvidas por arrependimento em até 7 dias corridos após a entrega, com reembolso integral, inclusive do frete.",
+   "keywords": [
+    "arrependimento",
+    "desistir",
+    "devolver",
+    "devolucao",
+    "prazo",
+    "7 dias",
+    "reembolso"
+   ]
+  },
+  {
+   "id": "HC-002",
+   "title": "Trocas e devoluções por defeito, avaria ou produto errado",
+   "summary": "Produto com defeito, avariado, errado ou em tamanho diferente pode ser trocado ou devolvido em até 30 dias após a entrega. A postagem deve ocorrer em até 10 dias após a abertura.",
+   "keywords": [
+    "troca",
+    "trocar",
+    "devolucao",
+    "devolver",
+    "defeito",
+    "tamanho",
+    "errado",
+    "avariado",
+    "30 dias",
+    "prazo"
+   ]
+  },
+  {
+   "id": "HC-003",
+   "title": "Garantia de produtos",
+   "summary": "Defeitos que aparecem após 30 dias e em até 12 meses da entrega são atendidos pela garantia. A análise leva até 15 dias úteis.",
+   "keywords": [
+    "garantia",
+    "defeito",
+    "parou",
+    "funcionar",
+    "conserto",
+    "assistencia",
+    "12 meses"
+   ]
+  },
+  {
+   "id": "HC-004",
+   "title": "Prazos de reembolso por forma de pagamento",
+   "summary": "Cartão de crédito: estorno em até 2 faturas. Pix: até 5 dias úteis. Boleto: até 10 dias úteis na conta bancária informada.",
+   "keywords": [
+    "reembolso",
+    "estorno",
+    "dinheiro",
+    "volta",
+    "prazo",
+    "cartao",
+    "pix",
+    "boleto"
+   ]
+  },
+  {
+   "id": "HC-005",
+   "title": "Prazos de entrega",
+   "summary": "Capitais: 3 a 7 dias úteis após a aprovação do pagamento. Demais cidades: 5 a 12 dias úteis. O prazo começa a contar após a confirmação do pagamento.",
+   "keywords": [
+    "entrega",
+    "prazo",
+    "frete",
+    "demora",
+    "chega",
+    "dias uteis"
+   ]
+  },
+  {
+   "id": "HC-006",
+   "title": "Cancelamento de pedidos",
+   "summary": "Pedidos podem ser cancelados até o envio, com estorno automático. Depois do envio, recuse a entrega ou abra uma devolução após o recebimento.",
+   "keywords": [
+    "cancelar",
+    "cancelamento",
+    "desistir",
+    "pedido",
+    "envio"
+   ]
+  },
+  {
+   "id": "HC-007",
+   "title": "Formas de pagamento e parcelamento",
+   "summary": "Aceitamos cartão de crédito em até 10 vezes sem juros, Pix com aprovação imediata e boleto com compensação em até 3 dias úteis.",
+   "keywords": [
+    "pagamento",
+    "parcelamento",
+    "parcelas",
+    "cartao",
+    "pix",
+    "boleto",
+    "compensacao"
+   ]
+  },
+  {
+   "id": "HC-008",
+   "title": "Boleto: vencimento e 2ª via",
+   "summary": "O boleto vence 3 dias após a compra. Se vencer ou for perdido, é possível emitir a 2ª via com novo vencimento de 3 dias.",
+   "keywords": [
+    "boleto",
+    "vencimento",
+    "vencido",
+    "segunda",
+    "via",
+    "2 via"
+   ]
+  },
+  {
+   "id": "HC-009",
+   "title": "Alteração de endereço e reagendamento de entrega",
+   "summary": "O endereço pode ser alterado até o envio. Pedidos em trânsito podem ter a entrega reagendada para 1 a 15 dias à frente.",
+   "keywords": [
+    "endereco",
+    "alterar",
+    "mudar",
+    "reagendar",
+    "entrega",
+    "data"
+   ]
+  },
+  {
+   "id": "HC-010",
+   "title": "Contestação de cobrança no cartão",
+   "summary": "Cobranças não reconhecidas, duplicadas ou com valor divergente no cartão podem ser contestadas em até 90 dias. A análise leva até 60 dias.",
+   "keywords": [
+    "contestar",
+    "contestacao",
+    "cobranca",
+    "nao reconheco",
+    "duplicada",
+    "chargeback",
+    "cartao"
+   ]
+  },
+  {
+   "id": "HC-011",
+   "title": "Instalação e visita técnica",
+   "summary": "Eletrodomésticos comprados na loja têm instalação gratuita agendada de 1 a 15 dias à frente. Defeito em eletrodoméstico dentro da garantia é atendido por visita técnica em casa.",
+   "keywords": [
+    "instalacao",
+    "instalar",
+    "visita",
+    "tecnico",
+    "assistencia",
+    "eletrodomestico",
+    "agendar"
+   ]
+  },
+  {
+   "id": "HC-012",
+   "title": "Garantia estendida",
+   "summary": "A garantia estendida começa quando termina a garantia legal de 12 meses e dura 12 ou 24 meses, conforme o plano contratado. Cobre defeitos de funcionamento.",
+   "keywords": [
+    "garantia",
+    "estendida",
+    "plano",
+    "cobertura",
+    "defeito",
+    "validade"
+   ]
+  },
+  {
+   "id": "HC-013",
+   "title": "Compras de vendedores parceiros (marketplace)",
+   "summary": "Produtos de vendedores parceiros são enviados pelo próprio vendedor, com rastreio próprio. Se o vendedor não resolver, a loja faz a mediação em até 10 dias.",
+   "keywords": [
+    "vendedor",
+    "parceiro",
+    "marketplace",
+    "lojista",
+    "mediacao",
+    "rastreio"
+   ]
+  },
+  {
+   "id": "HC-014",
+   "title": "Assinaturas e entregas recorrentes",
+   "summary": "Assinaturas podem ser pausadas por até 3 ciclos, ter a data da próxima entrega alterada para 1 a 30 dias à frente e ser canceladas sem multa a qualquer momento.",
+   "keywords": [
+    "assinatura",
+    "recorrente",
+    "pausar",
+    "cancelar",
+    "clube",
+    "entrega",
+    "mensal"
+   ]
+  },
+  {
+   "id": "HC-015",
+   "title": "Nota fiscal e carta de correção",
+   "summary": "A nota fiscal é emitida no despacho do pedido. Nome e endereço podem ser corrigidos por carta de correção em até 30 dias da emissão; CPF/CNPJ não pode ser corrigido.",
+   "keywords": [
+    "nota",
+    "fiscal",
+    "nf",
+    "danfe",
+    "correcao",
+    "emissao",
+    "xml"
+   ]
+  },
+  {
+   "id": "HC-016",
+   "title": "Cupons e proteção de preço",
+   "summary": "Cada cupom tem regras de valor mínimo, categoria e validade. Se o preço de um produto baixar em até 15 dias da compra, a diferença volta como vale-compra.",
+   "keywords": [
+    "cupom",
+    "desconto",
+    "promocao",
+    "preco",
+    "baixou",
+    "protecao",
+    "vale"
+   ]
+  },
+  {
+   "id": "HC-017",
+   "title": "Vale-presente e vale-compra",
+   "summary": "Vale-presente precisa ser resgatado na conta antes do uso. O saldo vale até a data de validade e pode ser usado em várias compras.",
+   "keywords": [
+    "vale",
+    "presente",
+    "gift",
+    "card",
+    "saldo",
+    "resgatar",
+    "validade"
+   ]
+  },
+  {
+   "id": "HC-018",
+   "title": "Programa de pontos e cashback",
+   "summary": "Cada R$ 1 em compras entregues vira 1 ponto, creditado 7 dias após a entrega. O resgate mínimo é de 500 pontos. O cashback Pix é liberado 30 dias após a entrega.",
+   "keywords": [
+    "pontos",
+    "fidelidade",
+    "cashback",
+    "nivel",
+    "resgate",
+    "programa",
+    "credito"
+   ]
+  },
+  {
+   "id": "HC-019",
+   "title": "Cartão da loja: fatura, limite e bloqueio",
+   "summary": "A fatura do cartão da loja tem 2ª via com vencimento de 3 dias. Aumento de limite depende de não haver atraso. Em perda ou roubo, bloqueie o cartão; o novo chega em até 7 dias úteis.",
+   "keywords": [
+    "cartao",
+    "loja",
+    "fatura",
+    "limite",
+    "bloquear",
+    "roubo",
+    "perda",
+    "crediario"
+   ]
+  },
+  {
+   "id": "HC-020",
+   "title": "Renegociação de dívidas do cartão da loja",
+   "summary": "Faturas em atraso podem ser renegociadas em até 12 parcelas. Após 30 dias de atraso, a fatura só é paga por acordo de renegociação.",
+   "keywords": [
+    "renegociar",
+    "divida",
+    "atraso",
+    "acordo",
+    "parcelar",
+    "crediario"
+   ]
+  }
+ ]
+}

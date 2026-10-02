@@ -574,4 +574,9 @@ def load_settings(
         for top in {p[0] for p, _ in env_patches}:
             overrides.setdefault(top, data.get(top))
     overrides.setdefault("experiment_id", path.stem)
+    # A config that names its MCP server pins it: the catalog is part of the experiment, so the
+    # process-wide MCP_URL (.env) must not silently send a large-catalog config (:8766) to the
+    # small server. Phase-1 configs do not set mcp_url: unchanged (env, then default).
+    if url := _yaml_data(path).get("mcp_url"):
+        overrides.setdefault("mcp_url", url)
     return _ExperimentSettings(**overrides)

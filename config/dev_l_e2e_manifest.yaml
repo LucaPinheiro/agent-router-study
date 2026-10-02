@@ -1,0 +1,29 @@
+# Dev-L e2e validation (plan T5.5): E0-L (native) and E9-L on the same 40 stratified dev-L cases
+# (`study run --limit 40` sample, ids frozen in config/manifest/dev_l_e2e_validation_40.ids), Sonnet 5
+# executor, 1 rep, both scorers (legacy + sym). Measures the real cost per turn before the freeze.
+version: 1
+split: dev_l
+results_dir: results
+error_budget: 0.02
+max_infra_retries: 2
+
+runs:
+  - name: dev-l-e2e-e0-native-r1
+    config: config/experiments_l/e0_native_l.yaml
+    mode: e2e
+    reps: 1
+    priority: 10
+    concurrency: 2
+    catalog_hash: bc7cd75fce87
+    cases: {ids_file: config/manifest/dev_l_e2e_validation_40.ids}
+    purpose: "E0-L e2e validation (T5.5)"
+  - name: dev-l-e2e-e9-r1
+    config: config/experiments_l/e9_regex_jev_llm_l.yaml
+    prompt_track: tuned
+    mode: e2e
+    reps: 1
+    priority: 20
+    concurrency: 2
+    catalog_hash: bc7cd75fce87
+    cases: {ids_file: config/manifest/dev_l_e2e_validation_40.ids}
+    purpose: "E9-L e2e validation (T5.5)"

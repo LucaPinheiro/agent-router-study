@@ -19,3 +19,10 @@ pre-registered analysis. Empty at the tag.
 - **Runs:** v1-* (EXPLORATORY test-v1 free-router replication); main manifest stopped at v1-e1-regex-routing-r1 before its first case. All confirmatory and estimation runs were already COMPLETE.
 - **What changed:** infra-only (`eval/runner.py`): split `test_v1` (a symlink to the original `dataset_test.jsonl`) uploads to the existing Langfuse dataset `routing-study-test`, because Langfuse dataset item ids are unique per project and those ids already belong to that dataset. No config/prompt/label/scorer change.
 - **Effect on analysis:** none; the v1 runs resume from scratch.
+
+## Phase 2
+
+Deviations from prereg-v2a and prereg-v2 are logged in [deviations-v2.md](deviations-v2.md)
+(prereg-v2 §7): DV2-001 (Part-A analysis naming) and **D-L01** (test-L, 2026-10-02: app-redis
+OOM-killed by stale LangGraph checkpoints; keys deleted with user approval, run resumed;
+infra-only, no effect on the analysis).

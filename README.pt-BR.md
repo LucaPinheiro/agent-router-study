@@ -77,6 +77,64 @@ se precisar de um (governança, auditoria, catálogo crescendo), o Jev sozinho t
 Sonnet 5 por cerca de um sexto do custo; nenhum roteador testado chega a 75% de conjunta com p95
 abaixo de 2 s. Matriz de decisão por caso de uso: [estudos/11](estudos/11-matriz-enterprise.md).
 
+### Fase 2: modelos gerenciados e um catálogo de 62 tools
+
+Mais dois pré-registros, cada um congelado antes da primeira linha do seu teste (tags
+`prereg-v2a`, `prereg-v2`). Nenhum modelo local roda na fase 2; tudo fica no Bedrock, menos o Jev
+(OpenRouter).
+
+**Parte A, gerenciado × local no catálogo de 18 tools** (test-v2, só roteamento,
+[addendum-a/primary.md](docs/results/addendum-a/primary.md)): o Ministral 3 8B gerenciado é não
+inferior ao Qwen3-8B local, +2,3 pp [−2,0; 6,6] (82,2% de conjunta, p95 1,6 s, US$ 0,44/1k), a
+única configuração com ≥ 75% de conjunta abaixo de 2 s de p95 que passou na regra de não
+inferioridade pré-registrada (o Nemotron Nano 9B v2, E6n, também chegou a 77,1% com p95 de
+1465 ms, mas não demonstrou não inferioridade, A2). Os embeddings gerenciados
+(Cohere v4, Titan v2) perdem 18–19 pp para o embedding local. Relatório:
+[estudos/14](estudos/14-fase2-nuvem.md).
+
+**Parte B, catálogo de 62 tools** (10 skills + globais, 12 grupos confundíveis de propósito; split
+novo test-L, 300 casos; scorer e2e simétrico, que atribui a skill pelo comportamento nos dois
+braços; [phase2-b/primary.md](docs/results/phase2-b/primary.md),
+[secondary.md](docs/results/phase2-b/secondary.md),
+[estimation.md](docs/results/phase2-b/estimation.md)):
+
+| Hipótese (Holm entre H1-L..H3-L) | Δ [IC 95%] | p Holm | Veredito |
+|---|---|---|---|
+| **H1-L** e2e_success_sym, roteado E9-L − nativo E0-L | −0,3 pp [−4,0; 3,3] | 1 | sem afirmação direcional (57,0% × 57,3%) |
+| **H2-L** Ministral 3 8B − Haiku 4.5, conjunta (NI 3 pp) | −2,7 pp [−7,0; 1,7] | 0,8795 | não inferioridade **não demonstrada** |
+| **H3-L** Jev − Haiku 4.5, conjunta (NI 3 pp) | +2,9 pp [−0,7; 6,6] | 0,0027 | **não inferior** |
+
+| Config (62 tools) | Conjunta % [IC 95%] | US$ de roteamento / 1k | p95 quente |
+|---|---|---|---|
+| E1 regex | 56,3 [50,7; 62,0] | 0 | 2 ms |
+| E11 híbrido regex + sonda Titan | 62,3 [56,7; 67,7] | 0,000 | 0,3 s |
+| E6m Ministral 3 8B (Bedrock) | 79,3 [74,7; 84,0] | 0,69 | 1,4 s |
+| E6 Haiku 4.5 (Bedrock) | 82,0 [77,7; 86,0] | 7,15 | 5,3 s |
+| E9-L regex → Jev → Sonnet | 82,7 [78,6; 86,6] | 1,00 | 9,6 s |
+| E4 Jev | **84,9** [81,1; 88,4] | 0,98 | 9,2 s |
+
+- **Com 62 tools, não houve diferença detectável de ponta a ponta entre o agente roteado e o
+  nativo**: −0,3 pp [−4,0; 3,3], o IC inclui 0, sem afirmação direcional [C, H1-L]; equivalência
+  não testada (S2 inconclusivo). O roteado custa
+  **1,101× [1,014; 1,196]** por turno: corta pela metade o prompt do executor (10.067 × 18.254
+  tokens), mas o prefixo estável do nativo é lido do cache de prompt do Bedrock. Sem o desconto de
+  cache, o roteado sairia mais barato (24,46 × 39,95 US$/1k turnos).
+- Expor todas as tools da skill roteada não ajuda (S1: −0,3 pp [−2,7; 1,7]); o regex escrito no
+  dev-L cai 26,4 pp no test-L (S3); a sonda sobre o Titan fica 25,9 pp abaixo do Jev (S7).
+- Exploratório, mesmos casos (114 casos do test-L que o catálogo de 18 tools consegue responder):
+  as 44 tools confundíveis a mais custam 9,6 pp [−14,6; −5,0] ao Jev e 16,7 pp ao BM25
+  ([catalog_size.md](docs/results/phase2-b/catalog_size.md)).
+
+**Leitura final (as duas fases):** pela qualidade de ponta a ponta, o roteador não compensou com
+18 tools (o nativo foi melhor) nem com 62 (sem diferença detectável: −0,3 pp [−4,0; 3,3], o IC inclui 0, sem afirmação
+direcional [C, H1-L]; equivalência não testada, S2 inconclusivo). Com 62 tools, o roteador não
+mostrou perda detectável de ponta a ponta e custou 10% mais por turno; o agente nativo é o
+padrão mais simples. Ele é
+defensável por governança (decisão de roteamento auditável), teto de contexto do executor ou
+implantação sem cache; nesse caso, use o Jev sozinho. Abaixo de 2 s de p95, a única opção com
+≥ 75% que passou na regra de não inferioridade pré-registrada é o Ministral 3 8B gerenciado. Relatório: [estudos/15](estudos/15-fase2-catalogo-grande.md);
+matriz de decisão final: [estudos/11 §6](estudos/11-matriz-enterprise.md).
+
 ## Arquitetura
 
 ```mermaid
@@ -139,12 +197,20 @@ um, retoma por (caso, repetição) e marca runs com mais de 2% de erros. Hashes 
 (D-001 a D-003) e comandos por tabela estão em [`docs/prereg/`](docs/prereg/prereg-v1.md) e em
 [estudos/13](estudos/13-reprodutibilidade.md). Saídas da análise:
 [`docs/results/final/`](docs/results/final/). Gasto do estudo final: US$ 34,48 no Bedrock +
-US$ 1,43 no OpenRouter (ledger do projeto inteiro: US$ 52,11 Bedrock, US$ 5,83 OpenRouter).
+US$ 1,43 no OpenRouter (ledger ao fim da fase 1: US$ 52,11 Bedrock, US$ 5,83 OpenRouter). A fase 2
+(Partes A e B) somou US$ 27,65 no Bedrock e US$ 1,69 no OpenRouter. Fase 2:
+`uv run python scripts/analysis/addendum_a.py` (Parte A) e
+`uv run python scripts/analysis/phase2_b.py --manifest config/study_manifest_l.yaml` (Parte B,
+depois do rescore simétrico dos runs e2e) geram [`docs/results/addendum-a/`](docs/results/addendum-a/)
+e [`docs/results/phase2-b/`](docs/results/phase2-b/); tags, hashes e comandos em
+[estudos/13 §7](estudos/13-reprodutibilidade.md).
 
 ## Limitações
 
 Um domínio, um idioma, 18 tools: nesse tamanho o agente nativo é forte, e as conclusões não se
-estendem automaticamente a catálogos com centenas de tools. Os dados são sintéticos e os rótulos
+estendem automaticamente a catálogos com centenas de tools. A fase 2 estendeu isso a 62 tools
+(sem diferença detectável de ponta a ponta: −0,3 pp [−4,0; 3,3], o IC inclui 0, sem afirmação
+direcional; equivalência não testada, S2 inconclusivo); centenas de tools continuam sem teste. Os dados são sintéticos e os rótulos
 foram auditados por modelos, não por humanos. "Jev" aqui é o `typesafe/jev-router` via OpenRouter,
 um meta-roteador cujo modelo atendido varia por chamada, e não a API tipada nativa do Jev. Lista
 completa: [estudos/12](estudos/12-limitacoes.md).

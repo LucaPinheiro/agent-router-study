@@ -1,0 +1,38 @@
+{
+  "split": "test_l",
+  "n": 300,
+  "references": {
+    "cases": 999,
+    "catalog_units": 1688,
+    "leak_units": 1891
+  },
+  "thresholds": {
+    "lexical": 0.9,
+    "semantic": 0.71,
+    "within_lexical": 0.85
+  },
+  "lexical_or_leak_hits_phase1_and_small_catalog": [],
+  "leak_hits_large_catalog": [],
+  "semantic_vs_cases": {
+    "max": 0.7091,
+    "n_ge_thr": 0
+  },
+  "semantic_vs_catalog": {
+    "max": 0.7072,
+    "n_ge_thr": 0
+  },
+  "semantic_leak_per_turn": {
+    "max": 0.7072,
+    "n_ge_thr": 0
+  },
+  "semantic_within_nn": {
+    "max": 0.7398,
+    "n_ge_thr": 2
+  },
+  "lexical_within": {
+    "max": 0.6108,
+    "n_gt_thr": 0
+  },
+  "catalog_sha256": "02822507925ce427f5acd8ea392484bea355476e4773a3361f590e1f2f3b393e",
+  "dataset_sha256": "b17cfda79144f6ae669f7cebe99ccfd237f0a3e32bdb04a18ad73ca71e47a4ce"
+}

@@ -1,0 +1,107 @@
+{
+ "config": "config/experiments_l/e5_llm_sonnet_l.yaml",
+ "fixed": [],
+ "grid_points": 1,
+ "best_point": {},
+ "selected_per_fold": {
+  "(config as is)": 5
+ },
+ "nested": {
+  "skill_correct": {
+   "mean": 0.92,
+   "std": 0.06531972647421806
+  },
+  "tool_correct": {
+   "mean": 0.86,
+   "std": 0.06463573143221771
+  },
+  "joint_correct": {
+   "mean": 0.84,
+   "std": 0.085374989832438
+  }
+ },
+ "nested_joint_pooled_ci": [
+  0.84,
+  0.78,
+  0.8933333333333333
+ ],
+ "best_fixed": {
+  "skill_correct_mean": 0.92,
+  "tool_correct_mean": 0.86,
+  "joint_correct_mean": 0.84,
+  "skill_correct_std": 0.06531972647421806,
+  "tool_correct_std": 0.06463573143221771,
+  "joint_correct_std": 0.085374989832438,
+  "skill_correct_all": 0.92,
+  "tool_correct_all": 0.86,
+  "joint_correct_all": 0.84
+ },
+ "calibration_stats": {
+  "skill": {
+   "n": 150,
+   "ece_raw": 0.12319999999999993,
+   "brier_raw": 0.12513066666666664,
+   "ece_isotonic": 0.02159829060353136,
+   "brier_isotonic": 0.07564276976251637
+  },
+  "tool": {
+   "n": 149,
+   "ece_raw": 0.04697986577181197,
+   "brier_raw": 0.09595436241610737,
+   "ece_isotonic": 0.03688626085790995,
+   "brier_isotonic": 0.09853959478216096
+  }
+ },
+ "calibrator": {
+  "skill": "isotonic",
+  "tool": "isotonic"
+ },
+ "calibration": {
+  "skill": {
+   "x": [
+    0.544889,
+    0.869483,
+    0.945862,
+    0.974444
+   ],
+   "y": [
+    0.87234,
+    0.883333,
+    0.935484,
+    0.95
+   ]
+  },
+  "tool": {
+   "x": [
+    0.536667,
+    0.601818,
+    0.698333,
+    0.771875,
+    0.856667,
+    0.9,
+    0.958889
+   ],
+   "y": [
+    0.529412,
+    0.615385,
+    0.642857,
+    0.833333,
+    0.85,
+    0.92,
+    0.982143
+   ]
+  }
+ },
+ "p50_ms": 5839.647083470481,
+ "p95_ms": 10057.608165952843,
+ "errors": 1,
+ "points": [
+  {
+   "label": "(config as is)",
+   "joint_correct_mean": 0.84,
+   "skill_correct_mean": 0.92,
+   "tool_correct_mean": 0.86,
+   "p50_ms": 5839.647083470481
+  }
+ ]
+}

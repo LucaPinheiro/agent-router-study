@@ -201,3 +201,16 @@ def test_f7_list_price_uses_step_tokens_and_marks_negative_prices_na(env) -> Non
     assert list_price_usd(row, models, prices) == NA  # the meta-router has no list price
     row["skill"]["steps"][1] = _step("jev", "pedidos_logistica")  # a success without tokens
     assert list_price_usd(row, models, {**prices, "openrouter/auto": (1e-6, 1e-6)}) is None
+
+
+def test_large_splits_score_against_the_large_catalog() -> None:
+    """dev_l / test_l rows were served by the 62-tool catalog: scoring them against the
+    18-tool snapshot would mark every new tool's call as unknown (args invalid)."""
+    from routing_study.eval.rescore import TOOLS_LIST, TOOLS_LIST_LARGE, default_tools_path
+
+    assert default_tools_path("dev_l") == TOOLS_LIST_LARGE
+    assert default_tools_path("test_l") == TOOLS_LIST_LARGE
+    for split in ("dev", "test", "test_v2"):
+        assert default_tools_path(split) == TOOLS_LIST
+    names = {t["name"] for t in json.loads(TOOLS_LIST_LARGE.read_text(encoding="utf-8"))["tools"]}
+    assert len(names) == 62

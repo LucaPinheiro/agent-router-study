@@ -1,0 +1,125 @@
+{
+ "config": "config/experiments_l/e3_embedding_l.yaml",
+ "fixed": [
+  "strategies.embedding.model=amazon.titan-embed-text-v2:0",
+  "strategies.embedding.similarity=centroid",
+  "strategies.embedding.top_k=3",
+  "strategies.embedding.history_turns=1",
+  "strategies.embedding.shots=true",
+  "strategies.embedding.query_instruction=null",
+  "strategies.embedding.softmax_temperature=0.1"
+ ],
+ "grid_points": 1,
+ "best_point": {},
+ "selected_per_fold": {
+  "(config as is)": 5
+ },
+ "nested": {
+  "skill_correct": {
+   "mean": 0.7733333333333333,
+   "std": 0.12183777921664712
+  },
+  "tool_correct": {
+   "mean": 0.6666666666666666,
+   "std": 0.1349897115421106
+  },
+  "joint_correct": {
+   "mean": 0.6466666666666667,
+   "std": 0.12927146286443547
+  }
+ },
+ "nested_joint_pooled_ci": [
+  0.6466666666666666,
+  0.5733333333333334,
+  0.72
+ ],
+ "best_fixed": {
+  "skill_correct_mean": 0.7733333333333333,
+  "tool_correct_mean": 0.6666666666666666,
+  "joint_correct_mean": 0.6466666666666667,
+  "skill_correct_std": 0.12183777921664712,
+  "tool_correct_std": 0.1349897115421106,
+  "joint_correct_std": 0.12927146286443547,
+  "skill_correct_all": 0.7733333333333333,
+  "tool_correct_all": 0.6666666666666666,
+  "joint_correct_all": 0.6466666666666666
+ },
+ "calibration_stats": {
+  "skill": {
+   "n": 150,
+   "ece_raw": 0.5005112402779757,
+   "brier_raw": 0.4057097242313258,
+   "ece_isotonic": 0.050907162890588845,
+   "brier_isotonic": 0.15320739311110265,
+   "ece_platt": 0.051759540762811154,
+   "brier_platt": 0.15462677794260601
+  },
+  "tool": {
+   "n": 150,
+   "ece_raw": 0.27744956619528977,
+   "brier_raw": 0.2523355881660595,
+   "ece_isotonic": 0.09152206262753972,
+   "brier_isotonic": 0.175672835936725,
+   "ece_platt": 0.057356817247681754,
+   "brier_platt": 0.17728205520414314
+  }
+ },
+ "calibrator": {
+  "skill": "isotonic",
+  "tool": "isotonic"
+ },
+ "calibration": {
+  "skill": {
+   "x": [
+    0.126878,
+    0.16724,
+    0.206587,
+    0.220442,
+    0.251839,
+    0.357787,
+    0.569706
+   ],
+   "y": [
+    0.25,
+    0.5,
+    0.647059,
+    0.666667,
+    0.828571,
+    0.944444,
+    0.944444
+   ]
+  },
+  "tool": {
+   "x": [
+    0.152076,
+    0.201916,
+    0.299946,
+    0.379561,
+    0.416381,
+    0.523634,
+    0.702045
+   ],
+   "y": [
+    0.166667,
+    0.259259,
+    0.596491,
+    0.6,
+    0.842105,
+    0.884615,
+    0.958333
+   ]
+  }
+ },
+ "p50_ms": 161.05027147568762,
+ "p95_ms": 250.01795796561055,
+ "errors": 0,
+ "points": [
+  {
+   "label": "(config as is)",
+   "joint_correct_mean": 0.6466666666666667,
+   "skill_correct_mean": 0.7733333333333333,
+   "tool_correct_mean": 0.6666666666666666,
+   "p50_ms": 161.05027147568762
+  }
+ ]
+}

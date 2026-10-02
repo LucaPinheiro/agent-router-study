@@ -82,6 +82,63 @@ if you need one (governance, audit, a growing catalog), Jev alone is as accurate
 about one sixth of the cost; no tested router reaches 75% joint accuracy under a 2 s p95.
 Decision matrix by use case: [estudos/11](estudos/11-matriz-enterprise.md).
 
+### Phase 2: managed models and a 62-tool catalog
+
+Two more pre-registrations, each frozen before its first test row (tags `prereg-v2a`, `prereg-v2`).
+No local model is run in phase 2; everything is on Bedrock except Jev (OpenRouter).
+
+**Part A, managed vs local on the 18-tool catalog** (test-v2, routing only,
+[addendum-a/primary.md](docs/results/addendum-a/primary.md)): the managed Ministral 3 8B is
+non-inferior to local Qwen3-8B, +2.3 pp [−2.0, 6.6] (82.2% joint, p95 1.6 s, US$ 0.44/1k), the
+only configuration with ≥ 75% joint under a 2 s p95 that passes the pre-registered
+non-inferiority rule (Nemotron Nano 9B v2, E6n, also reached 77.1% at p95 1465 ms but did not
+show non-inferiority, A2). Managed embeddings (Cohere v4, Titan v2)
+lose 18–19 pp to the local embedder. Write-up: [estudos/14](estudos/14-fase2-nuvem.md).
+
+**Part B, a 62-tool catalog** (10 skills + globals, 12 deliberately confusable groups; new split
+test-L, 300 cases; symmetric e2e scorer that attributes the skill from behaviour in both arms;
+[phase2-b/primary.md](docs/results/phase2-b/primary.md),
+[secondary.md](docs/results/phase2-b/secondary.md),
+[estimation.md](docs/results/phase2-b/estimation.md)):
+
+| Hypothesis (Holm across H1-L..H3-L) | Δ [95% CI] | Holm p | Verdict |
+|---|---|---|---|
+| **H1-L** e2e_success_sym, routed E9-L − native E0-L | −0.3 pp [−4.0, 3.3] | 1 | no directional claim (57.0% vs 57.3%) |
+| **H2-L** Ministral 3 8B − Haiku 4.5, joint (NI 3 pp) | −2.7 pp [−7.0, 1.7] | 0.8795 | non-inferiority **not shown** |
+| **H3-L** Jev − Haiku 4.5, joint (NI 3 pp) | +2.9 pp [−0.7, 6.6] | 0.0027 | **non-inferior** |
+
+| Config (62 tools) | Joint % [95% CI] | Routing US$ / 1k | Warm p95 |
+|---|---|---|---|
+| E1 regex | 56.3 [50.7, 62.0] | 0 | 2 ms |
+| E11 hybrid regex + Titan probe | 62.3 [56.7, 67.7] | 0.000 | 0.3 s |
+| E6m Ministral 3 8B (Bedrock) | 79.3 [74.7, 84.0] | 0.69 | 1.4 s |
+| E6 Haiku 4.5 (Bedrock) | 82.0 [77.7, 86.0] | 7.15 | 5.3 s |
+| E9-L regex → Jev → Sonnet | 82.7 [78.6, 86.6] | 1.00 | 9.6 s |
+| E4 Jev | **84.9** [81.1, 88.4] | 0.98 | 9.2 s |
+
+- **At 62 tools there was no detectable difference end to end between the routed and the native
+  agent**: −0.3 pp [−4.0, 3.3], the CI includes 0, no directional claim [C, H1-L]; equivalence
+  not tested (S2 inconclusive). The routed agent costs **1.101×
+  [1.014, 1.196]** per turn: it halves the executor prompt (10,067 vs 18,254 tokens) but the
+  native agent's stable prefix is served from the Bedrock prompt cache. Without the cache discount
+  the routed agent would be cheaper (24.46 vs 39.95 US$/1k turns).
+- Exposing every tool of the routed skill does not help (S1: −0.3 pp [−2.7, 1.7]); regex written
+  on dev-L drops 26.4 pp on test-L (S3); the Titan probe is 25.9 pp below Jev (S7).
+- Exploratory, same cases (114 test-L cases the 18-tool catalog can answer): the 44 added
+  confusable tools cost Jev 9.6 pp [−14.6, −5.0] and BM25 16.7 pp
+  ([catalog_size.md](docs/results/phase2-b/catalog_size.md)).
+
+**Final reading (both phases):** for end-to-end quality a router did not pay off at 18 tools
+(native better) nor at 62 tools (no detectable difference: −0.3 pp [−4.0, 3.3], the CI includes 0, no
+directional claim [C, H1-L]; equivalence not tested, S2 inconclusive). With 62 tools the router
+showed no detectable loss end to end, and it cost 10% more per turn; the native agent is the
+simpler default. It is defensible for
+governance (an auditable routing decision), an executor context cap, or an uncached deployment;
+then use Jev alone. Under a 2 s p95 the only ≥ 75% option that passes the pre-registered non-inferiority rule is
+managed Ministral 3 8B. Write-up:
+[estudos/15](estudos/15-fase2-catalogo-grande.md); final decision matrix:
+[estudos/11 §6](estudos/11-matriz-enterprise.md).
+
 ## Architecture
 
 ```mermaid
@@ -151,10 +208,16 @@ The manifest pins each run's `config_hash` and `prompt_hash`, checks the budget 
 resumes by (case, repetition) and flags runs with more than 2% errors. Frozen hashes, the
 deviation log (D-001 to D-003) and the per-table commands are in
 [`docs/prereg/`](docs/prereg/prereg-v1.md) and [estudos/13](estudos/13-reprodutibilidade.md).
-Analysis outputs: [`docs/results/final/`](docs/results/final/). The local Langfuse also has a
+Analysis outputs: [`docs/results/final/`](docs/results/final/). Phase 2:
+`uv run python scripts/analysis/addendum_a.py` (Part A) and
+`uv run python scripts/analysis/phase2_b.py --manifest config/study_manifest_l.yaml` (Part B,
+after the sym rescore of the e2e runs) write [`docs/results/addendum-a/`](docs/results/addendum-a/)
+and [`docs/results/phase2-b/`](docs/results/phase2-b/); tags, hashes and commands in
+[estudos/13 §7](estudos/13-reprodutibilidade.md). The local Langfuse also has a
 custom dashboard, "Agent Router Study: operação" (9 widgets; see [estudos/13](estudos/13-reprodutibilidade.md)). Spend for the final study:
-US$ 34.48 Bedrock + US$ 1.43 OpenRouter (whole-project ledger: US$ 52.11 Bedrock, US$ 5.83
-OpenRouter).
+US$ 34.48 Bedrock + US$ 1.43 OpenRouter (ledger at the end of phase 1: US$ 52.11 Bedrock, US$ 5.83
+OpenRouter). Phase 2 (Parts A and B) added US$ 27.65 Bedrock and US$ 1.69 OpenRouter (source: the spend
+ledger `results/spend_ledger.jsonl`, read with `uv run study budget`).
 
 ## Repository layout
 
@@ -174,7 +237,9 @@ tests/
 ## Limitations
 
 One domain, one language, 18 tools: the native agent is strong at this size and the conclusions
-do not automatically extend to catalogs with hundreds of tools. Data are synthetic and labels were
+do not automatically extend to catalogs with hundreds of tools. Phase 2 extended this to 62 tools
+(no detectable difference end to end: −0.3 pp [−4.0, 3.3], the CI includes 0, no directional
+claim; equivalence not tested, S2 inconclusive); hundreds of tools remain untested. Data are synthetic and labels were
 audited by models, not humans. "Jev" here is `typesafe/jev-router` via OpenRouter, a meta-router
 whose served model varies per call, not Jev's native typed API. Full list:
 [estudos/12](estudos/12-limitacoes.md).

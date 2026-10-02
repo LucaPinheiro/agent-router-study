@@ -1,0 +1,53 @@
+# E10t — learned classifier on managed vectors: linear probe on Titan v2 (Bedrock), catalog text only
+# Peer of the local probe E10. Tuned on dev only with the phase-1 D4 probe procedure (64-point
+# grid + 8-point C refinement, 5-fold CV, seed 0; docs/tuning-effort-l.md §A).
+routing:
+  mode: single
+  skill:
+    pipeline:
+      - { strategy: classifier }
+    on_abstain: escalate
+  tool:
+    expose_top_k: 2
+    pipeline:
+      - { strategy: classifier }
+
+strategies:
+  embedding:
+    provider: bedrock
+    model: 'amazon.titan-embed-text-v2:0'
+    region: sa-east-1
+    # tuned by 5-fold CV on dev (Part A, docs/tuning-effort-l.md §A): phase-1 D1 324-point grid
+    # (similarity x top_k x temperature x instruction x history x shots); nested CV joint 60.3
+    # [52.3, 68.2]; T chosen among {0.02, 0.05, 0.1} by calibrated CV Brier (accuracy-neutral)
+    similarity: centroid
+    confidence: softmax
+    softmax_temperature: 0.02
+    history_turns: 1                  # query = last turn + message
+    shots: true
+    query_instruction: null           # no instruction prefix won the grid
+    calibration:                      # raw -> P(correct), fitted on dev; map kept only if CV ECE drops
+      skill: { x: [0.346875, 0.440954, 0.478086, 0.563616, 0.693805, 0.818573, 0.913247, 0.955721, 0.978707, 0.995962, 0.999857], y: [0.166667, 0.333333, 0.5, 0.6, 0.631579, 0.645161, 0.645161, 0.857143, 0.866667, 0.914286, 0.914286] }  # isotonic; CV ECE 0.094->0.070
+      tool: { x: [0.285016, 0.320765, 0.356514, 0.392264, 0.428013, 0.463762, 0.499511, 0.53526, 0.57101, 0.606759, 0.642508, 0.678257, 0.714006, 0.749755, 0.785505, 0.821254, 0.857003, 0.892752, 0.928501, 0.964251, 1.0], y: [0.059592, 0.07252, 0.08799, 0.106381, 0.128077, 0.153437, 0.182766, 0.21627, 0.254006, 0.295841, 0.341413, 0.390115, 0.441112, 0.493383, 0.545798, 0.597218, 0.646585, 0.693012, 0.735832, 0.774622, 0.809193] }  # platt; CV ECE 0.225->0.061
+  classifier:
+    # linear probe (logistic regression) on frozen Titan v2 vectors of the catalog utterances;
+    # the query goes through the embedding block above (Bedrock, instruction if probe_instruction).
+    # selected by 5-fold CV on dev: 64-point probe grid (nested joint 60.9 [53.0, 68.9]) + 8-point
+    # C x history refinement (nested 59.0); final = the refinement's best full-dev point
+    model: probe
+    c: 0.1
+    shots: true
+    quotes: false
+    description: true
+    probe_instruction: false          # moot: the tuned Titan block has no query instruction
+    history_turns: 0
+    history_weight: 0.3
+    calibration:            # raw p(top) -> P(correct), fitted on dev; map kept only if CV ECE drops
+      skill: { x: [0.252247, 0.254158, 0.256062, 0.257173, 0.260514, 0.263427, 0.266328, 0.273246, 0.284325, 0.2978], y: [0.4, 0.4, 0.444444, 0.5, 0.543478, 0.625, 0.71875, 0.916667, 0.923077, 0.923077] }  # isotonic; CV ECE 0.441->0.070
+      tool: { x: [0.12669, 0.12784, 0.129137, 0.131642, 0.208965], y: [0.142857, 0.3, 0.375, 0.611111, 0.735294] }  # isotonic; CV ECE 0.440->0.219
+
+executor:
+  provider: bedrock
+  model: global.anthropic.claude-sonnet-5   # fills arguments and answers
+  temperature: null                         # rejected by Sonnet 5 on Bedrock
+  max_tool_iterations: 3

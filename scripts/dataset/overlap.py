@@ -30,12 +30,27 @@ ROOT = Path(__file__).resolve().parents[2]
 LEXICAL_THRESHOLD = 0.9
 SEMANTIC_THRESHOLD = 0.9
 EMBED_MODEL = "qwen3-embedding:8b-q8_0"
+PHASE2_EMBED_MODEL = "amazon.titan-embed-text-v2:0"  # phase 2: no local model (Bedrock)
+# Titan cosine equivalent to the phase-1 qwen 0.9 (rank-matched on the 849 phase-1 cases;
+# data/audit/titan_threshold.json, scripts/dataset/calibrate_titan_threshold.py)
+PHASE2_SEMANTIC_THRESHOLD = 0.71
 MIN_UNIT_WORDS = 3
 
 CATALOG_FILES = [
     ROOT / "mcp_server" / "tools_list.json",
     *sorted((ROOT / "mcp_server" / "src" / "mcp_server" / "skills").glob("*/SKILL.md")),
     ROOT / "mcp_server" / "src" / "mcp_server" / "instructions.md",
+    *sorted((ROOT / "src" / "routing_study" / "prompts").glob("*.md")),
+    *sorted((ROOT / "src" / "routing_study" / "prompts" / "routers").glob("*.yaml")),
+]
+_SERVER = ROOT / "mcp_server" / "src" / "mcp_server"
+# phase 2, CATALOG_PROFILE=large: every router-visible text of the 62-tool catalog (the 3
+# original playbooks are served verbatim, the 7 new ones from skills_large/)
+CATALOG_FILES_LARGE = [
+    ROOT / "mcp_server" / "tools_list_large.json",
+    *sorted((_SERVER / "skills").glob("*/SKILL.md")),
+    *sorted((_SERVER / "skills_large").glob("*/SKILL.md")),
+    _SERVER / "instructions_large.md",
     *sorted((ROOT / "src" / "routing_study" / "prompts").glob("*.md")),
     *sorted((ROOT / "src" / "routing_study" / "prompts" / "routers").glob("*.yaml")),
 ]
@@ -95,6 +110,42 @@ def leak_hit(c: Case) -> str | None:
     """First catalog unit that the repo leakage test would flag on any user turn of `c`."""
     leak = leak_rules()
     units = leak.catalog_units()
+    for turn in (t.content for t in c.turns if t.role == "user"):
+        msg = leak.norm(turn)
+        for unit, origin in units.items():
+            if kind := leak.lexical_hit(unit, msg):
+                return f"leak_{kind.split()[0]}:{origin}:{unit[:40]}"
+    return None
+
+
+def leak_units_large() -> dict[str, str]:
+    """`tests/test_leakage.py` catalog units built from the LARGE profile files (same
+    segmentation, identifier stripping and `_meta` examples/keywords)."""
+    leak = leak_rules()
+    units: dict[str, str] = {}
+
+    def add(texts: list[str], origin: str) -> None:
+        for t in texts:
+            n = leak.norm(leak._IDENTIFIER.sub(" ", leak._USE.sub(" ", t)))
+            if n:
+                units.setdefault(n, origin)
+
+    tools = json.loads(CATALOG_FILES_LARGE[0].read_text(encoding="utf-8"))["tools"]
+    for tool in tools:
+        name = tool["name"]
+        add(leak._segments(tool.get("description") or ""), f"large:{name}.description")
+        for key, val in (tool.get("_meta") or {}).items():
+            if key.endswith(("/examples", "/keywords")):
+                add(list(val), f"large:{name}.{key.rsplit('/', 1)[1]}")
+    for path in CATALOG_FILES_LARGE[1:]:
+        if path.suffix == ".md":
+            add(leak._segments(path.read_text(encoding="utf-8")), str(path.relative_to(ROOT)))
+    return units
+
+
+def leak_hit_units(c: Any, units: dict[str, str]) -> str | None:
+    """`leak_hit` against a given unit table (e.g. `leak_units_large()`)."""
+    leak = leak_rules()
     for turn in (t.content for t in c.turns if t.role == "user"):
         msg = leak.norm(turn)
         for unit, origin in units.items():
@@ -167,14 +218,19 @@ def semantic_text(c: Case) -> str:
 
 
 class Embedder:
-    """Synchronous wrapper over the project's EmbeddingsClient (Ollama, cost 0, ledgered)."""
+    """Synchronous wrapper over the project's EmbeddingsClient (ledgered). Phase 1 used the local
+    Ollama embedder (cost 0, the default); phase 2 runs no local model and passes
+    `backend="bedrock"` with `PHASE2_EMBED_MODEL` (Titan v2, cents)."""
 
-    def __init__(self, model: str = EMBED_MODEL, batch: int = 32) -> None:
+    def __init__(self, model: str = EMBED_MODEL, batch: int = 32, backend: str = "ollama") -> None:
         sys.path.insert(0, str(ROOT / "src"))
         from routing_study.llm import EmbeddingsClient
         from routing_study.settings import Settings
 
-        self._make = lambda http: EmbeddingsClient(Settings(), model, backend="ollama", http=http)
+        region = "sa-east-1" if backend == "bedrock" else None
+        self._make = lambda http: EmbeddingsClient(
+            Settings(), model, backend=backend, http=http, region=region
+        )
         self.batch = batch
         self._cache: dict[str, np.ndarray] = {}
         self._disk = (

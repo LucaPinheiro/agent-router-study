@@ -177,6 +177,42 @@ braços pelo mesmo critério, declarado antes.
 
 O veredito confirmatório **não muda**: pelo critério pré-registrado, E0 > E9.
 
+### 5.1 Reanálise com o scorer simétrico [X]
+
+Para a fase 2 escrevemos um scorer que atribui a skill **pelo comportamento nos dois braços**
+(`src/routing_study/eval/scorers_sym.py`, prereg-v2 §4). A skill é a da primeira tool de negócio
+ligada a uma skill que o servidor executou. Sem chamada, vale a skill da tool creditada por uma
+clarificação, inferida da pergunta e nunca da tool do roteador. Escalação pura ou abstenção do host
+contam como `__abstain__`; só chamadas globais contam como `__global__`. O scorer não lê `native`,
+o rótulo do roteador nem o `load_skill`. Um teste unitário garante que as mesmas chamadas recebem a
+mesma nota nos dois braços. Re-pontuamos offline todos os runs ponta a ponta da fase 1, sem custo
+de API, com o mesmo bootstrap (10k, semente 20260930).
+
+| Contraste (pareado, não ajustado) | Scorer pré-registrado | Scorer simétrico | Só run / só E0 (simétrico) |
+|---|---|---|---|
+| **H3: E9 − E0** | −9,7 [−13,5; −6,0] | **−3,2 [−6,0; −0,3]** | 7 / 18 |
+| E5 − E0 | −4,9 [−8,3; −1,4] | 0,0 [−2,6; 2,6] | 11 / 11 |
+| E6b − E0 | −9,2 [−13,2; −5,2] | −1,1 [−4,3; 2,0] | 13 / 17 |
+| E7 − E0 | −10,6 [−14,6; −6,9] | −2,0 [−4,9; 0,9] | 10 / 17 |
+| E11 − E0 | −11,2 [−15,5; −6,9] | −4,0 [−7,4; −0,6] | 11 / 25 |
+| E1 − E0 | −20,9 [−25,8; −16,0] | −14,6 [−19,2; −10,0] | 10 / 61 |
+| E9 todas as tools (D-002) − E0 | −7,4 [−11,5; −3,4] | −1,1 [−4,3; 2,0] | 13 / 17 |
+| E7 todas as tools (D-002) − E0 | −10,9 [−14,9; −6,9] | −3,2 [−6,0; −0,3] | 8 / 19 |
+
+Com o scorer simétrico, o E0 vai de 55,6% para 56,2% e o E9 de 45,8% para 53,0%. Em nenhum run
+um sucesso virou falha. Dos 40 casos em que só o E0 acertava, sobram 18, e só 2 deles têm as mesmas
+chamadas nos dois braços. Dos outros 16, em 12 o executor do E9 agiu numa skill errada: são erros
+reais de roteamento que mudaram o turno.
+
+Fonte: [exploratory_e2e_sym.md](../docs/results/phase1-sym/exploratory_e2e_sym.md).
+
+**Leitura (exploratória, post hoc):** a assimetria do scorer explicava cerca de dois terços do gap
+de H3. **O roteado continua pior que o nativo mesmo com o scorer simétrico**: −3,2 pp, com IC que
+exclui zero, embora por pouco. O E5, o E6b, o E7 e o E9 com todas as tools ficam indistinguíveis do
+nativo; o E11, o E7 com todas as tools e o E1 continuam abaixo. Isso bate com a sensibilidade da seção 5 (−3,4 pp) e vira a
+suposição de efeito do H1-L no prereg-v2. Confirmar exige o split novo da fase 2. Nada aqui muda o
+veredito pré-registrado da fase 1.
+
 ## 6. Contexto e custo por turno [E]
 
 | Run | Tokens de prompt do executor/turno | Fração em cache | Chamadas do executor/turno | US$/1k turnos (observado) | Sem cache (tabela) |

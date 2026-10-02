@@ -1,0 +1,300 @@
+{"id": "tl-direto-001", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-002", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-003", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-004", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-005", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-006", "decision": "flagged", "reasons": ["tools_disagree", "args_fixed"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-007", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-008", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-009", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-010", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-011", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-012", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-013", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-014", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-015", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-016", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-017", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-018", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-019", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-020", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-021", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-022", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-023", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-024", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["pagamentos_reembolsos"], "acceptable_tools": ["dispute_charge"], "args": {"reason": "valor_divergente", "order_id": "O0034", "details": "valor na fatura superior ao acordado, R$ 47,90 a mais cobrados"}}, "both_missing_alternatives": []}
+{"id": "tl-direto-025", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-026", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-027", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-028", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-029", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-030", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-031", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-032", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-033", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-034", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-035", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-036", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-037", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-038", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-039", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-040", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-041", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-042", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-043", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-044", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-045", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-046", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["marketplace_vendedores"], "acceptable_tools": ["report_seller_issue"], "args": {"order_id": "O0043", "issue_type": "produto_falsificado", "details": "vendedor mandou modelo falso no lugar do original, caixa amassada, aparelho não liga direito"}}, "both_missing_alternatives": []}
+{"id": "tl-direto-047", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-048", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-049", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-050", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-051", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-052", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-053", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-054", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-055", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-056", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-057", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-058", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-059", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-060", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-061", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-062", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-063", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-064", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-065", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-066", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-067", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-068", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-069", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-070", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-071", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-072", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-073", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-074", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-075", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["pagamentos_reembolsos"], "acceptable_tools": ["get_refund_status"], "args": {"order_id": "O0028"}}, "both_missing_alternatives": ["get_refund_status"]}
+{"id": "tl-direto-076", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-077", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-078", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-079", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-080", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["fidelidade_cashback"], "acceptable_tools": ["redeem_points"], "args": {"reward": "doacao"}}, "both_missing_alternatives": []}
+{"id": "tl-direto-081", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-082", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-083", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-084", "decision": "flagged", "reasons": ["tools_disagree", "args_fixed"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-085", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-086", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-087", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-088", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-089", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-direto-090", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-001", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-002", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-003", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-004", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-005", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-006", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-007", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-008", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-009", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-010", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-011", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-012", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-013", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-014", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-015", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": ["create_return_request"]}
+{"id": "tl-parafrase-016", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["pedidos_logistica"], "acceptable_tools": ["cancel_order"], "args": {"order_id": "O0051"}}, "both_missing_alternatives": ["cancel_order"]}
+{"id": "tl-parafrase-017", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-018", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["pagamentos_reembolsos"], "acceptable_tools": ["dispute_charge"], "args": {"reason": "duplicada", "order_id": "O0014"}}, "both_missing_alternatives": []}
+{"id": "tl-parafrase-019", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-020", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": ["create_exchange"]}
+{"id": "tl-parafrase-021", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-022", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-023", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-024", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-025", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-026", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-027", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-028", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-029", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-030", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-031", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-032", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-033", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-034", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-035", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-036", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-037", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-038", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-039", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-040", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-041", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-042", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-043", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-044", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-045", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-046", "decision": "flagged", "reasons": ["tools_disagree", "args_fixed"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-047", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-048", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-049", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-050", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-051", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-052", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-053", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-054", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-055", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-056", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-057", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-058", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-059", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-060", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-061", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-062", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-063", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-064", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-065", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-066", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-067", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-068", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-069", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-070", "decision": "fixed", "reasons": ["args_fixed"], "fixed_expected": {"acceptable_skills": ["cartao_loja_crediario"], "acceptable_tools": ["contest_card_transaction"], "args": {"transaction_id": "TX-18116DCB", "reason": "nao_reconhecida"}}, "both_missing_alternatives": []}
+{"id": "tl-parafrase-071", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-072", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-073", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-074", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-parafrase-075", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-001", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-002", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-003", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-004", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-005", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-006", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-007", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-008", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-009", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-010", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-011", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-012", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-013", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-014", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-015", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-016", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-017", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-018", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-019", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-020", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-021", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-022", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-023", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-024", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-025", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-026", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-027", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-028", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-029", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-030", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-031", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-032", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-033", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-034", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-035", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-036", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-037", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-038", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-039", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-040", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["notas_fiscais_cadastro"], "acceptable_tools": ["get_purchase_receipt"], "args": {}}, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-041", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-042", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-043", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-044", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-045", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-046", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-047", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-048", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-049", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-050", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-051", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-052", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-053", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-054", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-055", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-056", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-057", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["pagamentos_reembolsos"], "acceptable_tools": ["dispute_charge"], "args": {}}, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-058", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-059", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-ambiguo-060", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-001", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-002", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": ["get_points_balance"]}
+{"id": "tl-multiturno-003", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-004", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-005", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-006", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-007", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-008", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-009", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-010", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-011", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-012", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-013", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-014", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-015", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-016", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-017", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-018", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-019", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-020", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-021", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-022", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-023", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-024", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-025", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-026", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-027", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-028", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-029", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-multiturno-030", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-001", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-002", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-003", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-004", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-005", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-006", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-007", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-008", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-009", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-010", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-011", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-012", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-013", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-014", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-015", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-016", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-017", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-018", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-019", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-020", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-021", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-022", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-023", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-024", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-025", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-026", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-027", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-028", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-029", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-fora_escopo-030", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-adversarial-001", "decision": "flagged", "reasons": ["tools_disagree", "args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-adversarial-002", "decision": "fixed", "reasons": ["tools_fixed", "args_fixed"], "fixed_expected": {"acceptable_skills": ["__abstain__"], "acceptable_tools": ["__abstain__"], "args": {}}, "both_missing_alternatives": ["__abstain__"]}
+{"id": "tl-adversarial-003", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-adversarial-004", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-adversarial-005", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-adversarial-006", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-adversarial-007", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-adversarial-008", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-adversarial-009", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-adversarial-010", "decision": "fixed", "reasons": ["tools_fixed", "args_fixed"], "fixed_expected": {"acceptable_skills": ["fidelidade_cashback"], "acceptable_tools": ["get_points_balance"], "args": {}}, "both_missing_alternatives": ["get_points_balance"]}
+{"id": "tl-adversarial-011", "decision": "fixed", "reasons": ["tools_fixed"], "fixed_expected": {"acceptable_skills": ["fidelidade_cashback", "pedidos_logistica"], "acceptable_tools": ["get_loyalty_tier", "cancel_order"], "args": {"order_id": "O0004"}}, "both_missing_alternatives": ["get_loyalty_tier"]}
+{"id": "tl-adversarial-012", "decision": "flagged", "reasons": ["args_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-adversarial-013", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-adversarial-014", "decision": "flagged", "reasons": ["tools_disagree"], "fixed_expected": null, "both_missing_alternatives": []}
+{"id": "tl-adversarial-015", "decision": "keep", "reasons": [], "fixed_expected": null, "both_missing_alternatives": []}

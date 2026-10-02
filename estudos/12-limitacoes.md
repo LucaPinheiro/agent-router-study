@@ -90,9 +90,60 @@
 - **Poder estatístico.** Com ~350 casos, a menor diferença detectável é de ~4,5–6 pontos. As
   análises por categoria (adversarial com n≈17) são só descritivas.
 
+## Fase 2: ameaças adicionais
+
+As ameaças acima continuam valendo. A fase 2 (capítulos [14](14-fase2-nuvem.md) e
+[15](15-fase2-catalogo-grande.md)) acrescenta estas, a maioria já listada nos pré-registros
+([prereg-v2a.md §9](../docs/prereg/prereg-v2a.md), [prereg-v2.md §9](../docs/prereg/prereg-v2.md)).
+
+### Parte A (gerenciado × local, test-v2)
+
+- **Reuso do test-v2.** O split já tinha sido lido na fase 1. Os braços novos foram ajustados só
+  no dev e congelados antes da primeira linha nova, mas o split não é virgem.
+- **Janelas de latência diferentes.** Os locais são da fase 1, os gerenciados da Parte A; a
+  deriva dos âncoras é reportada e não subtraída.
+- **Hardware diferente:** "este Mac × este provedor", não "modelo × modelo".
+
+### Parte B (catálogo de 62 tools, test-L)
+
+1. **Regex otimista.** As regras foram escritas lendo erros do dev-L, e os limiares das cascatas
+   E7-L/E9-L dependem delas. No teste o regex caiu 26,4 pp [−32,0; −20,7] em relação ao dev-L
+   **[C, S3]**, e a sua cobertura dentro das cascatas caiu de 70% (dev-L) para 60%
+   ([phase2-b/estimation.md §E](../docs/results/phase2-b/estimation.md)).
+2. **Rótulos com menos concordância.** Gerador (Kimi K2.5) e auditores (gpt-oss-120b, DeepSeek
+   V3.2) são modelos; o κ entre auditores na aceitação do gold foi 0,22 (concordância 0,80, efeito
+   de prevalência), contra 0,662 no test-v2; 85 dos 300 casos foram sinalizados e nenhum foi
+   revisado por humano ([dataset-card.md](../docs/dataset-card.md)). Sem os sinalizados, nenhum
+   veredito primário muda ([phase2-b/primary.md](../docs/results/phase2-b/primary.md),
+   sensibilidades).
+3. **H3-L depende dos ambíguos.** A não inferioridade do Jev ao Haiku some com o primeiro rótulo
+   (+0,6 pp [−3,1; 4,2]) e sem os ambíguos (−0,1 pp [−3,8; 3,3]); ela vem da generosidade dos
+   rótulos múltiplos (mesma fonte).
+4. **Poder de H1-L.** O IC de −4,0 a +3,3 pp não exclui efeitos de 2–3 pp. O resultado é "sem
+   diferença detectável" (o IC inclui 0, sem afirmação direcional), não equivalência; a equivalência nos casos com as mesmas chamadas
+   (S2) ficou inconclusiva **[C]**.
+5. **Custo dependente de cache.** A co-primária de custo de H1-L (1,101) depende do cache de
+   prompt do Bedrock e do padrão de tráfego do manifesto; sem cache a razão se inverte **[E]**.
+6. **Um embedder e nenhum modelo local.** Só o Titan v2 roda no catálogo grande; S5 e S6 foram
+   retiradas por não ter braço de referência. O híbrido de 62 tools usa a sonda do Titan, e o de 18
+   usava a local: a queda do E11 no X1 mistura as duas coisas.
+7. **H2-L reespecificada** antes do teste (Ministral × Haiku, em vez de Ministral × Qwen local).
+8. **Comparação de tamanho.** X1 compara datasets diferentes (a dificuldade não é controlada) e
+   sistemas reajustados por catálogo; X2 controla os casos, mas cada perfil tem seu ajuste e seu
+   texto. Nenhum dos dois é um efeito puro do número de tools **[X]**.
+9. **Jev muda.** O modelo atendido pelo `jev-router` varia por chamada e ao longo do tempo.
+10. **Um catálogo grande, um domínio.** 62 tools ainda é pouco perto de catálogos com centenas;
+    a pergunta "a partir de que tamanho o roteador ganha?" continua aberta.
+11. **Incidente de infraestrutura (D-L01).** O Redis do host foi morto por falta de memória
+    durante o manifesto; o run foi retomado por (caso, repetição) sem mudança de config
+    ([deviations-v2.md](../docs/prereg/deviations-v2.md)). Nenhuma linha analisada depende das
+    chaves apagadas, mas a ordem temporal das chamadas (e, portanto, o estado do cache de prompt)
+    não é a de um run contínuo.
+
 ## Fora do escopo (trabalho futuro)
 
-- Catálogo escalado (dezenas ou centenas de tools) e descoberta progressiva via MCP.
+- Catálogo escalado (dezenas ou centenas de tools) e descoberta progressiva via MCP. (A fase 2,
+  capítulo [15](15-fase2-catalogo-grande.md), cobriu 62 tools; centenas continuam em aberto.)
 - Fine-tune completo de um encoder multilíngue como roteador.
 - Exemplos dinâmicos e autoconsistência nos LLMs.
 - Benchmarks públicos (CLINC150, MASSIVE, BFCL) para situar os números sintéticos.

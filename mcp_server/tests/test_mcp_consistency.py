@@ -5,9 +5,9 @@ from typing import Any
 
 import pytest
 from fastmcp import Client
-from mcp_fixtures import delivered_days, find_order, meta, pay
+from mcp_fixtures import delivered_days, find_order, large_variants, meta, pay
 from mcp_server.core import DB, ORDERS, REFUNDS_BY_ORDER, RETURNS, TODAY
-from test_mcp_tools import EXPECTED_TOOLS
+from test_mcp_tools import EXPECTED_BY_PROFILE
 
 
 def _has_return(o: dict[str, Any]) -> bool:
@@ -150,7 +150,10 @@ _ADDRESS = {
 
 
 def _variants(tool: str, oid: str) -> list[dict[str, Any]]:
-    """Plausible argument sets a model could send for `tool` about order `oid`."""
+    """Plausible argument sets a model could send for `tool` about order `oid` (the large
+    profile's new tools included, for the order's customer)."""
+    if (new := large_variants(tool, ORDERS[oid]["customer_id"], oid)) is not None:
+        return new
     sku = ORDERS[oid]["items"][0]["sku"]
     o = {"order_id": oid}
     return {
@@ -169,14 +172,14 @@ def _variants(tool: str, oid: str) -> list[dict[str, Any]]:
     }.get(tool, [o])
 
 
-_TOOLS = sorted(set().union(*EXPECTED_TOOLS.values()))
 _ORDER_CASES = [(o["customer_id"], o["id"]) for o in DB["orders"]]
 
 
-async def test_every_suggested_tool_can_succeed(client: Client) -> None:
+async def test_every_suggested_tool_can_succeed(client: Client, profile: str) -> None:
+    tools = sorted(set().union(*EXPECTED_BY_PROFILE[profile].values()))
     dead_ends: list[str] = []
     for cid, oid in _ORDER_CASES:
-        for tool in _TOOLS:
+        for tool in tools:
             for args in _variants(tool, oid):
                 r = await _call(client, tool, cid, args)
                 nxt = r.structured_content["suggested_tool"] if r.is_error else None

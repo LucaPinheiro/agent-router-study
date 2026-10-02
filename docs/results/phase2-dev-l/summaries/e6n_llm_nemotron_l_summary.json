@@ -1,0 +1,97 @@
+{
+ "config": "config/experiments_l/e6n_llm_nemotron_l.yaml",
+ "fixed": [],
+ "grid_points": 1,
+ "best_point": {},
+ "selected_per_fold": {
+  "(config as is)": 5
+ },
+ "nested": {
+  "skill_correct": {
+   "mean": 0.7933333333333333,
+   "std": 0.06463573143221775
+  },
+  "tool_correct": {
+   "mean": 0.74,
+   "std": 0.06463573143221776
+  },
+  "joint_correct": {
+   "mean": 0.7333333333333333,
+   "std": 0.06992058987801014
+  }
+ },
+ "nested_joint_pooled_ci": [
+  0.7333333333333333,
+  0.66,
+  0.8
+ ],
+ "best_fixed": {
+  "skill_correct_mean": 0.7933333333333333,
+  "tool_correct_mean": 0.74,
+  "joint_correct_mean": 0.7333333333333333,
+  "skill_correct_std": 0.06463573143221775,
+  "tool_correct_std": 0.06463573143221776,
+  "joint_correct_std": 0.06992058987801014,
+  "skill_correct_all": 0.7933333333333333,
+  "tool_correct_all": 0.74,
+  "joint_correct_all": 0.7333333333333333
+ },
+ "calibration_stats": {
+  "skill": {
+   "n": 150,
+   "ece_raw": 0.15566666666666676,
+   "brier_raw": 0.18915,
+   "ece_isotonic": 0.10095734697836346,
+   "brier_isotonic": 0.1622116601133624
+  },
+  "tool": {
+   "n": 150,
+   "ece_raw": 0.19933333333333342,
+   "brier_raw": 0.22310000000000002,
+   "ece_isotonic": 0.021874124586451615,
+   "brier_isotonic": 0.1753710019991442
+  }
+ },
+ "calibrator": {
+  "skill": "isotonic",
+  "tool": "isotonic"
+ },
+ "calibration": {
+  "skill": {
+   "x": [
+    0.0,
+    0.65,
+    0.95
+   ],
+   "y": [
+    0.333333,
+    0.636364,
+    0.816794
+   ]
+  },
+  "tool": {
+   "x": [
+    0.533333,
+    0.891667,
+    0.95
+   ],
+   "y": [
+    0.2,
+    0.25,
+    0.776224
+   ]
+  }
+ },
+ "p50_ms": 1397.4274384818273,
+ "p95_ms": 1936.278584995307,
+ "errors": 0,
+ "points": [
+  {
+   "label": "(config as is)",
+   "joint_correct_mean": 0.7333333333333333,
+   "skill_correct_mean": 0.7933333333333333,
+   "tool_correct_mean": 0.74,
+   "p50_ms": 1397.4274384818273
+  }
+ ]
+}

@@ -19,3 +19,10 @@ análise pré-registrada. Vazio na tag.
 - **Runs:** v1-* (replicação EXPLORATÓRIA do free-router no test-v1); o manifesto principal parou em v1-e1-regex-routing-r1 antes do seu primeiro caso. Todas as runs confirmatórias e de estimação já estavam COMPLETE.
 - **O que mudou:** apenas infra (`eval/runner.py`): o split `test_v1` (um symlink para o `dataset_test.jsonl` original) faz upload para o dataset Langfuse já existente `routing-study-test`, porque ids de item de dataset no Langfuse são únicos por projeto e esses ids já pertencem àquele dataset. Nenhuma mudança de config/prompt/rótulo/scorer.
 - **Efeito na análise:** nenhum; as runs v1 recomeçam do zero.
+
+## Fase 2
+
+Os desvios em relação ao prereg-v2a e ao prereg-v2 ficam em [deviations-v2.md](deviations-v2.md)
+(prereg-v2 §7): DV2-001 (nome da análise da Parte A) e **D-L01** (test-L, 2026-10-02: app-redis
+morto por falta de memória por checkpoints antigos do LangGraph; chaves apagadas com aprovação do
+usuário, run retomada; só infra, sem efeito na análise).

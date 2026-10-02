@@ -6,6 +6,7 @@ import yaml
 from fastmcp import Client
 from mcp_fixtures import meta
 from mcp_server.export import tools_list_payload
+from mcp_server.server import SKILL_IDS, SKILL_IDS_LARGE
 from mcp_server.telemetry import parent_context
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
@@ -13,22 +14,27 @@ from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 from starlette.testclient import TestClient
 
-SKILLS = ("pedidos_logistica", "pagamentos_reembolsos", "trocas_devolucoes")
+SKILLS_BY_PROFILE = {"small": SKILL_IDS, "large": SKILL_IDS_LARGE}
+EXPORTS = {"small": "tools_list.json", "large": "tools_list_large.json"}
 RDNS = "br.routingstudy"
 
 
-async def test_resources_listed_and_readable(client: Client) -> None:
+async def test_resources_listed_and_readable(client: Client, profile: str) -> None:
+    skills = SKILLS_BY_PROFILE[profile]
     uris = {str(r.uri) for r in await client.list_resources()}
-    assert uris == {f"skill://{s}/SKILL.md" for s in SKILLS} | {"shop://policies"}
+    assert uris == {f"skill://{s}/SKILL.md" for s in skills} | {"shop://policies"}
     tools = {t.name: t for t in await client.list_tools()}
-    for skill in SKILLS:
+    for skill in skills:
         [content] = await client.read_resource(f"skill://{skill}/SKILL.md")
         assert content.mime_type == "text/markdown"
         _, front, body = content.text.split("---", 2)
         fm = yaml.safe_load(front)
         assert fm["name"] == skill and fm["description"]
         assert 3 <= len(fm["examples"]) <= 5
-        assert len(fm["allowed-tools"]) == 5
+        assert len(fm["allowed-tools"]) == (5 if skill in SKILL_IDS else 6)
+        assert set(fm["allowed-tools"]) == {
+            n for n, t in tools.items() if t.meta[f"{RDNS}/skill"] == skill
+        }
         for name in fm["allowed-tools"]:
             assert tools[name].meta[f"{RDNS}/skill"] == skill
         assert body.strip()
@@ -50,8 +56,8 @@ async def test_instructions_and_no_skills_extension(client: Client) -> None:
     assert "io.modelcontextprotocol/skills" not in json.dumps(caps)
 
 
-async def test_tools_list_json_is_current(client: Client) -> None:
-    exported = json.loads((Path(__file__).parents[1] / "tools_list.json").read_text())
+async def test_tools_list_json_is_current(client: Client, profile: str) -> None:
+    exported = json.loads((Path(__file__).parents[1] / EXPORTS[profile]).read_text())
     assert exported == await tools_list_payload(client)
 
 

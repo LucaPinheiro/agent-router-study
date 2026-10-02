@@ -3,7 +3,8 @@ from collections.abc import AsyncIterator, Iterator
 
 import pytest
 from fastmcp import Client
-from mcp_server.server import mcp
+from mcp_fixtures import SERVERS
+from mcp_server.server import PROFILES
 from opentelemetry import trace
 from opentelemetry.util._once import Once
 
@@ -28,7 +29,13 @@ def _hermetic_otel(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     reset()
 
 
+@pytest.fixture(params=PROFILES)
+def profile(request: pytest.FixtureRequest) -> str:
+    """Catalog profile: every test that takes `client` runs against both servers."""
+    return request.param
+
+
 @pytest.fixture
-async def client() -> AsyncIterator[Client]:
-    async with Client(mcp) as c:
+async def client(profile: str) -> AsyncIterator[Client]:
+    async with Client(SERVERS[profile]) as c:
         yield c

@@ -1,0 +1,111 @@
+{
+ "config": "config/experiments_l/e4_jev_l.yaml",
+ "fixed": [],
+ "grid_points": 1,
+ "best_point": {},
+ "selected_per_fold": {
+  "(config as is)": 5
+ },
+ "nested": {
+  "skill_correct": {
+   "mean": 0.9266666666666666,
+   "std": 0.06798692684790378
+  },
+  "tool_correct": {
+   "mean": 0.88,
+   "std": 0.04988876515698588
+  },
+  "joint_correct": {
+   "mean": 0.8666666666666667,
+   "std": 0.07302967433402217
+  }
+ },
+ "nested_joint_pooled_ci": [
+  0.8666666666666667,
+  0.8066666666666666,
+  0.92
+ ],
+ "best_fixed": {
+  "skill_correct_mean": 0.9266666666666666,
+  "tool_correct_mean": 0.88,
+  "joint_correct_mean": 0.8666666666666667,
+  "skill_correct_std": 0.06798692684790378,
+  "tool_correct_std": 0.04988876515698588,
+  "joint_correct_std": 0.07302967433402217,
+  "skill_correct_all": 0.9266666666666666,
+  "tool_correct_all": 0.88,
+  "joint_correct_all": 0.8666666666666667
+ },
+ "calibration_stats": {
+  "skill": {
+   "n": 150,
+   "ece_raw": 0.05666666666666686,
+   "brier_raw": 0.08247600000000001,
+   "ece_isotonic": 0.029143371550014965,
+   "brier_isotonic": 0.07487708262794826
+  },
+  "tool": {
+   "n": 149,
+   "ece_raw": 0.023288590604026924,
+   "brier_raw": 0.09132013422818792,
+   "ece_isotonic": 0.04687967622708974,
+   "brier_isotonic": 0.10050558592588381
+  }
+ },
+ "calibrator": {
+  "skill": "isotonic",
+  "tool": "isotonic"
+ },
+ "calibration": {
+  "skill": {
+   "x": [
+    0.516364,
+    0.719545,
+    0.885556,
+    0.934737,
+    0.980169,
+    1.0
+   ],
+   "y": [
+    0.769231,
+    0.833333,
+    0.9,
+    0.925,
+    0.934426,
+    0.934426
+   ]
+  },
+  "tool": {
+   "x": [
+    0.5,
+    0.6476,
+    0.83125,
+    0.899286,
+    0.949333,
+    0.971277,
+    0.99
+   ],
+   "y": [
+    0.333333,
+    0.703704,
+    0.722222,
+    0.866667,
+    0.882353,
+    0.959184,
+    0.959184
+   ]
+  }
+ },
+ "p50_ms": 3619.6155204816023,
+ "p95_ms": 7629.314248973969,
+ "errors": 1,
+ "points": [
+  {
+   "label": "(config as is)",
+   "joint_correct_mean": 0.8666666666666667,
+   "skill_correct_mean": 0.9266666666666666,
+   "tool_correct_mean": 0.88,
+   "p50_ms": 3619.6155204816023
+  }
+ ]
+}

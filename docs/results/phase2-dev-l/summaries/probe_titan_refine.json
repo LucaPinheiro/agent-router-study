@@ -1,0 +1,188 @@
+{
+ "config": "config/experiments_l/e10_classifier_l.yaml",
+ "fixed": [
+  "strategies.embedding.model=amazon.titan-embed-text-v2:0",
+  "strategies.embedding.similarity=centroid",
+  "strategies.embedding.top_k=3",
+  "strategies.embedding.softmax_temperature=0.02",
+  "strategies.embedding.history_turns=1",
+  "strategies.embedding.shots=true",
+  "strategies.embedding.query_instruction=null",
+  "strategies.classifier.model=probe",
+  "strategies.classifier.quotes=false",
+  "strategies.classifier.history_weight=0.3",
+  "strategies.classifier.probe_instruction=false",
+  "strategies.classifier.shots=true",
+  "strategies.classifier.description=true"
+ ],
+ "grid_points": 8,
+ "best_point": {
+  "strategies.classifier.c": 1000,
+  "strategies.classifier.history_turns": 2
+ },
+ "selected_per_fold": {
+  "strategies.classifier.c=1000 strategies.classifier.history_turns=2": 4,
+  "strategies.classifier.c=1000 strategies.classifier.history_turns=0": 1
+ },
+ "nested": {
+  "skill_correct": {
+   "mean": 0.76,
+   "std": 0.04898979485566359
+  },
+  "tool_correct": {
+   "mean": 0.7133333333333334,
+   "std": 0.11274356350191844
+  },
+  "joint_correct": {
+   "mean": 0.66,
+   "std": 0.08273115763993906
+  }
+ },
+ "nested_joint_pooled_ci": [
+  0.66,
+  0.58,
+  0.7333333333333333
+ ],
+ "best_fixed": {
+  "skill_correct_mean": 0.7666666666666667,
+  "tool_correct_mean": 0.72,
+  "joint_correct_mean": 0.6666666666666666,
+  "skill_correct_std": 0.05577733510227173,
+  "tool_correct_std": 0.12220201853215576,
+  "joint_correct_std": 0.09189365834726816,
+  "skill_correct_all": 0.7666666666666667,
+  "tool_correct_all": 0.72,
+  "joint_correct_all": 0.6666666666666666
+ },
+ "calibration_stats": {
+  "skill": {
+   "n": 150,
+   "ece_raw": 0.05997615168491998,
+   "brier_raw": 0.13607437372726688,
+   "ece_isotonic": 0.09040012824877242,
+   "brier_isotonic": 0.14366622165818851,
+   "ece_platt": 0.07863253106373712,
+   "brier_platt": 0.14508194474465838
+  },
+  "tool": {
+   "n": 150,
+   "ece_raw": 0.1150339658061663,
+   "brier_raw": 0.18501080064594633,
+   "ece_isotonic": 0.08520454864006531,
+   "brier_isotonic": 0.18364168263415906,
+   "ece_platt": 0.11531926813584373,
+   "brier_platt": 0.1850933783571304
+  }
+ },
+ "calibrator": {
+  "skill": "isotonic",
+  "tool": "isotonic"
+ },
+ "calibration": {
+  "skill": {
+   "x": [
+    0.346629,
+    0.467353,
+    0.57962,
+    0.688835,
+    0.754273,
+    0.824439,
+    0.918838,
+    0.981861
+   ],
+   "y": [
+    0.407407,
+    0.5,
+    0.541667,
+    0.666667,
+    0.75,
+    0.857143,
+    0.928571,
+    0.972973
+   ]
+  },
+  "tool": {
+   "x": [
+    0.198021,
+    0.216226,
+    0.339152,
+    0.436261,
+    0.479866,
+    0.626813,
+    0.875918,
+    0.977465
+   ],
+   "y": [
+    0.2,
+    0.5,
+    0.512821,
+    0.583333,
+    0.6,
+    0.673913,
+    0.948718,
+    0.948718
+   ]
+  }
+ },
+ "p50_ms": 176.42650053312536,
+ "p95_ms": 395.2808330068365,
+ "errors": 0,
+ "points": [
+  {
+   "label": "strategies.classifier.c=1000 strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.6666666666666666,
+   "skill_correct_mean": 0.7666666666666667,
+   "tool_correct_mean": 0.72,
+   "p50_ms": 176.42650053312536
+  },
+  {
+   "label": "strategies.classifier.c=1000 strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.66,
+   "skill_correct_mean": 0.7533333333333334,
+   "tool_correct_mean": 0.7133333333333334,
+   "p50_ms": 171.74929098109715
+  },
+  {
+   "label": "strategies.classifier.c=300 strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.6533333333333333,
+   "skill_correct_mean": 0.76,
+   "tool_correct_mean": 0.7066666666666667,
+   "p50_ms": 171.74849998264108
+  },
+  {
+   "label": "strategies.classifier.c=300 strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.6533333333333333,
+   "skill_correct_mean": 0.78,
+   "tool_correct_mean": 0.7133333333333334,
+   "p50_ms": 176.42718751449138
+  },
+  {
+   "label": "strategies.classifier.c=100 strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.6466666666666666,
+   "skill_correct_mean": 0.7533333333333334,
+   "tool_correct_mean": 0.7000000000000001,
+   "p50_ms": 171.79156250494998
+  },
+  {
+   "label": "strategies.classifier.c=100 strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.6466666666666666,
+   "skill_correct_mean": 0.7733333333333333,
+   "tool_correct_mean": 0.7066666666666667,
+   "p50_ms": 176.43591652449686
+  },
+  {
+   "label": "strategies.classifier.c=3000 strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.6266666666666667,
+   "skill_correct_mean": 0.76,
+   "tool_correct_mean": 0.66,
+   "p50_ms": 176.42506303673144
+  },
+  {
+   "label": "strategies.classifier.c=3000 strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.62,
+   "skill_correct_mean": 0.7466666666666667,
+   "tool_correct_mean": 0.6533333333333333,
+   "p50_ms": 171.76952050067484
+  }
+ ]
+}
