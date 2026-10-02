@@ -201,6 +201,9 @@ is lower than raw.
 | strategy | configs evaluated (dev-L passes) | wall-clock | paid | joint nested [95% CI] | fixed joint | skill ECE raw→cal | tool ECE raw→cal | map | p50 / p95 ms | US$/1k cases |
 |---|---|---|---|---|---|---|---|---|---|---|
 | E2 BM25 grid 1 | 512 | 4.5 min | 0 | 50.0 [42.0, 58.0] | 54.7 | – | – | – | 8 / 17 | 0 |
+| E2 BM25 grid 2 (around grid-1 best: char, shots, no quotes, okapi) | 432 | ~1.5 h (host slept) | 0 | **52.7 [44.7, 60.7]** | 56.0 | 0.511→0.065 (Platt) | 0.346→0.106 (Platt) | skill + tool | 19 / 37 | 0 |
+| E11 hybrid, convex (7 member sets × 11 alphas) | 77 | ~40 min | cached embeddings | **81.3 [75.3, 87.3]**: regex + classifier, alpha 0.5 (same as phase 1) | 82.7 | 0.112→0.040 (Platt) | 0.116→0.042 (isotonic) | skill + tool | – | ≈0.003 |
+| E11 logistic stacker (regex, bm25, embedding; `fit_hybrid.py`) | 3 L2 values, inner CV | ~2 min | cached | 80.0 ± 8.7 (below convex: not used) | – | – | – | – | – | – |
 | E3 Titan embedding | 324 (D1 grid verbatim) + 3 (T by calibrated Brier: T 0.02) | ~2 min + 1 min | ~US$ 0.002 | 61.3 [53.3, 69.3] | 64.7 | 0.083→0.118 | 0.186→0.133 (isotonic) | tool only | 161 / 250 | ≈0.003 |
 | E10 probe on Titan | 64 (D4 grid) + 8 (C {100,300,1000,3000} × history) | ~1 min | < US$ 0.001 | 66.0 [58.0, 73.3] (both) | 66.7 | 0.060→0.090 | 0.115→0.085 (isotonic) | tool only | 176 / 395 | ≈0.003 |
 | E6 Haiku 4.5, P0 | 1 | ~4 min | US$ 1.08 | 84.0 [78.0, 89.3] | 84.0 | 0.065→0.038 | 0.070→0.106 | skill only | 3651 / 4870 | 7.18 |
@@ -214,3 +217,47 @@ is lower than raw.
 - **Haiku cache (X3):** 0 cache reads: the large P0 prompt is ~2.7k tokens per call, under the
   4,096-token Haiku cache minimum. Sonnet (1,024 minimum) reads ~2.6k cached tokens per call.
 - p50/p95 are dev-L tuning latencies at concurrency 2–4, **not** the benchmark.
+
+- **Learned deferral** (`fit_hybrid.py`, skill stage, P(regex correct)): CV AUROC 0.654 learned
+  vs 0.732 for regex's own calibrated confidence; as in phase 1, the single-confidence gate stays.
+
+### Cascade thresholds (T5.4)
+
+Dev-L shadow `freeze-dev-l-shadow-r1` (`config/freeze_dev_l_manifest.yaml`, E9-L deciding, shadow
+set regex/bm25/embedding/llm(Sonnet)/jev/hybrid/classifier, Sonnet 1 rep on dev-L only per OQ-1):
+150/150, 0 errors; its Sonnet and Jev calls were response-cache hits of the T5.3 passes and of a
+warm-up shadow with the same E9-L routing blocks. Rule (a) of prereg-v1 §4: max joint s.t. routing
+cost ≤ 0.5 × Sonnet P0 dev-L cost per case (7.522/1k → **US$ 0.003761/case**), grid 0.50..0.99,
+5-fold cross-fitted. Reports: `docs/results/phase2-dev-l/cascade-thresholds-dev-l.md`.
+
+| cascade | thresholds (rule (a)) | dev joint | CV held-out joint [95% CI] | CV US$/1k routing | skill-stage coverage per step (dev) |
+|---|---|---|---|---|---|
+| E7-L regex → Jev | regex 0.88 | 86.7 | 86.0 [80.0, 91.3] | 1.04 | regex 105/150 (70%), Jev 45 |
+| E8-L regex → Sonnet | budget infeasible → phase-1 fallback, unconstrained (a): regex 0.88 | 83.3 | 83.3 [77.3, 88.7] | 6.40 | – |
+| E9-L regex → Jev → Sonnet | regex 0.88, Jev 0.76 / tool Jev 0.50 | 86.7 | **86.0 [80.0, 91.3]** | 1.06 | regex 105 (70%), Jev 45, Sonnet 0 |
+| E12-L hybrid → Jev → Sonnet | hybrid 0.78, Jev 0.76 / tool Jev 0.50 | 84.0 | 82.7 [76.0, 88.7] | 1.07 | hybrid 118 (79%), Jev 32 |
+
+References (E9-L, dev): always-Sonnet 80.0 at US$ 8.82/1k; always-first 80.0; oracle 88.7;
+random deferral at the same rates 80.3. E9-L thresholds equal the phase-1 values.
+
+### e2e validation (T5.5)
+
+`config/dev_l_e2e_manifest.yaml`: E0-L and E9-L on the same 40 stratified dev-L cases
+(`config/manifest/dev_l_e2e_validation_40.ids`), Sonnet 5 executor, 1 rep. Both runs COMPLETE,
+0 error rows; every row has a symmetric score (no `None`), 0 unknown tool calls.
+
+| arm | e2e legacy [95% CI] | e2e sym [95% CI] | skill (legacy / sym) | billed US$/turn | study US$/turn | resolved_by |
+|---|---|---|---|---|---|---|
+| E0-L native | 60.0 [45.0, 75.0] | 65.0 [50.0, 80.0] | 87.5 / 80.0 | 0.0139 | 0.0139 | native 40 |
+| E9-L | 57.5 [42.5, 72.5] | 60.0 [45.0, 75.0] | 92.5 / 77.5 | 0.0165 | 0.0178 | regex 28, Jev 12 |
+
+- **Scorer fix found here** (09c1d12): `rescore_file` scored large-split rows against the 18-tool
+  `tools_list.json`, so every new tool's call was an unknown tool; E0-L read 22.5% legacy. The
+  default snapshot is now per split (`dev_l`/`test_l` → `tools_list_large.json`).
+- **Cost per turn, measured** (replaces the plan §5 ×1.25 multiplier): E0-L 0.0139 (plan 0.0113;
+  smoke 0.029 was cache writes on 5 turns), E9-L 0.0165 billed (plan 0.0090). For test-L (300):
+  B13 E0-L ≈ US$ 4.2 (plan 3.39), B14 E9-L ≈ US$ 5.0 (plan 2.69), B15 ≈ 5.0, B16 (60+60) ≈ 1.8.
+- The budget guard of `study run` refused E9-L on its a-priori bound (US$ 3.11 > 2.95 left); the
+  manifest ran a 10-case batch first, then the rest on the measured cost (US$ 0.67 projected).
+- The 10th case of the first batch hung across a host sleep; the run was killed and resumed by
+  (case, rep) through the 40-id manifest: no infra-error rows were left.

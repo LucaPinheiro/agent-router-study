@@ -1,0 +1,31 @@
+strategies:
+  hybrid:
+    alpha: 0.5
+    calibration:
+      skill:
+        x: [0.209037, 0.247394, 0.28575, 0.324106, 0.362462, 0.400819, 0.439175, 0.477531,
+          0.515888, 0.554244, 0.5926, 0.630957, 0.669313, 0.707669, 0.746026, 0.784382,
+          0.822738, 0.861095, 0.899451, 0.937807, 0.976164]
+        y: [0.330737, 0.386174, 0.444728, 0.504857, 0.564847, 0.622996, 0.677807,
+          0.728127, 0.773217, 0.812753, 0.846762, 0.875539, 0.899554, 0.919362, 0.935543,
+          0.948659, 0.959222, 0.967686, 0.97444, 0.979812, 0.984073]
+      tool:
+        x: [0.367222, 0.468926, 0.501069, 0.558027, 0.733113, 0.822926, 0.916889]
+        y: [0.458333, 0.6, 0.666667, 0.692308, 0.918919, 0.918919, 0.98]
+    fusion: convex
+    members: [regex, classifier]
+per_config:
+  e7_regex_jev_l:
+    routing:
+      skill: {pipeline: [{strategy: regex, min_confidence: 0.88}, {strategy: jev}]}
+  e8_regex_llm_l:
+    routing:
+      skill: {pipeline: [{strategy: regex, min_confidence: 0.88}, {strategy: llm}]}
+  e9_regex_jev_llm_l:
+    routing:
+      skill: {pipeline: [{strategy: regex, min_confidence: 0.88}, {strategy: jev, min_confidence: 0.76}, {strategy: llm}]}
+      tool: {pipeline: [{strategy: jev, min_confidence: 0.5}, {strategy: llm}]}
+  e12_hybrid_jev_llm_l:
+    routing:
+      skill: {pipeline: [{strategy: hybrid, min_confidence: 0.78}, {strategy: jev, min_confidence: 0.76}, {strategy: llm}]}
+      tool: {pipeline: [{strategy: jev, min_confidence: 0.5}, {strategy: llm}]}
