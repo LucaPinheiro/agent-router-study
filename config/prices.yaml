@@ -43,6 +43,20 @@ bedrock:
   global.cohere.embed-v4:0:
     input: 0.12
     output: 0.0
+  # Phase 2 dataset generator and auditors (OpenRouter is reserved for Jev). AWS Price List,
+  # sa-east-1, 2026-10-01; the higher standard rate where two are listed.
+  moonshotai.kimi-k2.5:
+    input: 0.72
+    output: 3.6
+  zai.glm-5:
+    input: 1.2
+    output: 3.84
+  openai.gpt-oss-120b-1:0:
+    input: 0.18
+    output: 0.73
+  deepseek.v3.2:
+    input: 0.74
+    output: 2.22
 # OpenRouter reports the real cost per call (`usage.cost`); jev-router has no list price
 # (a meta-router: the served model decides), so no reservation, only the cap check.
 openrouter: {}
