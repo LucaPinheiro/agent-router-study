@@ -78,3 +78,87 @@ cases) is about US$ 0.27 instead of 0.50.
   vs E3t 60.3), unlike the local probe, which matched the local router.
 - The managed 8B LLMs land within 3–4 points of the local Qwen3-8B on dev (79.5 / 78.1 vs 82.2);
   family A tests that gap on test-v2 with a 3 pp NI margin.
+
+## §B. Large catalog (62 tools, 10 skills; dev-L)
+
+### regex (E1-L): catalog-only rules, before any dev-L read (T5.1, part 1)
+
+`config/regex_rules_l.yaml` was written from the catalog only: tool descriptions, WHEN TO USE
+quotes, `_meta` examples and keywords (`mcp_server/tools_list_large.json`), the SKILL.md
+disambiguation rules and the G1–G12 table of `docs/catalog-large.md`. **No dataset file was
+read** (dev-L did not exist yet; no phase-1 split was opened either). The dev-L error round comes
+later and is logged as a separate row.
+
+| step | what | agent wall-clock | human | dev passes | paid calls |
+|---|---|---|---|---|---|
+| catalog rules | base = phase-1 rules copied unchanged; suppressors on the originals; rules for 7 new skills, 42 new tools, 2 new globals; 2 fix rounds on the in-sample checks below | ~0.4 h (2026-10-02 00:13–00:35) | 0 | 0 | 0 (US$ 0) |
+| dev-L round | not started | – | – | – | – |
+
+Timebox (plan §3, risk R1): 4 h for the whole regex effort. Used so far: ~0.4 h, so ~3.6 h
+remain for the dev-L error round; R1 allows one more logged 2 h round after the dev-L CV and
+nothing beyond it.
+
+**Rule counts** (patterns; a pattern may be an alternation):
+
+| | option ids | rules | of which suppressors (< 0) | defs |
+|---|---|---|---|---|
+| phase 1 (`regex_rules.yaml`, 18 tools) | 22 | 79 | 7 | 30 |
+| large (`regex_rules_l.yaml`, 62 tools) | 73 (10 skills + `__global__` + 62 tools) | 235 (91 skill stage, 144 tool stage) | 64 | 46 |
+| – inherited from phase 1, unchanged | 22 | 79 | 7 | 30 (OFF_SCOPE edited, see below) |
+| – added to the 22 original ids | | 43 | 39 | |
+| – new ids (7 skills, 42 tools, 2 globals) | 51 | 113 | 18 | 16 new |
+
+File: 478 lines (phase 1: 181).
+
+**Decisions.**
+
+- *The original positive rules are untouched.* All 79 phase-1 rules are byte-identical. On the
+  original ids I added only suppressors (G1–G12), the two new-global rules on `__global__`
+  (contact change, protocol) and one escalate_to_human rule ("esqueci a senha / não consigo
+  entrar", the example the large overlay adds). On the 71 catalog examples shared with phase 1,
+  the large rules route exactly the same set as the phase-1 rules do on the small catalog
+  (54/71 vs 55/72; **0 regressions, 0 gains**). This keeps the original tools comparable
+  across catalogs. The remaining misses on original tools are phase-1 misses, left for the
+  dev-L round.
+- *OFF_SCOPE edited.* "nota fiscal" and "preços" are in scope in the large catalog
+  (`docs/catalog-large.md` §3), so they were dropped, and "senha|login|atacado|estoque" were
+  added (escalate_to_human's large description).
+- *Suppressors carry the G1–G12 rules at the skill stage.* The tool stage only offers one
+  skill's tools + the 5 globals, so a cross-skill group is decided at the skill stage. Each
+  group's "domain marker" is a def (CARD, SUB, TECH, SELLER, INVOICE, RECEIPT, PROMO,
+  PRICE_DROP, LOYALTY, DEBT, CONTACT, PROTOCOL). The original skill that shares the trigger
+  gets a suppressor (-0.6 or -1.0) on that marker: e.g. pedidos_logistica −1.0 on SUB/TECH
+  (G4, G5), pagamentos_reembolsos −1.0 on CARD/SELLER (G1, G2) and on cashback/points (G3),
+  trocas_devolucoes −1.0 on TECH (G7) and on CNPJ/"nota de devolução"/seller refusal (G10). The
+  original tools get the same suppressors at the tool stage (e.g. cancel_order, dispute_charge,
+  track_shipment), in case a misrouted skill offers them.
+- *Following the SKILL.md rules literally where they are asymmetric.* G10: a plain return of a
+  partner-seller product stays create_return_request (marketplace −0.6 on "devolver" unless
+  "recusou"); only a refusal goes to open_seller_mediation. G7: "ainda está na garantia?"
+  stays check_return_eligibility; "até quando vai a garantia" / "garantia estendida" goes to
+  check_extended_warranty.
+- *Catalog-shaped tokens.* Coupon codes (`[a-z]{3,}\d{2,3}`, e.g. CASA50) and gift-card codes
+  (`presente-…`) are PROMO markers; "nota 5" is excluded from the INVOICE marker (rate_seller).
+  Subscription goods named in the catalog (ração, fraldas, cápsulas, refil) are a 0.6 hint.
+
+**In-sample checks (catalog phrases; the rules were written against them, so these are a
+coverage floor, not an accuracy estimate).** End-to-end = skill stage over 11 options, then tool
+stage over the skill's tools + 5 globals; a tie or no match is a miss.
+
+| check | hits |
+|---|---|
+| `_meta` examples, all 62 tools (248) | 231 (93.1%); every tool ≥ 2/4 |
+| – the 44 new tools (176) | 176 (100%) |
+| – the 18 original tools (72) | 55 (76.4%) = phase-1 rules on the small catalog |
+| WHEN TO USE quotes (121) | 118 (97.5%); the 3 misses are original tools |
+| SKILL.md frontmatter examples, skill stage (50) | 50 (100%) |
+| G1–G12 probes written from the SKILL.md rules (34) | 34 (100%) |
+
+Per skill (`_meta` examples): assinaturas, assistencia_tecnica, cartao_loja_crediario,
+fidelidade_cashback, marketplace_vendedores, notas_fiscais_cadastro and promocoes_precos 24/24
+each; `__global__` 19/20; trocas_devolucoes 16/20; pagamentos_reembolsos 15/20;
+pedidos_logistica 13/20.
+
+Expect a large drop on dev-L: the phase-1 regex lost 32 pp from dev to test, and these rules saw
+no user phrasing at all. Tests: `tests/routers/test_regex_rules_l.py` (≥ 2 examples per tool,
+the phase-1 phrase tests on the large option sets, one probe per G1–G12 tool).

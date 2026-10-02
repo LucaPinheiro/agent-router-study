@@ -1,31 +1,34 @@
-# STUB (T3.3) — regex rules for the LARGE catalog (62 tools, 10 skills; config/experiments_l/).
-# Starts as a byte copy of the phase-1 rules (config/regex_rules.yaml, read-only): it covers the
-# 3 original skills and their 15 tools + 3 original globals. The 7 new skills, their 42 tools and
-# the 2 new globals have NO rules yet, so the regex router abstains on them (cascades defer to the
-# next step). The new rules are written in T5.1 (4 h timebox, docs/tuning-effort-l.md).
+# Regex-first router rules for the LARGE catalog (62 tools, 10 skills + 5 globals; pt-BR;
+# config/experiments_l/). T5.1 regex, written under a 4 h timebox (docs/tuning-effort-l.md
+# "regex"). Source: the catalog only (tool descriptions, WHEN TO USE quotes, `_meta` examples
+# and keywords of mcp_server/tools_list_large.json, the SKILL.md disambiguation rules and
+# docs/catalog-large.md G1-G12). No dataset file was read.
 #
-# Regex-first router rules (pt-BR). Written from the domain/tool catalog vocabulary — intents,
-# verbs, nouns, colloquial variants and common typos — never from test data.
+# Base = the phase-1 rules (config/regex_rules.yaml, read-only), copied unchanged for the 3
+# original skills, their 15 tools and the 3 original globals, with these additions only:
+# - suppressors (negative weights) on the original skills/tools where a new sibling collides
+#   (G1-G12, "G#" in the comments);
+# - OFF_SCOPE drops "nota fiscal" and "precos" (in scope in the large catalog, see
+#   docs/catalog-large.md §3) and gains "senha|login|atacado|estoque" (escalate_to_human).
 #
-# - Keys are option ids: the 3 skills + __global__ (skill stage) and the 18 MCP tools
-#   (tool stage). A router only scores the ids present in the current option list.
-# - Input is lowercased and accent-stripped before matching; patterns are accent-stripped
-#   and compiled case-insensitive, so write them WITHOUT accents (e.g. "devolucao").
-# - `defs`: shared intent vocabulary, referenced as {{NAME}} (expanded as a (?:...) group).
-# - Option score = sum of the weights of matching patterns. `full_score` is the score that
-#   saturates confidence strength at 1.0; a tie between two options halves confidence.
+# Format (unchanged from phase 1):
+# - Keys are option ids: skills + __global__ (skill stage) and MCP tools (tool stage = the
+#   chosen skill's tools + the 5 globals). A router only scores the ids in the option list.
+# - Input is lowercased and accent-stripped; patterns are accent-stripped and compiled
+#   case-insensitive, so write them WITHOUT accents.
+# - `defs`: shared vocabulary, referenced as {{NAME}} (expanded as a (?:...) group).
+# - Option score = sum of matching weights; `full_score` saturates confidence strength.
 # - Weights: 1.0 = decisive phrase, 0.6 = strong hint, 0.3 = weak/shared vocabulary,
-#   negative = suppressor (the phrase argues against the option, e.g. a policy question
-#   against an action tool).
+#   negative = suppressor (the phrase argues against the option).
 
 full_score: 1.0
 
 defs:
-  # ------------------------------------------------------------- objects
+  # ------------------------------------------------------------- objects (phase 1)
   ORDER: '(pedido|compra|encomenda|pacote|mercadoria|produto|item|aquisicao)s?'
   ID: '\bo\d{3,5}\b'
   MONEY: '(dinheiro|grana|\$\$\$|valor|quantia|o que (eu )?paguei|financeir\w*|monetari\w*)'
-  # ------------------------------------------------------------- pedidos_logistica
+  # ------------------------------------------------------------- pedidos_logistica (phase 1)
   TRACK: '(rastre\w*|tracking|localiza\w*|em transito|transportadora|correios|entregador|a caminho|extraviad\w*|se perdeu|parad\w* na)'
   WHERE: '(cade|onde (esta|anda|ta|fica|foi parar))'
   LATE: '(nao (chegou|foi entregue|recebi|veio)|ainda nao (chegou|recebi)|atras\w*|demora\w*|passou (do|o) prazo)'
@@ -36,13 +39,13 @@ defs:
   CHANGE: '(mudar|muda|trocar|troca|alterar|altera\w*|atualizar|corrigir|corrige|errei|equivoco|mudei)'
   RESCHEDULE: '(reagend\w*|remarc\w*|adiar|adia|outro dia|outra data|nova data|(mudar|trocar|alterar) (o |a )?(dia|data)|nao (vou |vai |vamos )?(estar|estiver|estarei|tar|ta|to|ter ninguem)\s*(em casa|aqui|aq)|ninguem (vai estar )?em casa|viajando|nao (vou )?(consigo|poder) receber|tentativa de entrega)'
   CANCEL: '(cancel\w*|desist\w*|nao (quero|vou querer) mais|desfazer|voltar atras|interromp\w*|anular|me arrependi da compra)'
-  # ------------------------------------------------------------- pagamentos_reembolsos
+  # ------------------------------------------------------------- pagamentos_reembolsos (phase 1)
   REFUND: '(reembols\w*|estorn\w*|ressarc\w*|reaver|(meu |o )?{{MONEY}} de volta|devolv\w* (o |meu )?(dinheiro|valor)|devolucao do (dinheiro|valor))'
   BOLETO: '(boleto|(2a|segunda|nova) via|linha digitavel|codigo de barras|reemit\w*|reemissao)'
   PAYMENT: '(pagamento|pgto|pagto|paguei|pago\b|pagar\b|pix\b|cartao|parcela\w*|compens\w*|aprovad\w*|recusad\w*|caiu na conta|forma de pagamento|metodo de pagamento)'
   WRONG_CHARGE: '(duplicad\w*|duas vezes|2x|indevid\w*|a mais|errad\w*|diferente|maior|nao reconhe\w*|nao autoriz\w*)'
   CHARGE: '(cobr\w*|fatura|valor|debit\w*)'
-  # ------------------------------------------------------------- trocas_devolucoes
+  # ------------------------------------------------------------- trocas_devolucoes (phase 1)
   RETURN: '(devolv\w*|devolu\w*|mandar (isso |ele |ela )?de volta|enviar (isso |ele |ela )?de volta|retornar|retorno)'
   EXCHANGE: '(troc\w*|substitu\w*|outr[oa] (tamanho|numero|cor|modelo|variacao)|numero (maior|menor)|tamanho (maior|menor))'
   FIT: '(nao (serviu|serve|me serve|gostei|era o que|ficou bom)|ficou (pequen|grand|apertad|larg|zoad)\w*|apertad\w*|arrependi\w*|mudei de ideia)'
@@ -55,7 +58,25 @@ defs:
   HUMAN: '(atendente|humano|pessoa (de verdade|real)|alguem da equipe|falar com alguem|supervisor\w*|gerente|atendimento humano|ouvidoria|procon|reclame aqui|reclamacao formal)'
   PROFILE: '(meus dados|meu cadastro|meu perfil|dados cadastrais|minha conta|meus pedidos|quais pedidos|numero do (meu )?pedido|endereco (do|no) (meu )?cadastro)'
   POLICY: '(politica|regras?|requisitos|cobertura|como funciona|quanto tempo (leva|demora)|qual (e )?o prazo|prazo (legal |maximo )?(para|pra|de) (troca|devol\w*|reembols\w*|estorno|garantia)|(voces|vcs) (aceitam|parcelam|fazem|tem))'
-  OFF_SCOPE: '(curriculo|vaga|contratando|nota fiscal|produtos? novos?|precos?|recomend\w*)'
+  # large: "nota fiscal" and "precos" are in scope now; senha/login/atacado/estoque are not
+  OFF_SCOPE: '(curriculo|vaga|contratando|produtos? novos?|lancamentos? de produtos?|novos lancamentos|estoque|senha|login|atacado|recomend\w*)'
+  CONTACT: '(e-?mail|celular|telefone|whats ?app|zap)'
+  CONTACT_CHANGE: '(troquei|trocar|troca|mud\w*|atualiz\w*|alter\w*|(?<!de )novo|outro|cadastr\w*)'
+  PROTOCOL: '(protocolo|chamado|\batd-\w+|reclamacao (do|da|de|que|sobre)|solicitacao que)'
+  # ------------------------------------------------------------- new-skill markers (large)
+  SUB: '(assinatura|assinante|\bclube\b|entrega recorrente|recorren\w*|\bmeu plano\b|no plano\b|o plano\b|plano (mensal|recorrente)|todo mes|mensalmente)'
+  SUB_GOODS: '(racao|fraldas?|capsulas?|cafe em graos|refil|sabao)'
+  TECH: '(tecnic[oa]s?\b|visita tecnica|instala\w*|montagem|\bmontar\b|ordem de servico|\b(a|da|minha|uma|na) os\b|\bos-\w+|(em|a) domicilio|garantia estendida|plano de garantia|eletrodomestic\w*)'
+  CARD: '(cartao (da|de) loja|cartao loja|crediario)'
+  LIMIT: '(\blimite\b)'
+  DEBT: '((fatura|parcela|conta|cartao|crediario)s?\b.{0,40}\batrasad\w*|atrasad\w* .*\b(fatura|parcela)|em atraso|renegoci\w*|\bacordo\b|\bdivida\w*|o que devo)'
+  LOYALTY: '(\bpontos\b|\bpontu\w*|fidelidade|cashback|\bnivel\b|cliente (ouro|prata|bronze|diamante)|virar (ouro|prata|bronze|diamante))'
+  SELLER: '(vendedor\w*|lojista|loja parceira|lojas parceiras|\bparceir[oa]s?\b|marketplace|outra loja|outra empresa|quem (me )?vendeu|que me vendeu|vendid[oa] por)'
+  INVOICE: '(notas? fisca\w*|\bnf-?e?\b|\bnfs\b|danfe|chave de acesso|\bxml\b|carta de correcao|\bcc-?e\b|razao social|inscricao estadual|\bcnpj\b|pessoa juridica|dados de faturamento|endereco de cobranca|\bnotas?\b(?! ?\d)(?! (para|pro|pra|cinco|dez|um|baixa|alta|maxima)\b))'
+  RECEIPT: '(comprovante|recibo)'
+  PROMO: '(cupo\w*|codigo de desconto|\bdesconto\b|promoc\w*|campanha|regulamento|vale[- ]?(presente|compra)s?|\bvales\b|cartao[- ](de )?presente|gift ?card|presente-\w+|semana d[aoe] \w+|pontos em dobro|black friday|cashback (no |do |via )?pix|como funciona o cashback|\b(no|do|meu) vale\b|\b[a-z]{3,}\d{2,3}\b)'
+  PRICE_DROP: '(preco (baixou|caiu|abaixou|diminuiu)|(baix|abaix|caiu|cair)\w* (o |a )?preco|ficou mais barato|mais barato|por menos|diferenca (de|do) (preco|valor)|a diferenca|protecao de preco)'
+  NOT_LOYALTY_POINTS: '\bpontos\b(?! em dobro)'
 
 rules:
   # =========================================================== skill stage
@@ -71,6 +92,14 @@ rules:
     - { pattern: '\b{{CANCEL}}', weight: 0.6 }
     - { pattern: '\b(entreg\w*|frete|envio)\b', weight: 0.3 }
     - { pattern: '\b{{ORDER}}\b|{{ID}}', weight: 0.3 }
+    # large suppressors
+    - { pattern: '{{SUB}}', weight: -1.0 }           # G4/G5: cancel or change the date of a subscription
+    - { pattern: '{{TECH}}', weight: -1.0 }          # G4/G5: cancel or reschedule the technician
+    - { pattern: '{{SELLER}}', weight: -0.6 }        # G6: shipped by a partner seller
+    - { pattern: '{{INVOICE}}|{{RECEIPT}}', weight: -0.6 }  # G8: billing address; "nao recebi a nota"
+    - { pattern: '\b{{CONTACT}}\b', weight: -0.6 }   # G8: e-mail / phone are contact data
+    - { pattern: '{{DEBT}}|{{CARD}}', weight: -1.0 } # "fatura atrasada" is not a late delivery
+    - { pattern: '{{LOYALTY}}|{{PROMO}}', weight: -0.6 }
 
   pagamentos_reembolsos:
     - { pattern: '\b{{REFUND}}', weight: 1.0 }
@@ -79,6 +108,13 @@ rules:
     - { pattern: '\b{{CHARGE}}\b.*\b{{WRONG_CHARGE}}|\b(contest\w*|chargeback)\b', weight: 1.0 }
     - { pattern: '\b{{MONEY}}\b', weight: 0.6 }
     - { pattern: '\bcobr\w*', weight: 0.6 }
+    # large suppressors
+    - { pattern: '{{CARD}}|{{DEBT}}|\b{{LIMIT}}', weight: -1.0 }  # G1/G2: store card bill and lines
+    - { pattern: '{{SELLER}}', weight: -1.0 }        # G1: partner-seller charge -> mediation
+    - { pattern: '\bcashback|{{NOT_LOYALTY_POINTS}}', weight: -1.0 }  # G3: cashback / points did not land
+    - { pattern: '{{PRICE_DROP}}|{{PROMO}}', weight: -0.6 }  # G9/G12: price drop, coupon
+    - { pattern: '{{RECEIPT}}|{{INVOICE}}', weight: -0.6 }   # G11: receipt / invoice
+    - { pattern: '{{SUB}}', weight: -0.6 }           # subscription payment method
 
   trocas_devolucoes:
     - { pattern: '\b{{RETURN}}', weight: 1.0 }
@@ -90,6 +126,12 @@ rules:
     - { pattern: '\b{{LABEL}}', weight: 1.0 }
     - { pattern: '\b{{REFUND}}', weight: -0.6 }  # "devolver o dinheiro" is a refund
     - { pattern: '\bpost(ar|agem)\b', weight: 0.6 }  # the customer ships it back
+    # large suppressors
+    - { pattern: '{{TECH}}', weight: -1.0 }          # G7: technician at home, extended warranty
+    - { pattern: '\bate quando (vai|vale|dura) a garantia|validade da garantia', weight: -0.6 }  # G7: coverage lookup
+    - { pattern: '\b(cnpj|pessoa juridica|pela empresa|da empresa)\b|(nota|nf)( fiscal)? de devolucao|devolucao fiscal', weight: -1.0 }  # G10
+    - { pattern: '{{SELLER}}.*\brecus\w*|\brecus\w*.*{{SELLER}}', weight: -1.0 }  # G10: seller refused the return
+    - { pattern: '{{NOT_LOYALTY_POINTS}}|{{PROMO}}|{{CONTACT}}|{{SUB}}', weight: -0.6 }  # "trocar pontos", "troquei de e-mail"
 
   __global__:
     - { pattern: '\b{{HUMAN}}', weight: 1.0 }
@@ -98,21 +140,92 @@ rules:
     - { pattern: '^(?!.*{{ID}}).*\b{{POLICY}}', weight: 0.6 }  # general question, no order
     - { pattern: '\b{{OFF_SCOPE}}', weight: 0.6 }
     - { pattern: '{{ID}}', weight: -0.6 }  # a concrete order is an action, not a policy question
+    # large: new globals
+    - { pattern: '\b{{CONTACT_CHANGE}}\b.*\b{{CONTACT}}\b|\b{{CONTACT}}\b.*\b{{CONTACT_CHANGE}}', weight: 1.0 }
+    - { pattern: '\b{{PROTOCOL}}', weight: 1.0 }
+    - { pattern: '\b{{PROTOCOL}}.*\b(que (eu )?(abri|fiz|registrei)|andamento|resposta|como (esta|anda|ta))', weight: 0.6 }
+    # large suppressors
+    - { pattern: '^(?!.*{{PROTOCOL}}).*{{PROMO}}', weight: -1.0 }  # campaign rules -> get_promotion_terms
+    - { pattern: '\bgarantia estendida|plano de garantia|ate quando (vai|vale|dura) a garantia', weight: -1.0 }  # G7
+    - { pattern: '{{INVOICE}}|{{RECEIPT}}', weight: -0.6 }  # "nao recebi a nota no e-mail"
+    - { pattern: '{{SUB}}|{{CARD}}|{{LOYALTY}}', weight: -0.6 }
+
+  assinaturas:
+    - { pattern: '{{SUB}}', weight: 1.0 }
+    - { pattern: '\b{{SUB_GOODS}}\b|\bem vez de (\d|um|uma|dois|duas|tres)\b', weight: 0.6 }
+    - { pattern: '\b(pausa\w*|pular (a |as )?(proxima|entrega)\w*|dar um tempo)', weight: 0.6 }
+    - { pattern: '\b(pag\w*|cobranc\w*|cartao|pix)\b.*{{SUB}}|{{SUB}}.*\b(pag\w*|cobranc\w*|cartao|pix)\b', weight: 0.6 }
+    - { pattern: '{{SELLER}}|{{TECH}}', weight: -0.6 }
+
+  assistencia_tecnica:
+    - { pattern: '{{TECH}}', weight: 1.0 }
+    - { pattern: '\b(tecnico|assistencia) (em casa|aqui em casa|em domicilio)|\b(instalar|instalacao|visita tecnica)\b', weight: 0.6 }
+    - { pattern: '\bate quando (vai|vale|dura) a garantia|validade da garantia|cobertura do (meu )?plano', weight: 1.0 }
+    - { pattern: '{{SUB}}', weight: -0.6 }
+
+  marketplace_vendedores:
+    - { pattern: '{{SELLER}}', weight: 1.0 }
+    - { pattern: '{{SELLER}}.*\b(recus\w*|nao (resolve|responde|respondeu|resolveu)|interce\w*|media\w*|denunc\w*|falsific\w*|enganos\w*|avali\w*|pergunt\w*|mensagem|falo|falar|combinar|postou|enviou|despach\w*)|\b(recus\w*|interce\w*|denunc\w*|avali\w*|pergunt\w*|mensagem|falo|falar|combinar)\b.*{{SELLER}}', weight: 0.6 }
+    - { pattern: '\b(mediacao|denunc\w*|anuncio|enganos\w*|falsific\w*)', weight: 0.6 }
+    - { pattern: '^(?!.*recus).*\b{{RETURN}}', weight: -0.6 }  # G10: a plain return is create_return_request
+
+  notas_fiscais_cadastro:
+    - { pattern: '{{INVOICE}}', weight: 1.0 }
+    - { pattern: '{{RECEIPT}}', weight: 1.0 }
+    - { pattern: '\b(nota|nf)( fiscal)? de devolucao|devolucao fiscal|\bcnpj\b.*\b{{RETURN}}|\b{{RETURN}}.*\bcnpj\b', weight: 1.0 }  # G10
+    - { pattern: '\b(chave de acesso|danfe|carta de correcao|razao social|inscricao estadual|endereco de cobranca)\b', weight: 0.6 }
+    - { pattern: '\b(pela|da|no cnpj da) empresa\b', weight: 0.6 }
+    - { pattern: '{{SELLER}}', weight: -0.3 }
+
+  promocoes_precos:
+    - { pattern: '{{PROMO}}', weight: 1.0 }
+    - { pattern: '{{PRICE_DROP}}', weight: 1.0 }
+    - { pattern: '\b(preco|diferenca)\b', weight: 0.6 }
+    - { pattern: '\b(cupo\w*|vale[- ]?presente|cartao[- ](de )?presente|campanha|promoc\w*)\b.*\b(aplicad\w*|descontad\w*|valendo|vale|ativar|resgat\w*|regras?|regulamento|saldo|validade)|\bcomo funciona .*cashback|cashback (no|do) pix', weight: 0.6 }
+    - { pattern: '{{NOT_LOYALTY_POINTS}}', weight: -1.0 }  # "trocar pontos por vale-compra" is redeem_points
+
+  fidelidade_cashback:
+    - { pattern: '{{LOYALTY}}', weight: 1.0 }
+    - { pattern: '\b(extrato|saldo|trocar|resgat\w*|nao (cairam|caiu|apareceram|gerou)|faltaram|vencer)\b.*\bpontos|\bpontos\b.*\b(extrato|saldo|nao (cairam|caiu|apareceram)|vencer|pendentes)', weight: 0.6 }
+    - { pattern: '\b(beneficios|programa|extrato)\b', weight: 0.6 }
+    - { pattern: '\b(como funciona|regras?|regulamento|vale para)\b|pontos em dobro|promoc\w*|campanha', weight: -0.6 }  # campaign rules
+
+  cartao_loja_crediario:
+    - { pattern: '{{CARD}}', weight: 1.0 }
+    - { pattern: '{{DEBT}}', weight: 1.0 }
+    - { pattern: '\b{{LIMIT}}', weight: 1.0 }
+    - { pattern: '{{CARD}}.*\b(fatura|nao reconhe\w*|duas vezes|contest\w*|nao fiz|bloque\w*|limite|vencimento|lancamento\w*|segunda via|boleto)|\b(fatura|perdi|roubaram|clonaram|bloque\w*|contest\w*|nao reconhe\w*)\b.*{{CARD}}', weight: 0.6 }
+    - { pattern: '\b(vencimento|lancamentos?|clonad\w*|clonaram)\b', weight: 0.6 }
+    - { pattern: '{{SUB}}', weight: -0.6 }  # "pagar a assinatura com o cartao da loja"
 
   # =========================================================== tool stage: globals
   get_customer_profile:
     - { pattern: '\b{{PROFILE}}', weight: 1.0 }
     - { pattern: '\b(qual|quais) (e |sao )?(o |os )?(meu|meus) (e-?mail|telefone|endereco)', weight: 0.6 }
+    - { pattern: '\b{{CONTACT_CHANGE}}\b.*\b(cadastro|{{CONTACT}})', weight: -0.6 }  # G8: change, not read
+    - { pattern: '\b(nivel|beneficios)\b|{{PROMO}}', weight: -0.6 }  # loyalty tier, vouchers
 
   search_help_center:
     - { pattern: '\b{{POLICY}}', weight: 1.0 }
     - { pattern: '^(?!.*{{ID}}).*\b{{POLICY}}', weight: 0.6 }  # general question, no order
     - { pattern: '\b(duvida|central de ajuda|faq)\b', weight: 0.3 }
     - { pattern: '{{ID}}', weight: -0.6 }
+    - { pattern: '{{PROMO}}|cashback', weight: -1.0 }  # campaign rules -> get_promotion_terms
+    - { pattern: '\bgarantia estendida|plano de garantia', weight: -1.0 }  # G7
 
   escalate_to_human:
     - { pattern: '\b{{HUMAN}}', weight: 1.0 }
     - { pattern: '\b({{OFF_SCOPE}}|absurdo|inaceitavel|palhacada)', weight: 0.6 }
+    - { pattern: '\b(conseguir? entrar|nao consigo (entrar|acessar)|esqueci)\b', weight: 0.6 }
+
+  update_contact_info:
+    - { pattern: '\b{{CONTACT_CHANGE}}\b.*\b{{CONTACT}}\b|\b{{CONTACT}}\b.*\b{{CONTACT_CHANGE}}', weight: 1.0 }
+    - { pattern: '\b{{CONTACT}}\b', weight: 0.3 }
+    - { pattern: '{{INVOICE}}', weight: -1.0 }  # "manda a nota no meu e-mail" is resend_invoice
+
+  check_protocol_status:
+    - { pattern: '\b{{PROTOCOL}}', weight: 1.0 }
+    - { pattern: '\b{{PROTOCOL}}.*\b(que (eu )?(abri|fiz|registrei)|andamento|resposta|como (esta|anda|ta))', weight: 0.6 }
 
   # =========================================================== tool stage: pedidos_logistica
   get_order_status:
@@ -120,47 +233,57 @@ rules:
     - { pattern: '\b{{SHIPPED}}', weight: 1.0 }
     - { pattern: '\bcomo (esta|anda|ta) (o |a )?(meu |minha )?{{ORDER}}|\bo que (rolou|aconteceu|houve)|\bquais itens', weight: 1.0 }
     - { pattern: '\b{{WHEN}}', weight: 0.6 }
+    - { pattern: '{{SUB}}|{{TECH}}', weight: -1.0 }  # next subscription delivery; service order
 
   track_shipment:
     - { pattern: '\b{{TRACK}}', weight: 1.0 }
     - { pattern: '\b{{WHERE}}', weight: 1.0 }
     - { pattern: '\b{{LATE}}', weight: 0.6 }
     - { pattern: '\b{{WHEN}}', weight: 0.3 }
+    - { pattern: '{{SELLER}}', weight: -1.0 }  # G6
 
   update_delivery_address:
     - { pattern: '\b{{CHANGE}}\b.*\b{{ADDRESS}}|\b{{ADDRESS}}\b.*\b(errad\w*|novo|outro)', weight: 1.0 }
     - { pattern: '\b{{ADDRESS}}', weight: 0.3 }
+    - { pattern: '{{INVOICE}}|\b{{CONTACT}}\b', weight: -1.0 }  # G8
 
   reschedule_delivery:
     - { pattern: '\b{{RESCHEDULE}}', weight: 1.0 }
+    - { pattern: '{{SUB}}|{{TECH}}', weight: -1.0 }  # G5
 
   cancel_order:
     - { pattern: '\b{{CANCEL}}', weight: 1.0 }
     - { pattern: '\b(chegou|recebi|entregue)\b', weight: -0.3 }  # after delivery it is a return
+    - { pattern: '{{SUB}}|{{TECH}}', weight: -1.0 }  # G4
 
   # =========================================================== tool stage: pagamentos_reembolsos
   get_payment_status:
     - { pattern: '\b{{PAYMENT}}', weight: 0.6 }
     - { pattern: '\b(status|estatus|situacao|atualizacao)\b.*\b(pagamento|pgto)|\b(pagamento|pgto|paguei|pago)\b.*\b(aprovad\w*|confirm\w*|compens\w*|caiu|pendente|recusad\w*|processad\w*|recebe\w*|identificad\w*)', weight: 1.0 }
     - { pattern: '\b{{MONEY}}\b', weight: 0.3 }
+    - { pattern: '{{RECEIPT}}|{{INVOICE}}|{{CARD}}|{{SUB}}', weight: -1.0 }  # G11, G2
 
   generate_boleto_second_copy:
     - { pattern: '\b{{BOLETO}}', weight: 1.0 }
     - { pattern: '\b(perdi|venceu|vencid\w*|enviar de novo|mandar de novo|novamente)\b', weight: 0.6 }
     - { pattern: '\b(paguei|ja pago)\b', weight: -0.6 }  # already paid: a status question
+    - { pattern: '{{CARD}}', weight: -1.0 }  # G2
 
   request_refund:
     - { pattern: '\b{{REFUND}}', weight: 0.6 }
     - { pattern: '\b(quero|queria|preciso|necessito|solicit\w*|pedir|fazer|feito)\b.*\b{{REFUND}}|\b{{MONEY}} de volta|\breaver\b', weight: 0.6 }
     - { pattern: '\b(extraviad\w*|nunca chegou|nao estornaram|nao voltou)', weight: 0.6 }
+    - { pattern: '{{PRICE_DROP}}|{{PROMO}}', weight: -1.0 }  # G9
 
   get_refund_status:
     - { pattern: '\b{{REFUND}}.*\b(caiu|cai|ja|quando|cade|prazo|status|estatus|andamento|aparece\w*|foi resolvido)\b|\b(caiu|cade|quando|status|estatus|onde (ta|esta)) .*\b{{REFUND}}', weight: 1.0 }
     - { pattern: '\b(esperando|aguardando) (o |a )?{{REFUND}}', weight: 1.0 }
+    - { pattern: '\bcashback|{{NOT_LOYALTY_POINTS}}', weight: -1.0 }  # G3
 
   dispute_charge:
     - { pattern: '\b{{CHARGE}}\b.*\b{{WRONG_CHARGE}}', weight: 1.0 }
     - { pattern: '\b(contest\w*|chargeback|nao reconhe\w*)', weight: 1.0 }
+    - { pattern: '{{CARD}}|{{SELLER}}', weight: -1.0 }  # G1
 
   # =========================================================== tool stage: trocas_devolucoes
   check_return_eligibility:
@@ -172,10 +295,12 @@ rules:
     - { pattern: '\b{{CAN}}\b', weight: -0.6 }  # "can I...?" asks for eligibility
     - { pattern: '\b{{FIT}}|\b{{WRONG_ITEM}}', weight: 0.3 }
     - { pattern: '\b(chegou|veio) (quebrad|danificad|avariad|violad)\w*', weight: 0.6 }
+    - { pattern: '\b(cnpj|pessoa juridica)\b|{{SELLER}}.*\brecus\w*', weight: -1.0 }  # G10
 
   generate_return_label:
     - { pattern: '\b{{LABEL}}', weight: 1.0 }
     - { pattern: '\b(postar|postagem|correio)\b', weight: 0.6 }
+    - { pattern: '(nota|nf)( fiscal)? de devolucao', weight: -1.0 }  # G10: return invoice
 
   create_exchange:
     - { pattern: '\b{{EXCHANGE}}', weight: 0.6 }
@@ -185,3 +310,169 @@ rules:
   open_warranty_claim:
     - { pattern: '\b{{WARRANTY}}', weight: 1.0 }
     - { pattern: '\b{{DEFECT}}', weight: 0.6 }
+    - { pattern: '{{TECH}}', weight: -1.0 }  # G7: technician at home / extended warranty
+
+  # =========================================================== tool stage: assistencia_tecnica
+  schedule_installation:
+    - { pattern: '\b(instala\w*|montar|montagem)', weight: 1.0 }
+    - { pattern: '\b(marcar|agendar|agenda)\b', weight: 0.3 }
+    - { pattern: '\b(passar|remarc\w*|reagend\w*|mudar|trocar|desmarc\w*|cancel\w*|desist\w*|como esta|ordem de servico|acompanh\w*|confirmad\w*)', weight: -0.6 }
+
+  request_technical_visit:
+    - { pattern: '\b{{DEFECT}}|\b(parou|problema|nao gira|conserto|consert\w*|reparo)', weight: 1.0 }
+    - { pattern: '\btecnico (em casa|aqui)|\b(em|a) domicilio|\bvenha ver|\bmandam (um )?tecnico|visita tecnica para', weight: 0.6 }
+    - { pattern: '\b(cancel\w*|desmarc\w*|voltou a funcionar|remarc\w*)', weight: -1.0 }
+
+  reschedule_technical_visit:
+    - { pattern: '\b{{RESCHEDULE}}', weight: 1.0 }
+    - { pattern: '\b(passar|mudar|trocar) .*\b(para|pra) (a |o )?(semana|tarde|manha|dia|outro)|\b(trocar|mudar) o dia|\bsemana que vem\b', weight: 1.0 }
+
+  get_service_order_status:
+    - { pattern: '\b(que dia|quando)\b.*\b(tecnico|visita|instalacao)\b.*\b(vem|chega|vai)|\btecnico vem\b|\bordem de servico|\bos-\w+', weight: 1.0 }
+    - { pattern: '\b(como (esta|anda|ta)|status|confirmad\w*|acompanh\w*|andamento)\b', weight: 0.6 }
+    - { pattern: '\b(cancel\w*|remarc\w*|mudar|desmarc\w*)', weight: -0.6 }
+
+  cancel_service_order:
+    - { pattern: '\b{{CANCEL}}|\bdesmarc\w*|nao preciso mais', weight: 1.0 }
+
+  check_extended_warranty:
+    - { pattern: '\bgarantia estendida|plano de garantia|\bcobertura|\bate quando (vai|vale|dura) a garantia|validade da garantia|\btem garantia', weight: 1.0 }
+    - { pattern: '\b(esta valendo|valendo|ainda vale)\b', weight: 0.3 }
+
+  # =========================================================== tool stage: marketplace_vendedores
+  get_seller_info:
+    - { pattern: '\bquem (e o |e a )?(vendedor|lojista|vendeu|me vendeu)|que (me )?vendeu|vendid[oa] por|\breputacao|\bconfiavel|\bcnpj\b|outra empresa', weight: 1.0 }
+    - { pattern: '\b(pergunt\w*|mensagem|falo|falar|contato|combinar|denunc\w*|avali\w*|rastre\w*|recus\w*)', weight: -0.6 }
+
+  contact_seller:
+    - { pattern: '\b(pergunt\w*|mensagem|falo|falar|contato|combinar|conversar)\b', weight: 1.0 }
+    - { pattern: '\b(nao (responde|respondeu|resolve|resolveu)|recus\w*)', weight: -1.0 }  # mediation
+
+  track_seller_shipment:
+    - { pattern: '\b(postou|enviou|despach\w*|rastre\w*|acompanho|codigo de rastreio)\b|\b{{WHERE}}', weight: 1.0 }
+    - { pattern: '\b(nao (responde|respondeu|resolve)|recus\w*)', weight: -1.0 }
+
+  open_seller_mediation:
+    - { pattern: '\b(recus\w*|nao (resolve|responde|respondeu|resolveu)|interce\w*|media\w*|intermed\w*|ajuda da loja)', weight: 1.0 }
+    - { pattern: '\b(diferente|cobr\w*|nao chegou|nao entregou)', weight: 0.6 }
+
+  report_seller_issue:
+    - { pattern: '\b(denunc\w*|enganos\w*|falsific\w*|grosseir\w*|queixa|report\w*|suspeit\w*|conduta)', weight: 1.0 }
+
+  rate_seller:
+    - { pattern: '\b(avali\w*|dar nota|nota \d|estrelas?|opiniao)', weight: 1.0 }
+
+  # =========================================================== tool stage: notas_fiscais_cadastro
+  get_invoice:
+    - { pattern: '{{INVOICE}}', weight: 0.3 }
+    - { pattern: '\b(numero da nota|chave de acesso|danfe|(foi|ja|sido) emitida|onde vejo)', weight: 1.0 }
+
+  resend_invoice:
+    - { pattern: '\b(nao (recebi|chegou)|reenvi\w*|de novo|outra vez|novamente)', weight: 1.0 }
+    - { pattern: '\b(manda|envia|pelo whats\w*|por e-?mail)\b', weight: 0.3 }
+    - { pattern: '{{RECEIPT}}', weight: -1.0 }
+
+  request_invoice_correction:
+    - { pattern: '\b(errad\w*|corrig\w*|correcao|cc-?e|antig\w*|saiu com)', weight: 1.0 }
+
+  issue_return_invoice:
+    - { pattern: '\b{{RETURN}}', weight: 1.0 }
+    - { pattern: '\b(cnpj|pessoa juridica)\b', weight: 0.3 }
+
+  get_purchase_receipt:
+    - { pattern: '{{RECEIPT}}|\bautenticacao', weight: 1.0 }
+
+  update_billing_data:
+    - { pattern: '\b(atualiz\w*|mud\w*|nova|novo|proximas notas)\b', weight: 1.0 }
+    - { pattern: '\b(razao social|endereco de cobranca|inscricao estadual|faturamento)\b', weight: 0.3 }
+    - { pattern: '\b(errad\w*|corrig\w*|correcao)', weight: -1.0 }  # an issued invoice -> correction
+
+  # =========================================================== tool stage: promocoes_precos
+  validate_coupon:
+    - { pattern: '\b(cupo\w*|codigo de desconto|desconto)\b', weight: 0.6 }
+    - { pattern: '\b(valendo|vale|valido|funciona|serve|minimo|validade)\b', weight: 0.6 }
+    - { pattern: '\b(nao (entrou|foi aplicad\w*|foi descontad\w*|descontou|aplicou)|valor cheio|sumiu)|\b(regras|regulamento|campanha)\b', weight: -1.0 }
+
+  report_coupon_not_applied:
+    - { pattern: '\b(nao (entrou|foi aplicad\w*|foi descontad\w*|descontou|aplicou|veio)|valor cheio|sem o desconto|sumiu|nao foi)', weight: 1.0 }
+    - { pattern: '\b(cupo\w*|desconto)\b', weight: 0.3 }
+
+  get_promotion_terms:
+    - { pattern: '\b(regras?|regulamento|ate quando|como funciona|vale para (que|quais|qual))\b', weight: 1.0 }
+    - { pattern: '\b(campanha|promoc\w*|semana d[aoe]|pontos em dobro|cashback)', weight: 0.6 }
+
+  request_price_protection:
+    - { pattern: '{{PRICE_DROP}}', weight: 1.0 }
+    - { pattern: '\bpreco\b', weight: 0.3 }
+
+  get_gift_card_balance:
+    - { pattern: '\b(saldo|sobrou|validade|quais vales|ainda vale)\b', weight: 1.0 }
+    - { pattern: '\bvale[- ]?(presente|compra)|cartao[- ](de )?presente', weight: 0.3 }
+
+  redeem_gift_card:
+    - { pattern: '\b(ganhei|recebi|ativar|ativa|resgat\w*|coloco na conta|como uso|presente-\w+)', weight: 1.0 }
+    - { pattern: '\bvale[- ]?presente|cartao[- ](de )?presente|gift ?card', weight: 0.3 }
+
+  # =========================================================== tool stage: assinaturas
+  get_subscription:
+    - { pattern: '{{SUB}}', weight: 0.3 }
+    - { pattern: '\b(como esta|status|ativa|o que vem|quais itens|itens vem|quanto pago|quanto custa|proxima entrega|quando chega)\b', weight: 0.6 }
+
+  pause_subscription:
+    - { pattern: '\b(pausa\w*|pular|suspend\w*|dar um tempo|viaj\w*|temporari\w*|sem cancelar)', weight: 1.0 }
+
+  cancel_subscription:
+    - { pattern: '\b(cancel\w*|encerr\w*|desativ\w*|nao quero mais|parar de receber)', weight: 1.0 }
+    - { pattern: '\b(sem cancelar|pausa\w*|dar um tempo|pular)', weight: -1.0 }
+
+  change_subscription_date:
+    - { pattern: '\b(adiant\w*|dia \d+|comeco do mes|fim do mes|semana depois|dias depois|outro dia|outra data|mudar o dia|muda a entrega|chegue sempre|receber .* (depois|antes))', weight: 1.0 }
+    - { pattern: '\b(data|dia)\b', weight: 0.3 }
+
+  change_subscription_items:
+    - { pattern: '\b(acrescent\w*|inclu\w*|tira|tirar|remov\w*|retir\w*|em vez de|quantidade|adicion\w*)', weight: 1.0 }
+
+  update_subscription_payment:
+    - { pattern: '\b(cartao|pix|forma de pagamento|final \d{4}|cobranc\w*|pagar)\b', weight: 0.6 }
+    - { pattern: '\b(venceu|outro|trocar|mudar|passa|usar)\b.*\b(cartao|pix|pagamento|pagar)|\b(cartao|pix|pagamento|pagar)\b.*\b(outro|com o|com a|para o)\b', weight: 0.6 }
+
+  # =========================================================== tool stage: fidelidade_cashback
+  get_points_balance:
+    - { pattern: '\bpontos\b', weight: 0.3 }
+    - { pattern: '\b(quantos pontos|saldo de pontos|vencer|pendentes|meu saldo)\b', weight: 1.0 }
+
+  get_points_statement:
+    - { pattern: '\b(extrato|historico|de onde vieram|pontuou|resgates)', weight: 1.0 }
+
+  redeem_points:
+    - { pattern: '\b(trocar|troca|usar|resgatar|converter|doar)\b.*\bpontos|\bpontos\b.*\b(desconto|vale|frete)', weight: 1.0 }
+
+  claim_missing_points:
+    - { pattern: '\bpontos\b.*\b(nao (cairam|caiu|apareceram|entraram|vieram)|faltando)|\bnao (gerou|deu|pontuou)\b|\bfalt\w* pontos', weight: 1.0 }
+
+  get_cashback_status:
+    - { pattern: '\bcashback', weight: 1.0 }
+
+  get_loyalty_tier:
+    - { pattern: '\b(nivel|categoria|ouro|prata|bronze|diamante|beneficios)\b', weight: 1.0 }
+
+  # =========================================================== tool stage: cartao_loja_crediario
+  get_card_bill:
+    - { pattern: '\bfatura\b', weight: 0.3 }
+    - { pattern: '\b(quanto (veio|esta|e|ficou) a fatura|vencimento|lancamentos|limite disponivel|quanto tenho de limite|ver a fatura)', weight: 1.0 }
+
+  generate_card_bill_copy:
+    - { pattern: '\b{{BOLETO}}|\bperdi a fatura|\bgera outra|\bpagar a fatura', weight: 1.0 }
+
+  contest_card_transaction:
+    - { pattern: '\b(nao reconhe\w*|contest\w*|duas vezes|duplicad\w*|nao fiz|cobrar?am|valor errad\w*)', weight: 1.0 }
+
+  request_limit_increase:
+    - { pattern: '\blimite\b', weight: 0.6 }
+    - { pattern: '\b(aumentar|aumento|subir|mais) (o |meu )?limite|\blimite\b.*\bnao da\b', weight: 1.0 }
+
+  block_store_card:
+    - { pattern: '\b(perdi (o |meu )?cartao|perda|roub\w*|furt\w*|clonad\w*|clonaram|bloque\w*)', weight: 1.0 }
+
+  renegotiate_debt:
+    - { pattern: '{{DEBT}}|\bdividir\b', weight: 1.0 }
