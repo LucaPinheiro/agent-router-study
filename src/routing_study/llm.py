@@ -32,7 +32,7 @@ import numpy as np
 import openai
 from langchain_aws import ChatBedrockConverse
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import AIMessage, BaseMessage
+from langchain_core.messages import AIMessage, BaseMessage, SystemMessage
 from langchain_core.outputs import ChatResult
 from langchain_core.runnables import Runnable
 from langchain_openai import ChatOpenAI
@@ -251,6 +251,37 @@ def bedrock_token_usage(msg: AIMessage, price: Price | None) -> dict[str, Any]:
     }
 
 
+# Non-Anthropic Bedrock models whose quirks langchain-aws does not infer from the id.
+# Verified 2026-10-01 against sa-east-1 Converse: both accept a forced `toolChoice: tool`
+# (langchain-aws infers no tool_choice support for them, so structured output would not be
+# forced); Nemotron Nano reasons by default and only switches it off with a `/no_think`
+# system prompt (with `toolChoice: any` it returns empty content).
+_BEDROCK_QUIRKS: dict[str, dict[str, Any]] = {
+    "mistral.ministral-3-": {"tool_choice": ("auto", "any", "tool")},
+    "nvidia.nemotron-nano-": {"tool_choice": ("auto", "any", "tool"), "no_think": "/no_think"},
+}
+
+
+def bedrock_quirks(model: str) -> dict[str, Any]:
+    base = (
+        model.split(".", 1)[1] if model.split(".", 1)[0] in ("us", "eu", "sa", "global") else model
+    )
+    return next((q for prefix, q in _BEDROCK_QUIRKS.items() if base.startswith(prefix)), {})
+
+
+def with_system_prefix(messages: list[BaseMessage], prefix: str) -> list[BaseMessage]:
+    """`prefix` as the first line of the system prompt (a new system message if none)."""
+    if messages and isinstance(messages[0], SystemMessage):
+        first = messages[0]
+        content = first.content
+        if isinstance(content, str):
+            new = SystemMessage(f"{prefix}\n{content}")
+        else:
+            new = SystemMessage([{"type": "text", "text": prefix}, *content])
+        return [new, *messages[1:]]
+    return [SystemMessage(prefix), *messages]
+
+
 class BedrockChat(_Metered, ChatBedrockConverse):
     """ChatBedrockConverse + cache points, unified `token_usage`/cost and metering.
 
@@ -266,10 +297,13 @@ class BedrockChat(_Metered, ChatBedrockConverse):
     ledger: Any = Field(default=None, exclude=True)
     price: Any = Field(default=None, exclude=True)
     provider_name: str = Field(default="bedrock", exclude=True)
+    system_prefix: str | None = Field(default=None, exclude=True)
 
     def _generate(
         self, messages: list[BaseMessage], stop: Any = None, run_manager: Any = None, **kw: Any
     ) -> ChatResult:
+        if self.system_prefix:
+            messages = with_system_prefix(messages, self.system_prefix)
         messages = bedrock_cache_points(messages)
         with self._meter(messages, **kw) as meter:
             result = super()._generate(messages, stop, run_manager, **kw)
@@ -444,6 +478,11 @@ def make_bedrock_chat(
         kwargs["temperature"] = temperature
     if max_tokens is not None:
         kwargs["max_tokens"] = max_tokens
+    quirks = bedrock_quirks(model)
+    if "tool_choice" in quirks:
+        kwargs["supports_tool_choice_values"] = quirks["tool_choice"]
+    if "no_think" in quirks:  # reasoning is always off on Bedrock in this study (see above)
+        kwargs["system_prefix"] = quirks["no_think"]
     return BedrockChat(**kwargs)
 
 

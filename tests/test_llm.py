@@ -433,3 +433,27 @@ def test_ollama_untagged_model_matches_latest_tag() -> None:
     assert _ollama_tag("bge-m3") == "bge-m3:latest"
     assert _ollama_tag("qwen3:8b-q8_0") == "qwen3:8b-q8_0"
     assert _ollama_tag("bge-m3") == _ollama_tag("bge-m3:latest")
+
+
+def test_bedrock_quirks_for_managed_small_models() -> None:
+    from routing_study.llm import bedrock_quirks
+
+    assert bedrock_quirks("mistral.ministral-3-8b-instruct")["tool_choice"] == (
+        "auto",
+        "any",
+        "tool",
+    )
+    q = bedrock_quirks("nvidia.nemotron-nano-9b-v2")
+    assert q["no_think"] == "/no_think" and "tool" in q["tool_choice"]
+    assert bedrock_quirks("global.anthropic.claude-sonnet-5") == {}
+
+
+def test_with_system_prefix_prepends_or_inserts() -> None:
+    from langchain_core.messages import HumanMessage, SystemMessage
+
+    from routing_study.llm import with_system_prefix
+
+    out = with_system_prefix([SystemMessage("rules"), HumanMessage("hi")], "/no_think")
+    assert out[0].content == "/no_think\nrules" and out[1].content == "hi"
+    out = with_system_prefix([HumanMessage("hi")], "/no_think")
+    assert isinstance(out[0], SystemMessage) and out[0].content == "/no_think"

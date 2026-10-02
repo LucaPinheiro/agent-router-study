@@ -24,6 +24,16 @@ bedrock:
     cache_write: 1.25
     cache_write_1h: 2.0
     cache_read: 0.1
+  # Phase 2 managed ~8B routers. Source: AWS Price List API (AmazonBedrock, regionCode
+  # sa-east-1, fetched 2026-10-01). The list carries two standard on-demand rates per model
+  # (Ministral 8B 3.0: 0.09 and 0.18 $/1M; Nemotron Nano 2: in 0.03/0.07, out 0.14/0.28);
+  # the higher one is used, so the budget guard over-reserves rather than under-reserves.
+  mistral.ministral-3-8b-instruct:
+    input: 0.18
+    output: 0.18
+  nvidia.nemotron-nano-9b-v2:
+    input: 0.07
+    output: 0.28
 # OpenRouter reports the real cost per call (`usage.cost`); jev-router has no list price
 # (a meta-router: the served model decides), so no reservation, only the cap check.
 openrouter: {}
