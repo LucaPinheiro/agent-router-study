@@ -16,6 +16,31 @@ strategies:
           0.727, 0.7725, 0.818, 0.8635, 0.909, 0.9545, 1.0]
         y: [0.624294, 0.649238, 0.673391, 0.696659, 0.718961, 0.740234, 0.760434, 0.779531, 0.797511, 0.814373,
           0.830131, 0.844806, 0.858429, 0.871039, 0.882679, 0.893398, 0.903244, 0.91227, 0.920528, 0.928071, 0.934948]
+  bm25:
+    index: utterance
+    aggregate: topk_sum
+    analyzer: char
+    shots: true
+    quotes: false
+    variant: okapi
+    ngram_min: 2
+    ngram_max: 5
+    agg_k: 4
+    k1: 1.2
+    b: 0.75
+    history_turns: 2
+    fold_accents: true
+    calibration:
+      skill:
+        x: [0.003798, 0.034632, 0.065465, 0.096299, 0.127133, 0.157967, 0.188801, 0.219635, 0.250469, 0.281303,
+          0.312136, 0.34297, 0.373804, 0.404638, 0.435472, 0.466306, 0.49714, 0.527973, 0.558807, 0.589641, 0.620475]
+        y: [0.419955, 0.491992, 0.564363, 0.634092, 0.698621, 0.756145, 0.805743, 0.847291, 0.881262, 0.908492,
+          0.929973, 0.946708, 0.959617, 0.9695, 0.977022, 0.982722, 0.987027, 0.99027, 0.992708, 0.994539, 0.995912]
+      tool:
+        x: [0.001862, 0.026361, 0.050861, 0.075361, 0.099861, 0.12436, 0.14886, 0.17336, 0.197859, 0.222359, 0.246859,
+          0.271359, 0.295858, 0.320358, 0.344858, 0.369358, 0.393857, 0.418357, 0.442857, 0.467356, 0.491856]
+        y: [0.271703, 0.310782, 0.352759, 0.397139, 0.443279, 0.490418, 0.537728, 0.584369, 0.629545, 0.672563,
+          0.712864, 0.750048, 0.783876, 0.81426, 0.841238, 0.864947, 0.885597, 0.903442, 0.918759, 0.931829, 0.942927]
   embedding:
     provider: bedrock
     model: amazon.titan-embed-text-v2:0
@@ -130,7 +155,7 @@ decisions:
   regex: {skill: platt ECE 0.110->0.058 written, tool: platt ECE 0.214->0.082 written}
   embedding: {skill: isotonic ECE 0.083->0.118 NOT written, tool: isotonic ECE 0.186->0.133 written}
   classifier: {skill: isotonic ECE 0.060->0.090 NOT written, tool: isotonic ECE 0.115->0.085 written}
-  bm25: pending
+  bm25: {skill: platt ECE 0.511->0.065 written, tool: platt ECE 0.346->0.106 written}
   e6_llm_haiku_l: {skill: isotonic ECE 0.065->0.038 written, tool: isotonic ECE 0.070->0.106 NOT written}
   e6m_llm_ministral_l: {skill: isotonic ECE 0.145->0.076 written, tool: isotonic ECE 0.148->0.059 written}
   e6n_llm_nemotron_l: {skill: isotonic ECE 0.156->0.101 written, tool: isotonic ECE 0.199->0.022 written}
