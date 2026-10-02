@@ -31,6 +31,14 @@ from routing_study.eval.scorers import (
 PROVENANCE = "_provenance"
 DATA_DIR = Path("data")
 TOOLS_LIST = Path("mcp_server/tools_list.json")
+# phase 2: the large-catalog splits are scored against the 62-tool snapshot (CATALOG_PROFILE=large)
+TOOLS_LIST_LARGE = Path("mcp_server/tools_list_large.json")
+LARGE_SPLITS = frozenset({"dev_l", "test_l"})
+
+
+def default_tools_path(split: str) -> Path:
+    """The tools/list snapshot a split was served from (large splits: the large catalog)."""
+    return TOOLS_LIST_LARGE if split in LARGE_SPLITS else TOOLS_LIST
 EXPERIMENTS_DIR = Path("config/experiments")
 UNKNOWN = "unknown (not recorded in rows)"
 NA = "n/a"  # a used model has no list price (OpenRouter pricing -1, e.g. the Jev meta-router)
@@ -272,7 +280,7 @@ def rescore_file(
     out_dir: Path,
     *,
     data_dir: Path = DATA_DIR,
-    tools_path: Path = TOOLS_LIST,
+    tools_path: Path | None = None,
     prices_path: Path | None = None,
     run_git_sha: str | None = None,
     scorer: str = "legacy",
@@ -288,6 +296,8 @@ def rescore_file(
     if len(splits) != 1:
         raise ValueError(f"{path}: expected rows of one split, got {splits}")
     cases, data_path = load_dataset(splits[0], data_dir)
+    if tools_path is None:  # None: the split's own catalog snapshot (phase-1 splits: unchanged)
+        tools_path = default_tools_path(splits[0])
     tools = load_tools(tools_path)
     prices = load_prices(prices_path) if prices_path else None
     rescored, checks = rescore_rows(rows, cases, tools, prices, scorer)

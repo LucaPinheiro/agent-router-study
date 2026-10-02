@@ -95,9 +95,13 @@ def rescore(
     files: Annotated[list[Path], typer.Argument(exists=True, help="raw results/*.jsonl")],
     out: Annotated[Path, typer.Option(help="output directory")] = RESCORED,
     data_dir: Annotated[Path, typer.Option(help="dir with dataset_<split>.jsonl")] = Path("data"),
-    tools: Annotated[Path, typer.Option(help="MCP tools/list snapshot")] = Path(
-        "mcp_server/tools_list.json"
-    ),
+    tools: Annotated[
+        Path | None,
+        typer.Option(
+            help="MCP tools/list snapshot (default: mcp_server/tools_list.json; the large "
+            "splits dev_l/test_l: mcp_server/tools_list_large.json)"
+        ),
+    ] = None,
     prices: Annotated[
         Path | None,
         typer.Option(help="saved OpenRouter GET /models JSON: adds the list-price column"),
