@@ -1,7 +1,8 @@
 """Check that every local markdown link and image in the study docs resolves.
 
 Usage: uv run python scripts/analysis/final_linkcheck.py [repo root, default: this repo]
-Covers README.md, README.pt-BR.md, docs/study-results.md and estudos/*.md (code fences skipped).
+Covers README.md, README.pt-BR.md, docs/study-results.md, estudos/*.md and docs-ptbr/**/*.md
+(code fences skipped).
 """
 
 import pathlib
@@ -16,6 +17,7 @@ files = [
     root / "README.pt-BR.md",
     root / "docs/study-results.md",
     *sorted((root / "estudos").glob("*.md")),
+    *sorted((root / "docs-ptbr").rglob("*.md")),
 ]
 bad = n = 0
 for f in files:
