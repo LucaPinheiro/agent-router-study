@@ -43,6 +43,17 @@ CATALOG_FILES = [
     *sorted((ROOT / "src" / "routing_study" / "prompts").glob("*.md")),
     *sorted((ROOT / "src" / "routing_study" / "prompts" / "routers").glob("*.yaml")),
 ]
+_SERVER = ROOT / "mcp_server" / "src" / "mcp_server"
+# phase 2, CATALOG_PROFILE=large: every router-visible text of the 62-tool catalog (the 3
+# original playbooks are served verbatim, the 7 new ones from skills_large/)
+CATALOG_FILES_LARGE = [
+    ROOT / "mcp_server" / "tools_list_large.json",
+    *sorted((_SERVER / "skills").glob("*/SKILL.md")),
+    *sorted((_SERVER / "skills_large").glob("*/SKILL.md")),
+    _SERVER / "instructions_large.md",
+    *sorted((ROOT / "src" / "routing_study" / "prompts").glob("*.md")),
+    *sorted((ROOT / "src" / "routing_study" / "prompts" / "routers").glob("*.yaml")),
+]
 
 
 def _segments(text: str) -> list[str]:
@@ -99,6 +110,42 @@ def leak_hit(c: Case) -> str | None:
     """First catalog unit that the repo leakage test would flag on any user turn of `c`."""
     leak = leak_rules()
     units = leak.catalog_units()
+    for turn in (t.content for t in c.turns if t.role == "user"):
+        msg = leak.norm(turn)
+        for unit, origin in units.items():
+            if kind := leak.lexical_hit(unit, msg):
+                return f"leak_{kind.split()[0]}:{origin}:{unit[:40]}"
+    return None
+
+
+def leak_units_large() -> dict[str, str]:
+    """`tests/test_leakage.py` catalog units built from the LARGE profile files (same
+    segmentation, identifier stripping and `_meta` examples/keywords)."""
+    leak = leak_rules()
+    units: dict[str, str] = {}
+
+    def add(texts: list[str], origin: str) -> None:
+        for t in texts:
+            n = leak.norm(leak._IDENTIFIER.sub(" ", leak._USE.sub(" ", t)))
+            if n:
+                units.setdefault(n, origin)
+
+    tools = json.loads(CATALOG_FILES_LARGE[0].read_text(encoding="utf-8"))["tools"]
+    for tool in tools:
+        name = tool["name"]
+        add(leak._segments(tool.get("description") or ""), f"large:{name}.description")
+        for key, val in (tool.get("_meta") or {}).items():
+            if key.endswith(("/examples", "/keywords")):
+                add(list(val), f"large:{name}.{key.rsplit('/', 1)[1]}")
+    for path in CATALOG_FILES_LARGE[1:]:
+        if path.suffix == ".md":
+            add(leak._segments(path.read_text(encoding="utf-8")), str(path.relative_to(ROOT)))
+    return units
+
+
+def leak_hit_units(c: Any, units: dict[str, str]) -> str | None:
+    """`leak_hit` against a given unit table (e.g. `leak_units_large()`)."""
+    leak = leak_rules()
     for turn in (t.content for t in c.turns if t.role == "user"):
         msg = leak.norm(turn)
         for unit, origin in units.items():

@@ -33,7 +33,7 @@ def _setup() -> None:
 @app.command()
 def run(
     config: Config,
-    split: Annotated[str, typer.Option(help="dev | test")] = "dev",
+    split: Annotated[str, typer.Option(help="dev | test | test_v2 | dev_l | test_l")] = "dev",
     mode: Annotated[Literal["e2e", "routing-only"], typer.Option()] = "e2e",
     limit: Annotated[
         int | None,
