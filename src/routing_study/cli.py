@@ -87,6 +87,7 @@ def run(
 
 
 RESCORED = Path("results/rescored")
+RESCORED_SYM = Path("results/rescored-sym")
 
 
 @app.command()
@@ -104,10 +105,21 @@ def rescore(
     run_git_sha: Annotated[
         str | None, typer.Option(help="run code version when the rows do not record it")
     ] = None,
+    scorer: Annotated[
+        str,
+        typer.Option(
+            help="legacy (pre-registered phase-1 scorer) | sym (symmetric e2e scorer, "
+            "prereg-v2); sym writes to results/rescored-sym unless --out is given"
+        ),
+    ] = "legacy",
 ) -> None:
     """Recompute every score offline from raw rows + dataset + tool schemas (with provenance)."""
     from routing_study.eval.rescore import describe, rescore_file
 
+    if scorer not in ("legacy", "sym"):
+        raise typer.BadParameter(f"unknown scorer {scorer!r} (legacy | sym)")
+    if scorer == "sym" and out == RESCORED:
+        out = RESCORED_SYM
     for f in files:
         path, prov = rescore_file(
             f,
@@ -116,6 +128,7 @@ def rescore(
             tools_path=tools,
             prices_path=prices,
             run_git_sha=run_git_sha,
+            scorer=scorer,
         )
         typer.echo(describe(path, prov))
 
