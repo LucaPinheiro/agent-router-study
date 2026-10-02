@@ -718,6 +718,9 @@ class Runner:
                     "final_answer": rec.get("final_answer"),
                     "outcome": rec.get("outcome"),
                     "error": error,
+                    # the routing decisions: the whole output of a routing-only turn
+                    "skill": (rec.get("skill") or {}).get("choice"),
+                    "tool": (rec.get("tool") or {}).get("choice"),
                 },
                 level="ERROR" if error else "DEFAULT",
             )
