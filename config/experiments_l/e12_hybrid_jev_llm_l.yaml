@@ -3,15 +3,15 @@
 # config/experiments/e12_hybrid_jev_llm.yaml (phase 1, read-only) by T3.3: mcp_url -> :8766, regex rules ->
 # config/regex_rules_l.yaml, no local model (Ollama blocks removed; embedding/classifier on
 # Bedrock: strategies.embedding.model is the single switch Cohere <-> Titan).
-# PROVISIONAL: thresholds and calibration maps are the phase-1 / Part-A dev values; every
-# strategy is re-tuned on dev-L (T5) and the results are written here before the freeze.
+# FREEZE CANDIDATE (T5, 2026-10-02): every strategy block, calibration map and cascade threshold
+# was tuned on dev-L (docs/tuning-effort-l.md §B, docs/results/phase2-dev-l/); embedder = Titan v2.
 mcp_url: http://localhost:8766/mcp
 routing:
   mode: cascade
   skill:
     pipeline:
-    - {strategy: hybrid, min_confidence: 0.83}
-    - {strategy: jev, min_confidence: 0.77}
+    - {strategy: hybrid, min_confidence: 0.78}
+    - {strategy: jev, min_confidence: 0.76}
     - {strategy: llm}
     on_abstain: escalate
   tool:

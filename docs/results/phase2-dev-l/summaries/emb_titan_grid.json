@@ -1,0 +1,2394 @@
+{
+ "config": "config/experiments_l/e3_embedding_l.yaml",
+ "fixed": [
+  "strategies.embedding.model=amazon.titan-embed-text-v2:0"
+ ],
+ "grid_points": 324,
+ "best_point": {
+  "strategies.embedding.similarity": "centroid",
+  "strategies.embedding.top_k": 3,
+  "strategies.embedding.softmax_temperature": 0.02,
+  "strategies.embedding.history_turns": 1,
+  "strategies.embedding.shots": true,
+  "strategies.embedding.query_instruction": null
+ },
+ "selected_per_fold": {
+  "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None": 4,
+  "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None": 1
+ },
+ "nested": {
+  "skill_correct": {
+   "mean": 0.7533333333333333,
+   "std": 0.10022197585581942
+  },
+  "tool_correct": {
+   "mean": 0.6266666666666667,
+   "std": 0.10624918300339486
+  },
+  "joint_correct": {
+   "mean": 0.6133333333333333,
+   "std": 0.10456258094238749
+  }
+ },
+ "nested_joint_pooled_ci": [
+  0.6133333333333333,
+  0.5333333333333333,
+  0.6933333333333334
+ ],
+ "best_fixed": {
+  "skill_correct_mean": 0.7733333333333333,
+  "tool_correct_mean": 0.6666666666666666,
+  "joint_correct_mean": 0.6466666666666667,
+  "skill_correct_std": 0.12183777921664712,
+  "tool_correct_std": 0.1349897115421106,
+  "joint_correct_std": 0.12927146286443547,
+  "skill_correct_all": 0.7733333333333333,
+  "tool_correct_all": 0.6666666666666666,
+  "joint_correct_all": 0.6466666666666666
+ },
+ "calibration_stats": {
+  "skill": {
+   "n": 150,
+   "ece_raw": 0.09204526214375666,
+   "brier_raw": 0.15363636234221925,
+   "ece_isotonic": 0.10683099034744335,
+   "brier_isotonic": 0.15392428877694056,
+   "ece_platt": 0.09869071666341163,
+   "brier_platt": 0.1611897616305112
+  },
+  "tool": {
+   "n": 150,
+   "ece_raw": 0.21827704173417653,
+   "brier_raw": 0.2274543722518683,
+   "ece_isotonic": 0.12020004314461605,
+   "brier_isotonic": 0.18926591903060422,
+   "ece_platt": 0.09058930299226131,
+   "brier_platt": 0.19047855318888185
+  }
+ },
+ "calibrator": {
+  "skill": "isotonic",
+  "tool": "isotonic"
+ },
+ "calibration": {
+  "skill": {
+   "x": [
+    0.278838,
+    0.498427,
+    0.65249,
+    0.733539,
+    0.817372,
+    0.918725,
+    0.981497,
+    0.998784
+   ],
+   "y": [
+    0.25,
+    0.487179,
+    0.571429,
+    0.666667,
+    0.8125,
+    0.875,
+    0.913043,
+    0.941176
+   ]
+  },
+  "tool": {
+   "x": [
+    0.345949,
+    0.473884,
+    0.550926,
+    0.652894,
+    0.72034,
+    0.861899,
+    0.971638,
+    0.997059,
+    0.999972
+   ],
+   "y": [
+    0.166667,
+    0.222222,
+    0.294118,
+    0.454545,
+    0.5,
+    0.628571,
+    0.655172,
+    0.921053,
+    0.947368
+   ]
+  }
+ },
+ "p50_ms": 161.04700096184388,
+ "p95_ms": 250.00770698534325,
+ "errors": 0,
+ "points": [
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.6466666666666667,
+   "skill_correct_mean": 0.7733333333333333,
+   "tool_correct_mean": 0.6666666666666666,
+   "p50_ms": 161.04700096184388
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.6466666666666667,
+   "skill_correct_mean": 0.7733333333333333,
+   "tool_correct_mean": 0.6666666666666666,
+   "p50_ms": 161.04700096184388
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.6466666666666667,
+   "skill_correct_mean": 0.7733333333333333,
+   "tool_correct_mean": 0.6666666666666666,
+   "p50_ms": 161.05027147568762
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.6466666666666667,
+   "skill_correct_mean": 0.7733333333333333,
+   "tool_correct_mean": 0.6666666666666666,
+   "p50_ms": 161.05027147568762
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.6466666666666667,
+   "skill_correct_mean": 0.7733333333333333,
+   "tool_correct_mean": 0.6666666666666666,
+   "p50_ms": 161.05129246716388
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.6466666666666667,
+   "skill_correct_mean": 0.7733333333333333,
+   "tool_correct_mean": 0.6666666666666666,
+   "p50_ms": 161.05129246716388
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.6266666666666667,
+   "skill_correct_mean": 0.7533333333333333,
+   "tool_correct_mean": 0.6466666666666667,
+   "p50_ms": 163.3669375005411
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.6266666666666667,
+   "skill_correct_mean": 0.7533333333333333,
+   "tool_correct_mean": 0.6466666666666667,
+   "p50_ms": 163.3669375005411
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.6266666666666667,
+   "skill_correct_mean": 0.7533333333333333,
+   "tool_correct_mean": 0.6466666666666667,
+   "p50_ms": 163.3761875127675
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.6266666666666667,
+   "skill_correct_mean": 0.7533333333333333,
+   "tool_correct_mean": 0.6466666666666667,
+   "p50_ms": 163.3761875127675
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.6266666666666667,
+   "skill_correct_mean": 0.7533333333333333,
+   "tool_correct_mean": 0.6466666666666667,
+   "p50_ms": 163.37791649857536
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.6266666666666667,
+   "skill_correct_mean": 0.7533333333333333,
+   "tool_correct_mean": 0.6466666666666667,
+   "p50_ms": 163.37791649857536
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.62,
+   "skill_correct_mean": 0.7666666666666667,
+   "tool_correct_mean": 0.6333333333333333,
+   "p50_ms": 161.00010498485062
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.62,
+   "skill_correct_mean": 0.7666666666666667,
+   "tool_correct_mean": 0.6333333333333333,
+   "p50_ms": 161.00589647248853
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.62,
+   "skill_correct_mean": 0.7666666666666667,
+   "tool_correct_mean": 0.6333333333333333,
+   "p50_ms": 161.00677096983418
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.6066666666666667,
+   "skill_correct_mean": 0.7933333333333333,
+   "tool_correct_mean": 0.62,
+   "p50_ms": 161.00070848187897
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.6066666666666667,
+   "skill_correct_mean": 0.7933333333333333,
+   "tool_correct_mean": 0.62,
+   "p50_ms": 161.00114646542352
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.6066666666666667,
+   "skill_correct_mean": 0.7933333333333333,
+   "tool_correct_mean": 0.62,
+   "p50_ms": 161.00625046237838
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.6,
+   "skill_correct_mean": 0.7533333333333333,
+   "tool_correct_mean": 0.6133333333333333,
+   "p50_ms": 163.31110447936226
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.6,
+   "skill_correct_mean": 0.7533333333333333,
+   "tool_correct_mean": 0.6133333333333333,
+   "p50_ms": 163.3141039783368
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.6,
+   "skill_correct_mean": 0.7533333333333333,
+   "tool_correct_mean": 0.6133333333333333,
+   "p50_ms": 163.3280204841867
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5933333333333333,
+   "skill_correct_mean": 0.7266666666666667,
+   "tool_correct_mean": 0.62,
+   "p50_ms": 171.60989550757222
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5933333333333333,
+   "skill_correct_mean": 0.7266666666666667,
+   "tool_correct_mean": 0.62,
+   "p50_ms": 171.60989550757222
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5933333333333333,
+   "skill_correct_mean": 0.7266666666666667,
+   "tool_correct_mean": 0.62,
+   "p50_ms": 171.6159579809755
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5933333333333333,
+   "skill_correct_mean": 0.7266666666666667,
+   "tool_correct_mean": 0.62,
+   "p50_ms": 171.6159579809755
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5933333333333333,
+   "skill_correct_mean": 0.7266666666666667,
+   "tool_correct_mean": 0.62,
+   "p50_ms": 171.62985348841175
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5933333333333333,
+   "skill_correct_mean": 0.7266666666666667,
+   "tool_correct_mean": 0.62,
+   "p50_ms": 171.62985348841175
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5933333333333333,
+   "skill_correct_mean": 0.78,
+   "tool_correct_mean": 0.6066666666666667,
+   "p50_ms": 160.94664546835702
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5933333333333333,
+   "skill_correct_mean": 0.78,
+   "tool_correct_mean": 0.6066666666666667,
+   "p50_ms": 160.94664546835702
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5933333333333333,
+   "skill_correct_mean": 0.78,
+   "tool_correct_mean": 0.6066666666666667,
+   "p50_ms": 160.9471249685157
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5933333333333333,
+   "skill_correct_mean": 0.78,
+   "tool_correct_mean": 0.6066666666666667,
+   "p50_ms": 160.9471249685157
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5933333333333333,
+   "skill_correct_mean": 0.78,
+   "tool_correct_mean": 0.6066666666666667,
+   "p50_ms": 160.94733396312222
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5933333333333333,
+   "skill_correct_mean": 0.78,
+   "tool_correct_mean": 0.6066666666666667,
+   "p50_ms": 160.94733396312222
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5933333333333333,
+   "skill_correct_mean": 0.7933333333333333,
+   "tool_correct_mean": 0.6066666666666667,
+   "p50_ms": 163.30408249632455
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5933333333333333,
+   "skill_correct_mean": 0.7933333333333333,
+   "tool_correct_mean": 0.6066666666666667,
+   "p50_ms": 163.30568748526275
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5933333333333333,
+   "skill_correct_mean": 0.7933333333333333,
+   "tool_correct_mean": 0.6066666666666667,
+   "p50_ms": 163.31143700517714
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.58,
+   "skill_correct_mean": 0.72,
+   "tool_correct_mean": 0.58,
+   "p50_ms": 161.0330419789534
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.58,
+   "skill_correct_mean": 0.72,
+   "tool_correct_mean": 0.58,
+   "p50_ms": 161.0330419789534
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.58,
+   "skill_correct_mean": 0.72,
+   "tool_correct_mean": 0.58,
+   "p50_ms": 161.0331674455665
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.58,
+   "skill_correct_mean": 0.72,
+   "tool_correct_mean": 0.58,
+   "p50_ms": 161.0331674455665
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.58,
+   "skill_correct_mean": 0.72,
+   "tool_correct_mean": 0.58,
+   "p50_ms": 161.0382714716252
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.58,
+   "skill_correct_mean": 0.72,
+   "tool_correct_mean": 0.58,
+   "p50_ms": 161.0382714716252
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5733333333333334,
+   "skill_correct_mean": 0.7266666666666667,
+   "tool_correct_mean": 0.5866666666666667,
+   "p50_ms": 171.54912500700448
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5733333333333334,
+   "skill_correct_mean": 0.7266666666666667,
+   "tool_correct_mean": 0.5866666666666667,
+   "p50_ms": 171.55574902426451
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5733333333333334,
+   "skill_correct_mean": 0.7266666666666667,
+   "tool_correct_mean": 0.5866666666666667,
+   "p50_ms": 171.5593744884245
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5733333333333334,
+   "skill_correct_mean": 0.7733333333333333,
+   "tool_correct_mean": 0.5866666666666667,
+   "p50_ms": 163.2502084976295
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5733333333333334,
+   "skill_correct_mean": 0.7733333333333333,
+   "tool_correct_mean": 0.5866666666666667,
+   "p50_ms": 163.2502084976295
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5733333333333334,
+   "skill_correct_mean": 0.7733333333333333,
+   "tool_correct_mean": 0.5866666666666667,
+   "p50_ms": 163.25025049445685
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5733333333333334,
+   "skill_correct_mean": 0.7733333333333333,
+   "tool_correct_mean": 0.5866666666666667,
+   "p50_ms": 163.25025049445685
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5733333333333334,
+   "skill_correct_mean": 0.7733333333333333,
+   "tool_correct_mean": 0.5866666666666667,
+   "p50_ms": 163.25822900398634
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5733333333333334,
+   "skill_correct_mean": 0.7733333333333333,
+   "tool_correct_mean": 0.5866666666666667,
+   "p50_ms": 163.25822900398634
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5666666666666667,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5666666666666667,
+   "p50_ms": 163.35481248097494
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5666666666666667,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5666666666666667,
+   "p50_ms": 163.35481248097494
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5666666666666667,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5666666666666667,
+   "p50_ms": 163.35506197356153
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5666666666666667,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5666666666666667,
+   "p50_ms": 163.35506197356153
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5666666666666667,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5666666666666667,
+   "p50_ms": 163.4304374892963
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5666666666666667,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5666666666666667,
+   "p50_ms": 163.4304374892963
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5599999999999999,
+   "skill_correct_mean": 0.7666666666666667,
+   "tool_correct_mean": 0.5733333333333334,
+   "p50_ms": 171.55033348535653
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5599999999999999,
+   "skill_correct_mean": 0.7666666666666667,
+   "tool_correct_mean": 0.5733333333333334,
+   "p50_ms": 171.55064550752286
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5599999999999999,
+   "skill_correct_mean": 0.7666666666666667,
+   "tool_correct_mean": 0.5733333333333334,
+   "p50_ms": 171.55202098365407
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5533333333333333,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 171.59758349589538
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5533333333333333,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 171.59758349589538
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5533333333333333,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 171.60122898349073
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5533333333333333,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 171.60122898349073
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5533333333333333,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 171.6525624942733
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5533333333333333,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 171.6525624942733
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.54,
+   "skill_correct_mean": 0.7333333333333334,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 171.49181201239116
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.54,
+   "skill_correct_mean": 0.7333333333333334,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 171.49181201239116
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.54,
+   "skill_correct_mean": 0.7333333333333334,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 171.49649999919347
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.54,
+   "skill_correct_mean": 0.7333333333333334,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 171.49649999919347
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.54,
+   "skill_correct_mean": 0.7333333333333334,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 171.49652048829012
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.54,
+   "skill_correct_mean": 0.7333333333333334,
+   "tool_correct_mean": 0.5533333333333333,
+   "p50_ms": 171.49652048829012
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.6933333333333334,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 160.96704245137516
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.6933333333333334,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 160.96745946560986
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.52,
+   "skill_correct_mean": 0.6933333333333334,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 160.97014598199166
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5066666666666666,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 160.9451049589552
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5066666666666666,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 160.9451049589552
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5066666666666666,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 160.94583395170048
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5066666666666666,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 160.94583395170048
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5066666666666666,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 160.94725097354967
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5066666666666666,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.5266666666666666,
+   "p50_ms": 160.94725097354967
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5066666666666666,
+   "p50_ms": 163.27887450461276
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5066666666666666,
+   "p50_ms": 163.28262448951136
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5066666666666666,
+   "p50_ms": 163.2839999801945
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.76,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 152.34393649734557
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.76,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 152.34393649734557
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.76,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 152.3518530157162
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.76,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 152.3518530157162
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.76,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 152.35627049696632
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.5,
+   "skill_correct_mean": 0.76,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 152.35627049696632
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 163.25227099878248
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 163.25227099878248
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 163.25466649141163
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 163.25466649141163
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 163.25541648257058
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 163.25541648257058
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.7,
+   "tool_correct_mean": 0.5066666666666667,
+   "p50_ms": 152.28322849725373
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.7,
+   "tool_correct_mean": 0.5066666666666667,
+   "p50_ms": 152.2839789831778
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.7,
+   "tool_correct_mean": 0.5066666666666667,
+   "p50_ms": 152.2893954970641
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.6799999999999999,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 150.98208296694793
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.6799999999999999,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 150.98354197107255
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.49333333333333335,
+   "skill_correct_mean": 0.6799999999999999,
+   "tool_correct_mean": 0.5133333333333333,
+   "p50_ms": 150.9856039774604
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6599999999999999,
+   "tool_correct_mean": 0.48666666666666664,
+   "p50_ms": 171.51987498800736
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6599999999999999,
+   "tool_correct_mean": 0.48666666666666664,
+   "p50_ms": 171.52179150434677
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.48,
+   "skill_correct_mean": 0.6599999999999999,
+   "tool_correct_mean": 0.48666666666666664,
+   "p50_ms": 171.53339501237497
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.4933333333333333,
+   "p50_ms": 171.49356249137782
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.4933333333333333,
+   "p50_ms": 171.49356249137782
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.4933333333333333,
+   "p50_ms": 171.49674950633198
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.4933333333333333,
+   "p50_ms": 171.49674950633198
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.4933333333333333,
+   "p50_ms": 178.98372950730845
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.4933333333333333,
+   "p50_ms": 178.98372950730845
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.7333333333333333,
+   "tool_correct_mean": 0.48666666666666664,
+   "p50_ms": 151.0459169803653
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.7333333333333333,
+   "tool_correct_mean": 0.48666666666666664,
+   "p50_ms": 151.0459169803653
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.7333333333333333,
+   "tool_correct_mean": 0.48666666666666664,
+   "p50_ms": 151.05006197700277
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.7333333333333333,
+   "tool_correct_mean": 0.48666666666666664,
+   "p50_ms": 151.05006197700277
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.7333333333333333,
+   "tool_correct_mean": 0.48666666666666664,
+   "p50_ms": 151.06431196909398
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.47333333333333333,
+   "skill_correct_mean": 0.7333333333333333,
+   "tool_correct_mean": 0.48666666666666664,
+   "p50_ms": 151.06431196909398
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.48666666666666664,
+   "p50_ms": 160.97150096902624
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.48666666666666664,
+   "p50_ms": 160.97350098425522
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.6866666666666666,
+   "tool_correct_mean": 0.48666666666666664,
+   "p50_ms": 160.97458446165547
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.74,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 151.20822899916675
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.74,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 151.20822899916675
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.74,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 151.20925001974683
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.74,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 151.20925001974683
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.74,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 151.2118330283556
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.74,
+   "tool_correct_mean": 0.47333333333333333,
+   "p50_ms": 151.2118330283556
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.48666666666666664,
+   "p50_ms": 152.23076949769165
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.48666666666666664,
+   "p50_ms": 152.23076949769165
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.48666666666666664,
+   "p50_ms": 152.23254048032686
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.48666666666666664,
+   "p50_ms": 152.23254048032686
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.48666666666666664,
+   "p50_ms": 152.2373319894541
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4666666666666667,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.48666666666666664,
+   "p50_ms": 152.2373319894541
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6466666666666666,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 151.15599949785974
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6466666666666666,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 151.16345802380238
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6466666666666666,
+   "tool_correct_mean": 0.4866666666666667,
+   "p50_ms": 151.1647085280856
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 150.9292285045376
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 150.9292285045376
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 150.93377095763572
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 150.93377095763572
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 150.95899946754798
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.46,
+   "skill_correct_mean": 0.6333333333333333,
+   "tool_correct_mean": 0.48,
+   "p50_ms": 150.95899946754798
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 163.2772084849421
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 163.27827096392866
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.44666666666666666,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.4666666666666667,
+   "p50_ms": 163.2837504876079
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 152.2847699961858
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 152.2882700082846
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.44,
+   "skill_correct_mean": 0.6666666666666666,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 152.29149899096228
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4533333333333333,
+   "p50_ms": 151.1033544957172
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4533333333333333,
+   "p50_ms": 151.1033544957172
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4533333333333333,
+   "p50_ms": 151.10466702026315
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4533333333333333,
+   "p50_ms": 151.10466702026315
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4533333333333333,
+   "p50_ms": 151.1116255132947
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.4533333333333333,
+   "p50_ms": 151.1116255132947
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 150.983166473452
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 150.98379147821106
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.66,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 150.9993954532547
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 143.81675045297015
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 143.81675045297015
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 143.8180424447637
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 143.8180424447637
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 143.82777095306665
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.43333333333333335,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 143.82777095306665
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.42666666666666664,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 171.51883398764767
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.42666666666666664,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 171.51989600097295
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=None",
+   "joint_correct_mean": 0.42666666666666664,
+   "skill_correct_mean": 0.6533333333333333,
+   "tool_correct_mean": 0.44666666666666666,
+   "p50_ms": 171.52306147909258
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.42666666666666664,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 143.96283296809997
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.42666666666666664,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 143.96283296809997
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.42666666666666664,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 143.9633754634997
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.42666666666666664,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 143.9633754634997
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.42666666666666664,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 143.97704147268087
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.42666666666666664,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.43333333333333335,
+   "p50_ms": 143.97704147268087
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.41333333333333333,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 143.36520896176808
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.41333333333333333,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 143.36520896176808
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.41333333333333333,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 143.36737497069407
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.41333333333333333,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 143.36737497069407
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.41333333333333333,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 143.37239597807638
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.41333333333333333,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 143.37239597807638
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4,
+   "skill_correct_mean": 0.6266666666666666,
+   "tool_correct_mean": 0.4,
+   "p50_ms": 151.16541700263042
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4,
+   "skill_correct_mean": 0.6266666666666666,
+   "tool_correct_mean": 0.4,
+   "p50_ms": 151.1656250222586
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4,
+   "skill_correct_mean": 0.6266666666666666,
+   "tool_correct_mean": 0.4,
+   "p50_ms": 151.16637549363077
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 152.22997848468367
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 152.22997848468367
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 152.23145749769174
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 152.23145749769174
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 152.2316034825053
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 152.2316034825053
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4,
+   "skill_correct_mean": 0.5866666666666667,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 152.3291880148463
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4,
+   "skill_correct_mean": 0.5866666666666667,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 152.3291880148463
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4,
+   "skill_correct_mean": 0.5866666666666667,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 152.32920853304677
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4,
+   "skill_correct_mean": 0.5866666666666667,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 152.32920853304677
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4,
+   "skill_correct_mean": 0.5866666666666667,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 152.32968651980627
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.4,
+   "skill_correct_mean": 0.5866666666666667,
+   "tool_correct_mean": 0.41333333333333333,
+   "p50_ms": 152.32968651980627
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.3933333333333333,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.3933333333333333,
+   "p50_ms": 152.25131199986208
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.3933333333333333,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.3933333333333333,
+   "p50_ms": 152.25285349879414
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.3933333333333333,
+   "skill_correct_mean": 0.6066666666666667,
+   "tool_correct_mean": 0.3933333333333333,
+   "p50_ms": 152.25314498820808
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.3933333333333333,
+   "skill_correct_mean": 0.5866666666666667,
+   "tool_correct_mean": 0.3933333333333333,
+   "p50_ms": 143.92414546455257
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.3933333333333333,
+   "skill_correct_mean": 0.5866666666666667,
+   "tool_correct_mean": 0.3933333333333333,
+   "p50_ms": 143.93162546912208
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.3933333333333333,
+   "skill_correct_mean": 0.5866666666666667,
+   "tool_correct_mean": 0.3933333333333333,
+   "p50_ms": 143.93185447261203
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.38666666666666666,
+   "skill_correct_mean": 0.52,
+   "tool_correct_mean": 0.38666666666666666,
+   "p50_ms": 143.87097946018912
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.38666666666666666,
+   "skill_correct_mean": 0.52,
+   "tool_correct_mean": 0.38666666666666666,
+   "p50_ms": 143.87097946018912
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.38666666666666666,
+   "skill_correct_mean": 0.52,
+   "tool_correct_mean": 0.38666666666666666,
+   "p50_ms": 143.87120846367907
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.38666666666666666,
+   "skill_correct_mean": 0.52,
+   "tool_correct_mean": 0.38666666666666666,
+   "p50_ms": 143.87120846367907
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.38666666666666666,
+   "skill_correct_mean": 0.52,
+   "tool_correct_mean": 0.38666666666666666,
+   "p50_ms": 143.8738749566255
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.38666666666666666,
+   "skill_correct_mean": 0.52,
+   "tool_correct_mean": 0.38666666666666666,
+   "p50_ms": 143.8738749566255
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38666666666666666,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.4,
+   "p50_ms": 150.93137497024145
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38666666666666666,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.4,
+   "p50_ms": 150.93137497024145
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38666666666666666,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.4,
+   "p50_ms": 150.93308298673946
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38666666666666666,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.4,
+   "p50_ms": 150.93308298673946
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38666666666666666,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.4,
+   "p50_ms": 150.93414546572603
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38666666666666666,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.4,
+   "p50_ms": 150.93414546572603
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38666666666666666,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.4,
+   "p50_ms": 151.03074997023214
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38666666666666666,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.4,
+   "p50_ms": 151.03074997023214
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38666666666666666,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.4,
+   "p50_ms": 151.04052095557563
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38666666666666666,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.4,
+   "p50_ms": 151.04052095557563
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38666666666666666,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.4,
+   "p50_ms": 151.06987446779385
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38666666666666666,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.4,
+   "p50_ms": 151.06987446779385
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.39333333333333337,
+   "p50_ms": 151.10608350369148
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.39333333333333337,
+   "p50_ms": 151.10608350369148
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.39333333333333337,
+   "p50_ms": 151.1071254935814
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.39333333333333337,
+   "p50_ms": 151.1071254935814
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.38666666666666666,
+   "p50_ms": 151.1932075227378
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.38666666666666666,
+   "p50_ms": 151.1932075227378
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.38666666666666666,
+   "p50_ms": 151.1932290159166
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.38666666666666666,
+   "p50_ms": 151.1932290159166
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.38666666666666666,
+   "p50_ms": 151.19835452060215
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.38666666666666666,
+   "p50_ms": 151.19835452060215
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.39333333333333337,
+   "p50_ms": 152.00220746919513
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.39333333333333337,
+   "p50_ms": 152.00220746919513
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.58,
+   "tool_correct_mean": 0.38,
+   "p50_ms": 150.95606197428424
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.58,
+   "tool_correct_mean": 0.38,
+   "p50_ms": 150.95702097460162
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.58,
+   "tool_correct_mean": 0.38,
+   "p50_ms": 150.95847847987898
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5133333333333333,
+   "tool_correct_mean": 0.38,
+   "p50_ms": 143.70485396648291
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5133333333333333,
+   "tool_correct_mean": 0.38,
+   "p50_ms": 143.70485396648291
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5133333333333333,
+   "tool_correct_mean": 0.38,
+   "p50_ms": 143.70527093706187
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5133333333333333,
+   "tool_correct_mean": 0.38,
+   "p50_ms": 143.70527093706187
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5133333333333333,
+   "tool_correct_mean": 0.38,
+   "p50_ms": 143.71474998188205
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.38,
+   "skill_correct_mean": 0.5133333333333333,
+   "tool_correct_mean": 0.38,
+   "p50_ms": 143.71474998188205
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.37333333333333335,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.37333333333333335,
+   "p50_ms": 151.12868753203657
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.37333333333333335,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.37333333333333335,
+   "p50_ms": 151.1293125222437
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.37333333333333335,
+   "skill_correct_mean": 0.5933333333333333,
+   "tool_correct_mean": 0.37333333333333335,
+   "p50_ms": 151.12995851086453
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.3666666666666667,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.38,
+   "p50_ms": 150.95629048300907
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.3666666666666667,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.38,
+   "p50_ms": 150.9572289796779
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.3666666666666667,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.38,
+   "p50_ms": 150.9579369740095
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.36666666666666664,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.38,
+   "p50_ms": 152.25618648400996
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.36666666666666664,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.38,
+   "p50_ms": 152.25639499840327
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.36666666666666664,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.38,
+   "p50_ms": 152.25976948568132
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.36666666666666664,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.36666666666666664,
+   "p50_ms": 143.75575046869926
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.36666666666666664,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.36666666666666664,
+   "p50_ms": 143.75654194736853
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.36666666666666664,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.36666666666666664,
+   "p50_ms": 143.7598539632745
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.36,
+   "skill_correct_mean": 0.4866666666666667,
+   "tool_correct_mean": 0.36,
+   "p50_ms": 143.25479246326722
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.36,
+   "skill_correct_mean": 0.4866666666666667,
+   "tool_correct_mean": 0.36,
+   "p50_ms": 143.25479246326722
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.36,
+   "skill_correct_mean": 0.4866666666666667,
+   "tool_correct_mean": 0.36,
+   "p50_ms": 143.2564374699723
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.36,
+   "skill_correct_mean": 0.4866666666666667,
+   "tool_correct_mean": 0.36,
+   "p50_ms": 143.2564374699723
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.36,
+   "skill_correct_mean": 0.4866666666666667,
+   "tool_correct_mean": 0.36,
+   "p50_ms": 143.25889597239438
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.36,
+   "skill_correct_mean": 0.4866666666666667,
+   "tool_correct_mean": 0.36,
+   "p50_ms": 143.25889597239438
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.35333333333333333,
+   "skill_correct_mean": 0.5533333333333333,
+   "tool_correct_mean": 0.3666666666666667,
+   "p50_ms": 151.12927102018148
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.35333333333333333,
+   "skill_correct_mean": 0.5533333333333333,
+   "tool_correct_mean": 0.3666666666666667,
+   "p50_ms": 151.12947902525775
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "joint_correct_mean": 0.35333333333333333,
+   "skill_correct_mean": 0.5533333333333333,
+   "tool_correct_mean": 0.3666666666666667,
+   "p50_ms": 151.13027101324406
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.35333333333333333,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.35333333333333333,
+   "p50_ms": 143.305416466319
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.35333333333333333,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.35333333333333333,
+   "p50_ms": 143.3066874742508
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.35333333333333333,
+   "skill_correct_mean": 0.5599999999999999,
+   "tool_correct_mean": 0.35333333333333333,
+   "p50_ms": 143.31118699919898
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.34,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.34,
+   "p50_ms": 143.92135446541943
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.34,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.34,
+   "p50_ms": 143.92300047620665
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.34,
+   "skill_correct_mean": 0.5733333333333334,
+   "tool_correct_mean": 0.34,
+   "p50_ms": 143.95189547212794
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.34,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.34,
+   "p50_ms": 143.76229146728292
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.34,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.34,
+   "p50_ms": 143.7685209530173
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.34,
+   "skill_correct_mean": 0.5666666666666667,
+   "tool_correct_mean": 0.34,
+   "p50_ms": 143.7719589594053
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.3333333333333333,
+   "skill_correct_mean": 0.5533333333333333,
+   "tool_correct_mean": 0.3333333333333333,
+   "p50_ms": 143.3279164484702
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.3333333333333333,
+   "skill_correct_mean": 0.5533333333333333,
+   "tool_correct_mean": 0.3333333333333333,
+   "p50_ms": 143.32916597777512
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=True strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.3333333333333333,
+   "skill_correct_mean": 0.5533333333333333,
+   "tool_correct_mean": 0.3333333333333333,
+   "p50_ms": 143.3665839576861
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.2733333333333333,
+   "skill_correct_mean": 0.37333333333333335,
+   "tool_correct_mean": 0.2733333333333333,
+   "p50_ms": 143.7834999669576
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.2733333333333333,
+   "skill_correct_mean": 0.37333333333333335,
+   "tool_correct_mean": 0.2733333333333333,
+   "p50_ms": 143.7834999669576
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.2733333333333333,
+   "skill_correct_mean": 0.37333333333333335,
+   "tool_correct_mean": 0.2733333333333333,
+   "p50_ms": 143.7848339555785
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.2733333333333333,
+   "skill_correct_mean": 0.37333333333333335,
+   "tool_correct_mean": 0.2733333333333333,
+   "p50_ms": 143.7848339555785
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.2733333333333333,
+   "skill_correct_mean": 0.37333333333333335,
+   "tool_correct_mean": 0.2733333333333333,
+   "p50_ms": 143.7919589516241
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.2733333333333333,
+   "skill_correct_mean": 0.37333333333333335,
+   "tool_correct_mean": 0.2733333333333333,
+   "p50_ms": 143.7919589516241
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26666666666666666,
+   "skill_correct_mean": 0.37333333333333335,
+   "tool_correct_mean": 0.26666666666666666,
+   "p50_ms": 143.33468794939108
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26666666666666666,
+   "skill_correct_mean": 0.37333333333333335,
+   "tool_correct_mean": 0.26666666666666666,
+   "p50_ms": 143.33468794939108
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26666666666666666,
+   "skill_correct_mean": 0.37333333333333335,
+   "tool_correct_mean": 0.26666666666666666,
+   "p50_ms": 143.33589647139888
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26666666666666666,
+   "skill_correct_mean": 0.37333333333333335,
+   "tool_correct_mean": 0.26666666666666666,
+   "p50_ms": 143.33589647139888
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26666666666666666,
+   "skill_correct_mean": 0.37333333333333335,
+   "tool_correct_mean": 0.26666666666666666,
+   "p50_ms": 143.3383749827044
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26666666666666666,
+   "skill_correct_mean": 0.37333333333333335,
+   "tool_correct_mean": 0.26666666666666666,
+   "p50_ms": 143.3383749827044
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26666666666666666,
+   "skill_correct_mean": 0.36666666666666664,
+   "tool_correct_mean": 0.26666666666666666,
+   "p50_ms": 143.94702148274519
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26666666666666666,
+   "skill_correct_mean": 0.36666666666666664,
+   "tool_correct_mean": 0.26666666666666666,
+   "p50_ms": 143.94702148274519
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26666666666666666,
+   "skill_correct_mean": 0.36666666666666664,
+   "tool_correct_mean": 0.26666666666666666,
+   "p50_ms": 143.94762548909057
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26666666666666666,
+   "skill_correct_mean": 0.36666666666666664,
+   "tool_correct_mean": 0.26666666666666666,
+   "p50_ms": 143.94762548909057
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26666666666666666,
+   "skill_correct_mean": 0.36666666666666664,
+   "tool_correct_mean": 0.26666666666666666,
+   "p50_ms": 143.94937496399507
+  },
+  {
+   "label": "strategies.embedding.similarity=centroid strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26666666666666666,
+   "skill_correct_mean": 0.36666666666666664,
+   "tool_correct_mean": 0.26666666666666666,
+   "p50_ms": 143.94937496399507
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26666666666666666,
+   "skill_correct_mean": 0.3933333333333333,
+   "tool_correct_mean": 0.26666666666666666,
+   "p50_ms": 143.73460393107962
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26666666666666666,
+   "skill_correct_mean": 0.3933333333333333,
+   "tool_correct_mean": 0.26666666666666666,
+   "p50_ms": 143.7375629611779
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26666666666666666,
+   "skill_correct_mean": 0.3933333333333333,
+   "tool_correct_mean": 0.26666666666666666,
+   "p50_ms": 143.7491044489434
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26,
+   "skill_correct_mean": 0.3466666666666667,
+   "tool_correct_mean": 0.26,
+   "p50_ms": 143.25800047663506
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26,
+   "skill_correct_mean": 0.3466666666666667,
+   "tool_correct_mean": 0.26,
+   "p50_ms": 143.25800047663506
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26,
+   "skill_correct_mean": 0.3466666666666667,
+   "tool_correct_mean": 0.26,
+   "p50_ms": 143.25929147889838
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26,
+   "skill_correct_mean": 0.3466666666666667,
+   "tool_correct_mean": 0.26,
+   "p50_ms": 143.25929147889838
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26,
+   "skill_correct_mean": 0.4,
+   "tool_correct_mean": 0.26,
+   "p50_ms": 143.28481246775482
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26,
+   "skill_correct_mean": 0.4,
+   "tool_correct_mean": 0.26,
+   "p50_ms": 143.28641747124493
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26,
+   "skill_correct_mean": 0.4,
+   "tool_correct_mean": 0.26,
+   "p50_ms": 143.29433294187766
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26,
+   "skill_correct_mean": 0.3466666666666667,
+   "tool_correct_mean": 0.26,
+   "p50_ms": 144.23354247992393
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26,
+   "skill_correct_mean": 0.3466666666666667,
+   "tool_correct_mean": 0.26,
+   "p50_ms": 144.23354247992393
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26,
+   "skill_correct_mean": 0.4,
+   "tool_correct_mean": 0.26,
+   "p50_ms": 143.89372896403074
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26,
+   "skill_correct_mean": 0.4,
+   "tool_correct_mean": 0.26,
+   "p50_ms": 143.89387499250006
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26,
+   "skill_correct_mean": 0.4,
+   "tool_correct_mean": 0.26,
+   "p50_ms": 143.9012289774837
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26,
+   "skill_correct_mean": 0.33999999999999997,
+   "tool_correct_mean": 0.26,
+   "p50_ms": 143.70720843726303
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26,
+   "skill_correct_mean": 0.33999999999999997,
+   "tool_correct_mean": 0.26,
+   "p50_ms": 143.70720843726303
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26,
+   "skill_correct_mean": 0.33999999999999997,
+   "tool_correct_mean": 0.26,
+   "p50_ms": 143.70997944206465
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26,
+   "skill_correct_mean": 0.33999999999999997,
+   "tool_correct_mean": 0.26,
+   "p50_ms": 143.70997944206465
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26,
+   "skill_correct_mean": 0.33999999999999997,
+   "tool_correct_mean": 0.26,
+   "p50_ms": 143.71247946110088
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.26,
+   "skill_correct_mean": 0.33999999999999997,
+   "tool_correct_mean": 0.26,
+   "p50_ms": 143.71247946110088
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.25333333333333335,
+   "skill_correct_mean": 0.3333333333333333,
+   "tool_correct_mean": 0.25333333333333335,
+   "p50_ms": 143.87233347224537
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.25333333333333335,
+   "skill_correct_mean": 0.3333333333333333,
+   "tool_correct_mean": 0.25333333333333335,
+   "p50_ms": 143.87233347224537
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.25333333333333335,
+   "skill_correct_mean": 0.3333333333333333,
+   "tool_correct_mean": 0.25333333333333335,
+   "p50_ms": 143.87372897181194
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.25333333333333335,
+   "skill_correct_mean": 0.3333333333333333,
+   "tool_correct_mean": 0.25333333333333335,
+   "p50_ms": 143.87372897181194
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.25333333333333335,
+   "skill_correct_mean": 0.3333333333333333,
+   "tool_correct_mean": 0.25333333333333335,
+   "p50_ms": 144.01931148313452
+  },
+  {
+   "label": "strategies.embedding.similarity=max_example strategies.embedding.top_k=5 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.25333333333333335,
+   "skill_correct_mean": 0.3333333333333333,
+   "tool_correct_mean": 0.25333333333333335,
+   "p50_ms": 144.01931148313452
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.2533333333333333,
+   "skill_correct_mean": 0.36666666666666664,
+   "tool_correct_mean": 0.2533333333333333,
+   "p50_ms": 143.89389497227967
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.2533333333333333,
+   "skill_correct_mean": 0.36666666666666664,
+   "tool_correct_mean": 0.2533333333333333,
+   "p50_ms": 143.89439596561715
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=1 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.2533333333333333,
+   "skill_correct_mean": 0.36666666666666664,
+   "tool_correct_mean": 0.2533333333333333,
+   "p50_ms": 143.91485445958097
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.24,
+   "skill_correct_mean": 0.35333333333333333,
+   "tool_correct_mean": 0.24,
+   "p50_ms": 143.73022947984282
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.24,
+   "skill_correct_mean": 0.35333333333333333,
+   "tool_correct_mean": 0.24,
+   "p50_ms": 143.73243795125745
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=2 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.24,
+   "skill_correct_mean": 0.35333333333333333,
+   "tool_correct_mean": 0.24,
+   "p50_ms": 143.73435397283174
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.1 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.23333333333333334,
+   "skill_correct_mean": 0.36,
+   "tool_correct_mean": 0.23333333333333334,
+   "p50_ms": 143.2800839538686
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.05 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.23333333333333334,
+   "skill_correct_mean": 0.36,
+   "tool_correct_mean": 0.23333333333333334,
+   "p50_ms": 143.28050045878626
+  },
+  {
+   "label": "strategies.embedding.similarity=topk_vote strategies.embedding.top_k=3 strategies.embedding.softmax_temperature=0.02 strategies.embedding.history_turns=0 strategies.embedding.shots=False strategies.embedding.query_instruction=Instruct: Given a customer-service message in Brazilian Portuguese, retrieve the support option that handles it\nQuery:",
+   "joint_correct_mean": 0.23333333333333334,
+   "skill_correct_mean": 0.36,
+   "tool_correct_mean": 0.23333333333333334,
+   "p50_ms": 143.2823334762361
+  }
+ ]
+}

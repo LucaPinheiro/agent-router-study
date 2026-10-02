@@ -140,14 +140,34 @@ per_config:
     strategies:
       llm:
         calibration: *id001
+    routing:
+      skill:
+        pipeline:
+        - {strategy: regex, min_confidence: 0.88}
+        - {strategy: jev}
   e8_regex_llm_l:
     strategies:
       llm:
         calibration: *id001
+    routing:
+      skill:
+        pipeline:
+        - {strategy: regex, min_confidence: 0.88}
+        - {strategy: llm}
   e9_regex_jev_llm_l:
     strategies:
       llm:
         calibration: *id001
+    routing:
+      skill:
+        pipeline:
+        - {strategy: regex, min_confidence: 0.88}
+        - {strategy: jev, min_confidence: 0.76}
+        - {strategy: llm}
+      tool:
+        pipeline:
+        - {strategy: jev, min_confidence: 0.5}
+        - {strategy: llm}
   e10_classifier_l:
     strategies:
       llm:
@@ -160,6 +180,16 @@ per_config:
     strategies:
       llm:
         calibration: *id001
+    routing:
+      skill:
+        pipeline:
+        - {strategy: hybrid, min_confidence: 0.78}
+        - {strategy: jev, min_confidence: 0.76}
+        - {strategy: llm}
+      tool:
+        pipeline:
+        - {strategy: jev, min_confidence: 0.5}
+        - {strategy: llm}
 jev_calibration:
   skill:
     x: [0.516364, 0.719545, 0.885556, 0.934737, 0.980169, 1.0]
