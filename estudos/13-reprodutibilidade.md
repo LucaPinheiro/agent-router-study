@@ -91,11 +91,28 @@ US$ 41,05; Haiku 4.5 US$ 11,06; `typesafe/jev-router` US$ 3,32; geração do tes
 Cada turno é um trace no Langfuse local (v4), com spans por nó do grafo, por estratégia de
 roteamento e pela chamada MCP. Cada run é um experimento ligado ao dataset do Langfuse.
 
-> **[slot Langfuse]** `estudos/figuras/langfuse-experiments-test-v2.png`: lista de experimentos
-> do dataset do test-v2 com as notas como colunas (a capturar).
->
-> **[slot Langfuse]** `estudos/figuras/langfuse-dashboard-cost.png`: painel de custo e latência
-> por modelo (a capturar).
+![Experimentos no Langfuse](figuras/langfuse-experiments.png)
+
+*Figura 1. Cada run é um experimento ligado ao dataset (aqui, os mais recentes: replicação v1,
+exploratórios D-002, RQ5). A coluna "Error Count" do Langfuse conta spans de nível ERROR,
+incluindo erros de negócio das tools (por exemplo, `NOT_ELIGIBLE`): nos runs `x-e*-fullskill`,
+60 e 65 são esses erros, e não falhas de infraestrutura (0 erros de infraestrutura no
+manifesto).*
+
+![Dataset test-v2 no Langfuse](figuras/langfuse-experiments-test-v2.png)
+
+*Figura 2. Os 349 itens do test-v2, com entrada, saída esperada (tool e argumentos) e metadados.*
+
+![Datasets](figuras/langfuse-datasets.png)
+
+*Figura 3. Datasets do projeto: test-v2 com 99 experimentos; o test-v1 usa o dataset original
+`routing-study-test` (desvio D-003).*
+
+![Painel do Langfuse](figuras/langfuse-dashboard-cost.png)
+
+*Figura 4. Painel principal no dia do run final: custo por modelo (US$ 36,05, que bate com o
+ledger) e notas. Os traces raiz `POST /{path}` e `GET /healthz` são o ruído anterior à correção
+`a6c4330`; depois dela, esses spans ficam aninhados ou não são exportados.*
 
 Os traces de exemplo já capturados estão no capítulo [07](07-ponta-a-ponta.md).
 

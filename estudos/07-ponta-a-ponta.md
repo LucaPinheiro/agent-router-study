@@ -26,8 +26,24 @@
 
 *Figura 2. O mesmo trace na visão de grafo, com a resposta final, o desfecho e os metadados do run.*
 
-> **[slot Langfuse]** `estudos/figuras/langfuse-trace-e0-e2e.png`: trace de um turno nativo E0
-> com `load_skill`, para comparar com a Figura 1 (a capturar).
+![Trace de um turno nativo E0](figuras/langfuse-trace-e0-e2e.png)
+
+*Figura 3. Um turno nativo E0 (test-v2, `v2-adversarial-001`): sem nós de roteamento, o
+executor chama `load_skill` e depois `request_refund`. O MCP devolve `NOT_ELIGIBLE` (marcado como
+ERROR: é erro de negócio da tool, não de infraestrutura), e o agente recupera oferecendo uma
+devolução.*
+
+![Visão de grafo completa no Langfuse](figuras/langfuse-graph-e2e-full.png)
+
+*Figura 4. Visão de grafo depois da correção de observabilidade pós-estudo (commit `ab1059a`):
+`__start__ → ingest → route_skill → route_tool → agent ⇄ tools → __end__`. Antes, só o nó `agent`
+aparecia (Figura 2). Run de verificação `obs-graph-check` no dev (fora da análise).*
+
+![Árvore completa do turno de verificação](figuras/langfuse-tree-e2e-full.png)
+
+*Figura 5. A árvore do mesmo turno: a chamada MCP fica aninhada até o servidor
+(`MCP send tools/call` → `POST /{path}` → `tools/call` → `mcp.tools/call`), e a decisão de
+roteamento lida do cache aparece como `route.tool.jev [cache]`.*
 
 ## 2. H3: roteado × nativo [C]
 
