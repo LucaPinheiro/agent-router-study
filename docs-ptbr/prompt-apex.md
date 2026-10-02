@@ -34,7 +34,7 @@ ITT, arquivos `results/prompt_apex_v2/e6b_{r1,r2,full}.json`.
 - **Rodada 2** (líder P3 combinado com cada um dos outros sobreviventes): P0+P3+P4 83.3, P0+P3+P1 85.0,
   P0+P3+P6 83.3; nenhum podado.
 - **Dev completo, reduzido pelo lead (orçamento de tempo; results/freeze/DECISIONS.log)**: só P0, P0+P3 e
-  P0+P4. P0+P5 foi iniciado como candidato canônico, mas travou 6,5 h num deadlock do lado do cliente
+  P0+P4. P0+P5 foi iniciado como candidato canônico, mas travou 6.5 h num deadlock do lado do cliente
   e foi encerrado; ele já tinha sido podado para o Qwen na rodada 1. P0+P1, P0+P6 e as combinações da rodada 2
   não rodaram no dev completo (truncados por orçamento, como o P6 do Haiku).
 
