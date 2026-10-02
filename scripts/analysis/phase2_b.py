@@ -115,7 +115,7 @@ TOOLS_SHA = {  # tools/list snapshots the rescore scores against
 }
 DATASET_SHA: dict[str, str | None] = {
     "dev_l": "b02b3722f5c4e434dd97a4c6a4811ac18a1fd1945784a6375639acd0b376e238",
-    "test_l": None,  # TBD@freeze: fill after T4.3 (audited test-L sha256), before the tag
+    "test_l": "ae21a5dbce16eb90278612f7dbcf875cb6610b7b12a49cb6f7f57e503d680ff2",  # e1e8683
     "test_v2": "6637c4795b2340b953ac5867498c1aeba7953fea25d76b8614de265cf2902a66",
 }
 MANIFEST_L_SHA: str | None = (

@@ -7,9 +7,8 @@ changes after that row (§8). Part A (cloud addendum on the 18-tool catalog) is 
 Plan: `.omc/plans/autopilot-impl.md` T6.1. Dev-L tuning record: `docs/tuning-effort-l.md` §B,
 `.omc/handoffs/p2-tuning.md`.
 
-> **Before the tag** (T4.3 still running at the time of writing): fill every
-> `<fill after T4.3>` placeholder in §1, write the case-id files (§1), set
-> `DATASET_SHA["test_l"]` in `scripts/analysis/phase2_b.py`, and re-run the dry-run (§6).
+> T4.3 is complete (commit e1e8683). Every test-L value below was filled on 2026-10-02 before the
+> tag and before any test-L row: the dataset sha, the case-id files and the test-L dry-run.
 
 ## 0. Inherited from prereg-v1 unchanged
 
@@ -35,13 +34,13 @@ retry and abort rules of prereg-v1 §7.
 | code | the commit tagged `prereg-v2` |
 | catalog | large profile (`CATALOG_PROFILE=large`, mcp-server-large on :8766), `catalog_hash` **bc7cd75fce87** (62 tools, 10 skills + globals; checked live at the freeze, 2026-10-02); `mcp_server/tools_list_large.json` sha256 `a0583726a351a862494c0f655b409c592e48c9a2f1c31ef43371b7ff63a88f07`. X2 small profile: `catalog_hash` **128584617807** (unchanged since phase 1), `tools_list.json` `a9776477226c398702032f7fdd05223fc0a013dfc68ebe0e8f749567e27aa123` |
 | dev data | `data/dataset_dev_l.jsonl` sha256 `b02b3722f5c4e434dd97a4c6a4811ac18a1fd1945784a6375639acd0b376e238` (150 cases) |
-| test data | `data/dataset_test_l.jsonl` (~300 cases, generator seed 20261009, audited, automated adjudication). **TEST-L DATASET SHA: `<fill after T4.3>`** |
+| test data | `data/dataset_test_l.jsonl` (300 cases, generator seed 20261009, audited, automated adjudication; commit e1e8683). **TEST-L DATASET SHA: `ae21a5dbce16eb90278612f7dbcf875cb6610b7b12a49cb6f7f57e503d680ff2`** |
 | routing scorer | legacy `scorer_hash` **e0eef1fb0073** (unchanged; routing primary, e2e sensitivity) |
 | e2e scorer | symmetric `scorer_sym_hash` **5ad0f65296e4** (`src/routing_study/eval/scorers_sym.py`; e2e primary) |
 | prompt | `prompt_hash` **c61ad0a7b7f8** (P0; no template change, no prompt search) |
 | manifest | `config/study_manifest_l.yaml`, sha256 `788fac3665ba82e06703a644f42e753f1413441dcc8d3395071d6d8ce8bc2e6b` (73 entries) |
-| latency ids | `config/manifest/latency_test_l_b{1..4}.ids` (4 × 25 stratified test-L cases, `scripts/analysis/latency_ids.py --split test_l`). sha256: **`<fill after T4.3>`** |
-| X2 ids | `config/manifest/x2_test_l_orig.ids` (the orig subset, `scripts/analysis/x2_orig_ids.py`; n ≥ 60 asserted). sha256 and n: **`<fill after T4.3>`** |
+| latency ids | `config/manifest/latency_test_l_b{1..4}.ids` (4 × 25 stratified test-L cases, `scripts/analysis/latency_ids.py --split test_l`). sha256 b1 `0d616311ff839cc822afa844a7c3dc59bdbe9c75618b41ec26d16b4194371dd5`, b2 `ded21cf01feb9d1246a3f7dc919e5e1ed6eb937cdfe2c14e6fe9241b7c6dce09`, b3 `2550bd1ec7443ed6d9cc1dbca393c6600a54a2ad804bb20c61159ec8c9a5ab86`, b4 `70723d6305a5b77a42e2267902fded0c5a8d9a14c4d68a77ac47cb64877465a4` |
+| X2 ids | `config/manifest/x2_test_l_orig.ids` (the orig subset, `scripts/analysis/x2_orig_ids.py`; n ≥ 60 asserted). **n = 114** of 300 (≥ 60 holds), sha256 `42cba58577b41b0ebb379f3fe5867610ea8560e7276eb11a05d2546a4a952945` |
 | thresholds / calibration | written in `config/experiments_l/*.yaml` (§5); unchanged after the dev-L tuning commits (17b0637 and earlier) |
 | analysis code | `scripts/analysis/phase2_b.py`, written before test-L at commit **27cacee**. At the tag, the only diff from 27cacee is the `TBD@freeze` constant block (catalog/scorer confirmations, `MANIFEST_L_SHA`, `DEV_FIXED_L`, `S7_PROBE`, `S2_MIN_N`, and `DATASET_SHA["test_l"]`). Check: `git diff 27cacee prereg-v2 -- scripts/analysis/phase2_b.py` |
 | phase-1 hash lock | `tests/test_phase1_hashes.py` green at the tag |
@@ -263,7 +262,7 @@ then E9-L-fullskill (B15), then X2-Haiku (B18), then latency (B17).
 | 40 | **E0-L e2e, E9-L e2e (H1-L)** | 300 × 1 |
 | 50 | Haiku rep 2; E6m, E6n rep 2 (rep 1 = cache hit) | 60 × 2; 50 × 2 |
 | 70 | `lat-l-*` blocks 1–4 × {regex, bm25, embedding, classifier, hybrid, jev, haiku, e6m, e6n, e7, e9}, interleaved by block, concurrency 1, caches off, fresh `.cache/latency-l` | 4 × 25 per arm |
-| 80 | X2 small profile: E1, E2, E3 (Titan), E10 (Titan), E4, E6m | orig subset (~120; ≥ 60) × 1 |
+| 80 | X2 small profile: E1, E2, E3 (Titan), E10 (Titan), E4, E6m | orig subset (114) × 1 |
 | 81 | X2 small profile: E6 Haiku | orig subset × 1 |
 | 85 | E9-L-fullskill e2e (S1) | 300 × 1 |
 | 90 | executor variance E0-L, E9-L | 60 × 1 |
@@ -276,7 +275,9 @@ B18-Haiku and the latency blocks.
   73 entries were PLAN with 0 ABORT: every `config_hash`, `prompt_hash` and `catalog_hash`
   (large and small) reproduces.
 - The **test-L dry-run** is re-run after T4.3: `uv run study run-manifest config/study_manifest_l.yaml --dry-run`.
-  Its expected result is every entry PLAN, no ABORT, and 0 rows on disk. **Result: `<fill after T4.3>`**.
+  **Result (2026-10-02, after e1e8683): 73 / 73 entries PLAN, 0 ABORT, 0 keys present (0 rows on
+  disk).** Every `config_hash`, `prompt_hash` and `catalog_hash` reproduces on test-L, and every id
+  file resolves inside the split. `prereg_hashes.py` was re-run and left the manifest unchanged.
 
 ### Budget
 
@@ -285,11 +286,11 @@ B18-Haiku and the latency blocks.
   - AWS phase-2 total ≤ US$ 40, so the AWS ledger ceiling is **92.11**
     (`BUDGET__AWS_USD_CAP=92.11`);
   - the OpenRouter ceiling is **9.43** = 5.83 + 3.6 (`BUDGET__OPENROUTER_USD_CAP=9.43`).
-- **Ledger at the freeze draft:** AWS 59.59 / OR 6.13, with test-L generation and audit on Bedrock
-  still running. That leaves **≤ 32.5 AWS** and **3.30 OR** for this manifest.
+- **Ledger at the freeze** (after T4.3): AWS 59.71 / OR 6.13. That leaves **32.40 AWS** and
+  **3.30 OR** for this manifest.
 
 Expected cost per item. Each figure is a dev-L per-case cost measured in T5.3–T5.5 multiplied by the
-test-L size (300 cases, X2 ≈ 120, the dev-L orig share 60/150):
+test-L size (300 cases; X2 = 114, the orig subset):
 - Haiku 7.18, Ministral 0.70, Nemotron 0.33 and Jev 1.28 US$ per 1k cases;
 - E9-L routing 1.03 per 1k (Jev tool stage 0.95, Sonnet fallback ≈ 0.11);
 - e2e per case: E0-L 0.0139 and E9-L 0.0165;
@@ -306,12 +307,12 @@ test-L size (300 cases, X2 ≈ 120, the dev-L orig share 60/150):
 | 40 **E9-L e2e** (B14) | 4.94 | – |
 | 50 Haiku rep2-60 + 8B rep2-50 | 0.48 | – |
 | 70 latency, 11 arms × 100, caches off (B17) | 0.83 | 0.33 |
-| 80/81 X2 on ~120 orig cases (B18) | 0.65 | 0.09 |
+| 80/81 X2 on the 114 orig cases (B18) | 0.62 | 0.09 |
 | 85 E9-L-fullskill e2e (B15; +5% for the larger tool exposure) | 5.18 | – |
 | 90 executor variance on 60 (B16) | 1.82 | – |
-| **expected total** | **20.74** | **2.01** |
-| with 25% contingency | 25.92 | 2.51 |
-| available under the caps (ledger at the freeze draft) | ≤ 32.52 | 3.30 |
+| **expected total** | **20.71** | **2.00** |
+| with 25% contingency | 25.88 | 2.50 |
+| available under the caps (ledger at the freeze) | 32.40 | 3.30 |
 
 - **OR worst case.** If no Jev tool-stage prompt of the E9-L / E7-L / E12-L deciders were a cache
   hit, OR would reach about 3.3, which equals the OR headroom. The latency and X2 Jev entries would
