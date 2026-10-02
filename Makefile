@@ -19,6 +19,7 @@ health:
 	@curl -fsS localhost:$(LANGFUSE_PORT)/api/public/health && echo
 	@docker exec $$($(COMPOSE) ps -q app-redis) redis-cli ping
 	@curl -fsS localhost:8765/healthz 2>/dev/null && echo || echo "mcp-server: not running (make up-app)"
+	@curl -fsS localhost:8766/readyz 2>/dev/null && echo || echo "mcp-server-large: not running (make up-app)"
 
 test:
 	uv run pytest -q -m "not integration"

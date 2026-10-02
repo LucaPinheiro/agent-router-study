@@ -181,6 +181,32 @@ services:
       timeout: 5s
       retries: 10
 
+  mcp-server-large:
+    # Phase 2 large catalog (62 tools, 10 skills): same image, CATALOG_PROFILE=large, port 8766.
+    # Host configs pick it with mcp_url http://localhost:8766/mcp (config/experiments_l/); the
+    # catalog cache key in Redis includes the URL, so the two profiles never share an entry.
+    profiles: ["app"]
+    build:
+      context: ..
+      dockerfile: infra/mcp_server.Dockerfile
+    restart: unless-stopped
+    command: ["uvicorn", "mcp_server.app:app", "--host", "0.0.0.0", "--port", "8766"]
+    ports:
+      - "127.0.0.1:8766:8766"
+    environment:
+      CATALOG_PROFILE: large
+      MCP_TOKEN: ${MCP_TOKEN:?set MCP_TOKEN in .env}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://langfuse-web:3000/api/public/otel
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-pk-lf-local}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-sk-lf-local}
+    depends_on:
+      langfuse-web: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request as u;u.urlopen('http://127.0.0.1:8766/readyz')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
 volumes:
   postgres_data:
   clickhouse_data:
