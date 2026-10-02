@@ -8,6 +8,9 @@
 - `reserve()` runs BEFORE a call: cumulative spend + in-flight reservations + this call's
   upper-bound cost must stay within the account's cap, else `BudgetExceededError` (never
   retried). `settle()` replaces the reservation with the real cost.
+- Every row carries `run_name`, `split` and `config_hash` of the run that made the call
+  (`RUN_ATTRIBUTION`, set by the runner; None outside a run). Older rows lack them:
+  `SpendLedger.rows()` fills them with None.
 - Multi-process safe: committed spend and every process's reservations are re-read under an
   exclusive file lock at each check (see `SpendLedger`).
 """
@@ -22,6 +25,7 @@ import time
 import uuid
 from collections.abc import Iterator
 from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -33,6 +37,9 @@ from routing_study.settings import Settings
 
 # billing account per provider; providers without an account (ollama) are never capped
 ACCOUNTS = {"bedrock": "aws", "openrouter": "openrouter"}
+ATTRIBUTION_KEYS = ("run_name", "split", "config_hash")
+# the run a model call belongs to (task-local: inherited by the run's tasks and threads)
+RUN_ATTRIBUTION: ContextVar[dict[str, str] | None] = ContextVar("run_attribution", default=None)
 
 
 class BudgetExceededError(RuntimeError):
@@ -214,10 +221,11 @@ class SpendLedger:
     # ------------------------------------------------------------ API
 
     def rows(self) -> list[dict[str, Any]]:
+        """Every row, with the attribution keys present (None in rows written before them)."""
         if not self.path.exists():
             return []
         return [
-            json.loads(line)
+            dict.fromkeys(ATTRIBUTION_KEYS) | json.loads(line)
             for line in self.path.read_text(encoding="utf-8").splitlines()
             if line.strip()
         ]
@@ -269,6 +277,7 @@ class SpendLedger:
                 return
             row = {"ts": datetime.now(UTC).isoformat(timespec="seconds"), "provider": provider}
             row.update(record)
+            row.update({k: (RUN_ATTRIBUTION.get() or {}).get(k) for k in ATTRIBUTION_KEYS})
             with self.path.open("a", encoding="utf-8") as fh:
                 fh.write(json.dumps(row, ensure_ascii=False) + "\n")
             self._refresh()

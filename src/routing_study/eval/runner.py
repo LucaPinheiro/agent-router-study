@@ -26,7 +26,7 @@ from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import AIMessage, ToolMessage
 
 from routing_study import prompts
-from routing_study.budget import BudgetExceededError, ledger_for
+from routing_study.budget import RUN_ATTRIBUTION, BudgetExceededError, ledger_for
 from routing_study.catalog import Catalog, CatalogProvider, McpTools
 from routing_study.eval.scorers import score_turn, scorer_hash, tool_index
 from routing_study.graph import nodes as graph_nodes
@@ -396,6 +396,20 @@ class Runner:
         return f"{self.run_name}:{self.invocation}:{case_id}:{rep}"
 
     async def run(self, cases: list[Case]) -> Path:
+        """Runs the cases; every spend-ledger row written meanwhile names this run."""
+        token = RUN_ATTRIBUTION.set(
+            {
+                "run_name": self.run_name,
+                "split": self.split,
+                "config_hash": config_hash(self.settings),
+            }
+        )
+        try:
+            return await self._run(cases)
+        finally:
+            RUN_ATTRIBUTION.reset(token)
+
+    async def _run(self, cases: list[Case]) -> Path:
         out = self._results_path()
         if out.exists() and not (self.overwrite or self.resume):
             raise FileExistsError(f"{out} exists: pick another --run-name or pass --overwrite")

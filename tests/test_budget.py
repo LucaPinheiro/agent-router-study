@@ -120,3 +120,47 @@ async def test_run_refuses_when_projection_exceeds_the_cap(monkeypatch):
     s.budget.openrouter_usd_cap = 0.0  # jev projected > 0 on OpenRouter
     with pytest.raises(BudgetExceededError, match="openrouter budget"):
         await runner.check_budget(10)
+
+
+def test_ledger_rows_name_their_run_and_old_rows_still_read(tmp_path):
+    from routing_study.budget import RUN_ATTRIBUTION
+
+    path = tmp_path / "ledger.jsonl"
+    path.write_text(json.dumps({"provider": "bedrock", "model": "m", "cost_usd": 0.1}) + "\n")
+    led = SpendLedger(path, {"aws": 1.0})
+    with CallMeter(led, "bedrock", "m", 0.0) as meter:
+        meter.done({"cost_usd": 0.0})
+    token = RUN_ATTRIBUTION.set({"run_name": "r1", "split": "dev", "config_hash": "abc"})
+    try:
+        with CallMeter(led, "bedrock", "m", 0.0) as meter:
+            meter.done({"cost_usd": 0.2})
+    finally:
+        RUN_ATTRIBUTION.reset(token)
+
+    raw = [json.loads(x) for x in path.read_text().splitlines()]
+    assert raw[1]["run_name"] is None and "split" in raw[1]  # outside a run: explicit None
+    assert {k: raw[2][k] for k in ("run_name", "split", "config_hash")} == {
+        "run_name": "r1",
+        "split": "dev",
+        "config_hash": "abc",
+    }
+    legacy = led.rows()[0]
+    assert (legacy["run_name"], legacy["split"], legacy["config_hash"]) == (None, None, None)
+    assert legacy["cost_usd"] == 0.1 and led.spent == {"aws": pytest.approx(0.3)}
+
+
+async def test_runner_sets_the_ledger_attribution_for_the_run(monkeypatch):
+    from routing_study.budget import RUN_ATTRIBUTION
+    from routing_study.eval.runner import config_hash
+
+    seen = []
+
+    async def fake_run(self, cases):
+        seen.append(RUN_ATTRIBUTION.get())
+        return None
+
+    monkeypatch.setattr(Runner, "_run", fake_run)
+    s = load_settings(E9, _env_file=None)
+    await Runner(s, split="dev", mode="e2e", run_name="attrib").run([])
+    assert seen == [{"run_name": "attrib", "split": "dev", "config_hash": config_hash(s)}]
+    assert RUN_ATTRIBUTION.get() is None
