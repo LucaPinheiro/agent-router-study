@@ -444,11 +444,12 @@ def modelled_cache_cost(
                 k = (u["served_model"], lv, int(u.get("static_chars") or 0))
                 c = prefixes.get(k, 0)
                 pt = int(u.get("prompt_tokens") or 0)
-                c = min(c, pt)
+                # no cache price listed (8B / embedding models): no prompt cache, all at input
+                c = min(c, pt) if "cache_read" in p else 0
                 h = 1.0 - math.exp(-qps * count[k] / n * TTL_S) if math.isfinite(qps) else 1.0
                 total += (
-                    h * c * p["cache_read"]
-                    + (1 - h) * c * p["cache_write"]
+                    h * c * p.get("cache_read", 0.0)
+                    + (1 - h) * c * p.get("cache_write", 0.0)
                     + (pt - c) * p["input"]
                     + int(u.get("completion_tokens") or 0) * p["output"]
                 )

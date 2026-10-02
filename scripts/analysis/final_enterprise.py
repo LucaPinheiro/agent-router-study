@@ -54,46 +54,11 @@ def _local_line(cands: list[dict[str, Any]]) -> str:
     return s + "."
 
 
-def run_enterprise(est: dict[str, Any]) -> dict[str, Any]:
-    cands = candidates(est)
-    lines = [
-        "# Enterprise decision matrix (test-v2, routing-only)",
-        "",
-        "For each latency SLO (warm p95, dedicated lat-* benchmark), routing-cost ceiling (US$ per 1 000 cases, observed regime) and "
-        "minimum joint accuracy (ITT), the qualifying configuration with the highest joint accuracy (ties: lower cost). Qualification "
-        "uses point estimates; `robust` = the 95% CIs also satisfy all three constraints (joint CI lower bound >= floor, p95 CI upper "
-        "bound < SLO, cost CI upper bound <= ceiling). Estimation only (no test); the paired differences between the top candidates are "
-        "in primary.md / secondary.md and mostly within a few pp with overlapping CIs, so a cell's winner is not 'significantly best'.",
-        "",
-        "Caveats: routing-only joint (not e2e success: see estimation.md J, where every routed config is below the native E0 executor); "
-        "latency measured on one machine / one network at concurrency 1 (API latency includes provider queueing); local model cost is "
-        "counted as US$ 0 (hardware and energy excluded); Jev's cost is its reported OpenRouter price (no list price).",
-        "",
-        "## Candidates",
-        "",
-    ]
-    lines += md_table(
-        [
-            "config",
-            "where",
-            "joint % [95% CI]",
-            "warm p95 ms [95% CI]",
-            "US$/1k observed [95% CI]",
-            "US$/1k list uncached",
-        ],
-        [
-            [
-                c["label"],
-                "local" if c["local"] else "API",
-                f"{100 * c['joint']['point']:.1f} [{100 * c['joint']['lo']:.1f}, {100 * c['joint']['hi']:.1f}]",
-                f"{c['p95']['point']:.1f} [{c['p95']['lo']:.1f}, {c['p95']['hi']:.1f}]",
-                f"{c['cost']['point']:.3f} [{c['cost']['lo']:.3f}, {c['cost']['hi']:.3f}]",
-                f"{c['cost_list']['point']:.3f}",
-            ]
-            for c in sorted(cands, key=lambda c: -c["joint"]["point"])
-        ],
-    )
-    cells = []
+def matrix(cands: list[dict[str, Any]]) -> tuple[list[str], list[dict[str, Any]]]:
+    """One SLO x cost-ceiling table per accuracy floor: the best qualifying candidate per cell
+    (point estimates; `robust` when the CIs also satisfy the three constraints)."""
+    lines: list[str] = []
+    cells: list[dict[str, Any]] = []
     for floor in MIN_JOINT:
         rows = []
         for slo in SLO_MS:
@@ -140,6 +105,50 @@ def run_enterprise(est: dict[str, Any]) -> dict[str, Any]:
         lines += md_table(
             ["latency SLO \\ cost ceiling"] + [f"<= US$ {c:g}/1k" for c in COST_1K], rows
         )
+    return lines, cells
+
+
+def run_enterprise(est: dict[str, Any]) -> dict[str, Any]:
+    cands = candidates(est)
+    lines = [
+        "# Enterprise decision matrix (test-v2, routing-only)",
+        "",
+        "For each latency SLO (warm p95, dedicated lat-* benchmark), routing-cost ceiling (US$ per 1 000 cases, observed regime) and "
+        "minimum joint accuracy (ITT), the qualifying configuration with the highest joint accuracy (ties: lower cost). Qualification "
+        "uses point estimates; `robust` = the 95% CIs also satisfy all three constraints (joint CI lower bound >= floor, p95 CI upper "
+        "bound < SLO, cost CI upper bound <= ceiling). Estimation only (no test); the paired differences between the top candidates are "
+        "in primary.md / secondary.md and mostly within a few pp with overlapping CIs, so a cell's winner is not 'significantly best'.",
+        "",
+        "Caveats: routing-only joint (not e2e success: see estimation.md J, where every routed config is below the native E0 executor); "
+        "latency measured on one machine / one network at concurrency 1 (API latency includes provider queueing); local model cost is "
+        "counted as US$ 0 (hardware and energy excluded); Jev's cost is its reported OpenRouter price (no list price).",
+        "",
+        "## Candidates",
+        "",
+    ]
+    lines += md_table(
+        [
+            "config",
+            "where",
+            "joint % [95% CI]",
+            "warm p95 ms [95% CI]",
+            "US$/1k observed [95% CI]",
+            "US$/1k list uncached",
+        ],
+        [
+            [
+                c["label"],
+                "local" if c["local"] else "API",
+                f"{100 * c['joint']['point']:.1f} [{100 * c['joint']['lo']:.1f}, {100 * c['joint']['hi']:.1f}]",
+                f"{c['p95']['point']:.1f} [{c['p95']['lo']:.1f}, {c['p95']['hi']:.1f}]",
+                f"{c['cost']['point']:.3f} [{c['cost']['lo']:.3f}, {c['cost']['hi']:.3f}]",
+                f"{c['cost_list']['point']:.3f}",
+            ]
+            for c in sorted(cands, key=lambda c: -c["joint"]["point"])
+        ],
+    )
+    cell_lines, cells = matrix(cands)
+    lines += cell_lines
     best_any = sorted(cands, key=lambda c: -c["joint"]["point"])[:1]
     lines += [
         "## Reading",

@@ -1,0 +1,359 @@
+{
+  "status": "CONFIRMATORY (prereg-v2a family A, Holm across A1-A4, alpha 0.05)",
+  "itt": [
+    {
+      "id": "A1",
+      "run": "E6m",
+      "reference": "E6b",
+      "kind": "non_inferiority",
+      "margin": 0.03,
+      "n_cases": 349,
+      "delta": {
+        "point": 0.022922636103151862,
+        "lo": -0.02005730659025788,
+        "hi": 0.0659025787965616
+      },
+      "mcnemar_case": {
+        "run_only": 34,
+        "ref_only": 26,
+        "p": 0.36629400670329104
+      },
+      "p": 0.006799320067993201,
+      "p_holm": 0.013598640135986401,
+      "reject_holm_0.05": true,
+      "verdict": "non-inferior (CI lower bound > -3 pp)",
+      "verdict_ci": {
+        "lo": -0.02005730659025788,
+        "hi": 0.0659025787965616
+      }
+    },
+    {
+      "id": "A2",
+      "run": "E6n",
+      "reference": "E6b",
+      "kind": "non_inferiority",
+      "margin": 0.03,
+      "n_cases": 349,
+      "delta": {
+        "point": -0.02865329512893983,
+        "lo": -0.07449856733524356,
+        "hi": 0.017191977077363897
+      },
+      "mcnemar_case": {
+        "run_only": 26,
+        "ref_only": 36,
+        "p": 0.2528543941881108
+      },
+      "p": 0.47215278472152783,
+      "p_holm": 0.47215278472152783,
+      "reject_holm_0.05": false,
+      "verdict": "non-inferiority NOT shown",
+      "verdict_ci": {
+        "lo": -0.07449856733524356,
+        "hi": 0.017191977077363897
+      }
+    },
+    {
+      "id": "A3",
+      "run": "E3c",
+      "reference": "E3",
+      "kind": "two_sided",
+      "margin": 0.03,
+      "n_cases": 349,
+      "delta": {
+        "point": -0.19197707736389685,
+        "lo": -0.24641833810888253,
+        "hi": -0.14040114613180515
+      },
+      "mcnemar_case": {
+        "run_only": 16,
+        "ref_only": 83,
+        "p": 4.389586499996501e-12
+      },
+      "p": 9.999000099990002e-05,
+      "p_holm": 0.00039996000399960006,
+      "reject_holm_0.05": true,
+      "verdict": "CI excludes 0 (E3c lower)",
+      "verdict_ci": null
+    },
+    {
+      "id": "A4",
+      "run": "E3t",
+      "reference": "E3",
+      "kind": "two_sided",
+      "margin": 0.03,
+      "n_cases": 349,
+      "delta": {
+        "point": -0.17765042979942694,
+        "lo": -0.23209169054441262,
+        "hi": -0.12607449856733524
+      },
+      "mcnemar_case": {
+        "run_only": 20,
+        "ref_only": 82,
+        "p": 4.2948486907135817e-10
+      },
+      "p": 9.999000099990002e-05,
+      "p_holm": 0.00039996000399960006,
+      "reject_holm_0.05": true,
+      "verdict": "CI excludes 0 (E3t lower)",
+      "verdict_ci": null
+    }
+  ],
+  "error_free": [
+    {
+      "id": "A1",
+      "run": "E6m",
+      "reference": "E6b",
+      "kind": "non_inferiority",
+      "margin": 0.03,
+      "n_cases": 347,
+      "delta": {
+        "point": 0.02881844380403458,
+        "lo": -0.01440922190201729,
+        "hi": 0.07204610951008646
+      },
+      "mcnemar_case": {
+        "run_only": 34,
+        "ref_only": 24,
+        "p": 0.2370471147627195
+      },
+      "p": 0.0027997200279972004,
+      "p_holm": 0.005599440055994401,
+      "reject_holm_0.05": true,
+      "verdict": "non-inferior (CI lower bound > -3 pp)",
+      "verdict_ci": {
+        "lo": -0.01440922190201729,
+        "hi": 0.07204610951008646
+      }
+    },
+    {
+      "id": "A2",
+      "run": "E6n",
+      "reference": "E6b",
+      "kind": "non_inferiority",
+      "margin": 0.03,
+      "n_cases": 349,
+      "delta": {
+        "point": -0.02865329512893983,
+        "lo": -0.07449856733524356,
+        "hi": 0.017191977077363897
+      },
+      "mcnemar_case": {
+        "run_only": 26,
+        "ref_only": 36,
+        "p": 0.2528543941881108
+      },
+      "p": 0.47215278472152783,
+      "p_holm": 0.47215278472152783,
+      "reject_holm_0.05": false,
+      "verdict": "non-inferiority NOT shown",
+      "verdict_ci": {
+        "lo": -0.07449856733524356,
+        "hi": 0.017191977077363897
+      }
+    },
+    {
+      "id": "A3",
+      "run": "E3c",
+      "reference": "E3",
+      "kind": "two_sided",
+      "margin": 0.03,
+      "n_cases": 349,
+      "delta": {
+        "point": -0.19197707736389685,
+        "lo": -0.24641833810888253,
+        "hi": -0.14040114613180515
+      },
+      "mcnemar_case": {
+        "run_only": 16,
+        "ref_only": 83,
+        "p": 4.389586499996501e-12
+      },
+      "p": 9.999000099990002e-05,
+      "p_holm": 0.00039996000399960006,
+      "reject_holm_0.05": true,
+      "verdict": "CI excludes 0 (E3c lower)",
+      "verdict_ci": null
+    },
+    {
+      "id": "A4",
+      "run": "E3t",
+      "reference": "E3",
+      "kind": "two_sided",
+      "margin": 0.03,
+      "n_cases": 349,
+      "delta": {
+        "point": -0.17765042979942694,
+        "lo": -0.23209169054441262,
+        "hi": -0.12607449856733524
+      },
+      "mcnemar_case": {
+        "run_only": 20,
+        "ref_only": 82,
+        "p": 4.2948486907135817e-10
+      },
+      "p": 9.999000099990002e-05,
+      "p_holm": 0.00039996000399960006,
+      "reject_holm_0.05": true,
+      "verdict": "CI excludes 0 (E3t lower)",
+      "verdict_ci": null
+    }
+  ],
+  "headline": {
+    "E6m": {
+      "run": "v2a-e6m-ministral-canonical-routing-r1",
+      "joint": {
+        "point": 0.8223495702005731,
+        "lo": 0.7793696275071633,
+        "hi": 0.8624641833810889
+      }
+    },
+    "E6n": {
+      "run": "v2a-e6n-nemotron-canonical-routing-r1",
+      "joint": {
+        "point": 0.7707736389684814,
+        "lo": 0.7249283667621776,
+        "hi": 0.8137535816618912
+      }
+    },
+    "E6b": {
+      "run": "v2-e6b-qwen-canonical-routing-r1",
+      "joint": {
+        "point": 0.7994269340974212,
+        "lo": 0.7564469914040115,
+        "hi": 0.839541547277937
+      }
+    },
+    "E3c": {
+      "run": "v2a-e3c-cohere-routing-r1",
+      "joint": {
+        "point": 0.5444126074498568,
+        "lo": 0.49283667621776506,
+        "hi": 0.5959885386819485
+      }
+    },
+    "E3t": {
+      "run": "v2a-e3t-titan-routing-r1",
+      "joint": {
+        "point": 0.5587392550143266,
+        "lo": 0.504297994269341,
+        "hi": 0.6103151862464183
+      }
+    },
+    "E3": {
+      "run": "v2-e3-embedding-routing-r1",
+      "joint": {
+        "point": 0.7363896848137536,
+        "lo": 0.6876790830945558,
+        "hi": 0.7822349570200573
+      }
+    }
+  },
+  "provenance": [
+    [
+      "v2a-e3c-cohere-routing-r1",
+      "Part A",
+      349,
+      "56f1708d24de",
+      "COMPLETE",
+      0
+    ],
+    [
+      "v2a-e3t-titan-routing-r1",
+      "Part A",
+      349,
+      "73f81417a487",
+      "COMPLETE",
+      0
+    ],
+    [
+      "v2a-e10c-cohere-routing-r1",
+      "Part A",
+      349,
+      "fc05bbd1c5aa",
+      "COMPLETE",
+      0
+    ],
+    [
+      "v2a-e10t-titan-routing-r1",
+      "Part A",
+      349,
+      "70374caa4b59",
+      "COMPLETE",
+      0
+    ],
+    [
+      "v2a-e6m-ministral-canonical-routing-r1",
+      "Part A",
+      349,
+      "0d8fbee553f3",
+      "COMPLETE",
+      2
+    ],
+    [
+      "v2a-e6n-nemotron-canonical-routing-r1",
+      "Part A",
+      349,
+      "efb00ce5b9f8",
+      "COMPLETE",
+      0
+    ],
+    [
+      "v2a-e6m-ministral-canonical-repeat50",
+      "Part A",
+      100,
+      "0d8fbee553f3",
+      "COMPLETE",
+      0
+    ],
+    [
+      "v2a-e6n-nemotron-canonical-repeat50",
+      "Part A",
+      100,
+      "efb00ce5b9f8",
+      "COMPLETE",
+      0
+    ],
+    [
+      "lat-a-* (32 blocks)",
+      "Part A",
+      800,
+      "per §1",
+      "COMPLETE (all)",
+      "see estimation.md"
+    ],
+    [
+      "v2-e6b-qwen-canonical-routing-r1",
+      "phase 1 (re-used)",
+      349,
+      "903a4a1e56d3",
+      "sha256 6a99aab7fc6b116d… ok",
+      0
+    ],
+    [
+      "v2-e3-embedding-routing-r1",
+      "phase 1 (re-used)",
+      349,
+      "1899b6f414a5",
+      "sha256 4c13be42cda91614… ok",
+      0
+    ],
+    [
+      "v2-e10-classifier-routing-r1",
+      "phase 1 (re-used)",
+      349,
+      "616af886b783",
+      "sha256 b14c2893e454ce80… ok",
+      0
+    ],
+    [
+      "lat-{qwen,embedding,classifier,jev,haiku}-b1..4",
+      "phase 1 (re-used)",
+      500,
+      "per study_manifest",
+      "COMPLETE (all)",
+      "see estimation.md"
+    ]
+  ]
+}
