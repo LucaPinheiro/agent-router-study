@@ -104,10 +104,10 @@ SMOKE_OUT = ROOT / "results" / "phase2l" / "analysis_smoke"
 
 # ------------------------------------------------------------------ frozen values (prereg-v2 §1)
 
-CATALOG_L = "bc7cd75fce87"  # large profile, as served on dev-L (TBD@freeze: confirm)
+CATALOG_L = "bc7cd75fce87"  # large profile (confirmed at freeze: served on :8766, 2026-10-02)
 CATALOG_S = "128584617807"  # small profile (phase 1, unchanged)
 SCORER = "e0eef1fb0073"  # legacy scorer of record (routing primary; e2e sensitivity)
-SCORER_SYM = "5ad0f65296e4"  # scorers_sym.py (e2e primary) (TBD@freeze: confirm)
+SCORER_SYM = "5ad0f65296e4"  # scorers_sym.py (e2e primary) (confirmed at freeze)
 PROMPT = "c61ad0a7b7f8"  # P0, no template change
 TOOLS_SHA = {  # tools/list snapshots the rescore scores against
     "large": "a0583726a351a862494c0f655b409c592e48c9a2f1c31ef43371b7ff63a88f07",
@@ -115,13 +115,15 @@ TOOLS_SHA = {  # tools/list snapshots the rescore scores against
 }
 DATASET_SHA: dict[str, str | None] = {
     "dev_l": "b02b3722f5c4e434dd97a4c6a4811ac18a1fd1945784a6375639acd0b376e238",
-    "test_l": None,  # TBD@freeze
+    "test_l": None,  # TBD@freeze: fill after T4.3 (audited test-L sha256), before the tag
     "test_v2": "6637c4795b2340b953ac5867498c1aeba7953fea25d76b8614de265cf2902a66",
 }
-MANIFEST_L_SHA: str | None = None  # TBD@freeze: sha256 of config/study_manifest_l.yaml
-DEV_FIXED_L: dict[str, float | None] = {"E1": None}  # S3: regex dev-L CV joint (TBD@freeze)
-S7_PROBE = "E10"  # S7: probe with the higher dev-L nested-CV joint (TBD@freeze)
-S2_MIN_N = 60  # OQ-2: below this the same-calls subset is estimation only (TBD@freeze)
+MANIFEST_L_SHA: str | None = (
+    "788fac3665ba82e06703a644f42e753f1413441dcc8d3395071d6d8ce8bc2e6b"  # study_manifest_l.yaml
+)
+DEV_FIXED_L: dict[str, float | None] = {"E1": 0.827}  # S3: regex dev-L CV joint
+S7_PROBE = "E10"  # S7: the only large-profile probe (Titan v2; E10c not run), frozen
+S2_MIN_N = 60  # OQ-2: below this the same-calls subset is estimation only (frozen)
 NI_MARGIN = 0.03
 ALPHA = 0.05
 LARGE_SPLITS = ("dev_l", "test_l")
