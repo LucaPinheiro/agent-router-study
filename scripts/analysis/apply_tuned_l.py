@@ -10,6 +10,9 @@ The blocks file has two keys:
   router are the same router);
 - `per_config`: {config stem: {strategies: {...}, routing: {...}}}, deep-merged afterwards
   (the `llm` block differs per config: Haiku, Ministral, Nemotron, Sonnet; cascade thresholds).
+  A `calibration` value replaces the old map as a whole (a level left out is dropped);
+- `jev_calibration` (optional): the `strategies.jev.calibration` of every config with a jev
+  block (its prompt_track differs per config, so the block itself is not replaced).
 
 The header comment of each config is kept; the YAML body is re-dumped (no inline comments in
 these configs). `--check` only reports which files would change. Phase-1 configs are never read.
@@ -33,7 +36,7 @@ CONFIG_DIR = Path("config/experiments_l")
 def merge(base: dict[str, Any], patch: dict[str, Any]) -> dict[str, Any]:
     out = copy.deepcopy(base)
     for k, v in patch.items():
-        if isinstance(v, dict) and isinstance(out.get(k), dict):
+        if k != "calibration" and isinstance(v, dict) and isinstance(out.get(k), dict):
             out[k] = merge(out[k], v)
         else:
             out[k] = copy.deepcopy(v)
@@ -73,6 +76,8 @@ def main() -> int:
             for name, block in shared.items():
                 if name in strategies:
                     strategies[name] = copy.deepcopy(block)
+        if isinstance(strategies, dict) and "jev" in strategies and "jev_calibration" in spec:
+            strategies["jev"]["calibration"] = copy.deepcopy(spec["jev_calibration"])
         data = merge(data, per_config.get(path.stem) or {})
         new = render(header, data)
         if new != text:

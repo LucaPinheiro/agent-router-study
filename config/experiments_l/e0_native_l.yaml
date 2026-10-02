@@ -14,8 +14,4 @@ routing:
   tool:
     expose_top_k: 2
     pipeline: []
-executor:
-  provider: bedrock
-  model: global.anthropic.claude-sonnet-5
-  temperature: null
-  max_tool_iterations: 3
+executor: {provider: bedrock, model: global.anthropic.claude-sonnet-5, temperature: null, max_tool_iterations: 3}

@@ -42,7 +42,8 @@ def test_large_config_wiring(path: Path, monkeypatch: pytest.MonkeyPatch) -> Non
     if (regex := settings.strategies.regex) is not None:
         assert regex.rules_path == "config/regex_rules_l.yaml"
     if (emb := settings.strategies.embedding) is not None:
-        assert emb.provider == "bedrock" and emb.model == "global.cohere.embed-v4:0"
+        # T5: Titan v2 is the large-profile embedder (Part A: ties Cohere, ~4x faster, ~6x cheaper)
+        assert emb.provider == "bedrock" and emb.model == "amazon.titan-embed-text-v2:0"
 
 
 def test_explicit_override_still_wins_over_the_config_url() -> None:

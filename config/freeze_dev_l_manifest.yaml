@@ -1,0 +1,27 @@
+# Dev-L shadow pass with the dev-L tuned configs, for the E7-L/E8-L/E9-L/E12-L cascade thresholds
+# (plan T5.4, prereg-v2 §5 rule (a)). Sonnet 5 is in the shadow set at 1 rep on dev-L ONLY
+# (OQ-1, approved by the user 2026-10-02); it is never a standalone router on test-L.
+#   uv run study run-manifest config/freeze_dev_l_manifest.yaml
+#   uv run python scripts/analysis/calibrate_cascades.py results/rescored/freeze-dev-l-shadow-r1.jsonl \
+#       --config config/experiments_l/e7_regex_jev_l.yaml ... --budget <0.5 x Sonnet P0 dev-L $/case>
+# The E9-L config decides (tuned track = P0). Jev decisions are response-cache hits of the T5.3
+# dev-L run (cache: true). No local model (phase-2 constraint).
+version: 1
+split: dev_l
+results_dir: results
+error_budget: 0.02
+max_infra_retries: 2
+
+runs:
+  - name: freeze-dev-l-shadow-r1
+    config: config/experiments_l/e9_regex_jev_llm_l.yaml
+    prompt_track: tuned
+    mode: routing-only
+    routing_mode: shadow
+    reps: 1
+    priority: 10
+    concurrency: 4
+    catalog_hash: bc7cd75fce87
+    purpose: "cascade thresholds E7-L/E8-L/E9-L/E12-L (T5.4): calibrate_cascades.py input"
+    overrides:
+      routing.shadow_strategies: [regex, bm25, embedding, llm, jev, hybrid, classifier]
