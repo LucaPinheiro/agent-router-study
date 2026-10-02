@@ -1,0 +1,95 @@
+{
+ "config": "config/experiments/e6n_llm_nemotron.yaml",
+ "fixed": [],
+ "grid_points": 1,
+ "best_point": {},
+ "selected_per_fold": {
+  "(config as is)": 5
+ },
+ "nested": {
+  "skill_correct": {
+   "mean": 0.8675268817204301,
+   "std": 0.042198787394102474
+  },
+  "tool_correct": {
+   "mean": 0.7886021505376344,
+   "std": 0.06953456748874563
+  },
+  "joint_correct": {
+   "mean": 0.7819354838709678,
+   "std": 0.06645613653392274
+  }
+ },
+ "nested_joint_pooled_ci": [
+  0.7814569536423841,
+  0.7152317880794702,
+  0.847682119205298
+ ],
+ "best_fixed": {
+  "skill_correct_mean": 0.8675268817204301,
+  "tool_correct_mean": 0.7886021505376344,
+  "joint_correct_mean": 0.7819354838709678,
+  "skill_correct_std": 0.042198787394102474,
+  "tool_correct_std": 0.06953456748874563,
+  "joint_correct_std": 0.06645613653392274,
+  "skill_correct_all": 0.8675496688741722,
+  "tool_correct_all": 0.7880794701986755,
+  "joint_correct_all": 0.7814569536423841
+ },
+ "calibration_stats": {
+  "skill": {
+   "n": 150,
+   "ece_raw": 0.06133333333333353,
+   "brier_raw": 0.10583333333333333,
+   "ece_isotonic": 0.011790219141259327,
+   "brier_isotonic": 0.10290074682633762
+  },
+  "tool": {
+   "n": 149,
+   "ece_raw": 0.1456375838926177,
+   "brier_raw": 0.17697986577181207,
+   "ece_isotonic": 0.09243551392064671,
+   "brier_isotonic": 0.16239908209304668
+  }
+ },
+ "calibrator": {
+  "skill": "isotonic",
+  "tool": "isotonic"
+ },
+ "calibration": {
+  "skill": {
+   "x": [
+    0.05,
+    0.946622
+   ],
+   "y": [
+    0.25,
+    0.88
+   ]
+  },
+  "tool": {
+   "x": [
+    0.1,
+    0.888889,
+    0.951079
+   ],
+   "y": [
+    0.333333,
+    0.636364,
+    0.808511
+   ]
+  }
+ },
+ "p50_ms": 1552.6517080434132,
+ "p95_ms": 2309.703667036956,
+ "errors": 2,
+ "points": [
+  {
+   "label": "(config as is)",
+   "joint_correct_mean": 0.7819354838709678,
+   "skill_correct_mean": 0.8675268817204301,
+   "tool_correct_mean": 0.7886021505376344,
+   "p50_ms": 1552.6517080434132
+  }
+ ]
+}

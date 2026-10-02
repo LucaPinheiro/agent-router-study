@@ -1,0 +1,97 @@
+{
+ "config": "config/experiments/e6m_llm_ministral.yaml",
+ "fixed": [],
+ "grid_points": 1,
+ "best_point": {},
+ "selected_per_fold": {
+  "(config as is)": 5
+ },
+ "nested": {
+  "skill_correct": {
+   "mean": 0.8875268817204301,
+   "std": 0.044866420874065616
+  },
+  "tool_correct": {
+   "mean": 0.8081720430107527,
+   "std": 0.030907947050703977
+  },
+  "joint_correct": {
+   "mean": 0.7950537634408602,
+   "std": 0.04196359686289856
+  }
+ },
+ "nested_joint_pooled_ci": [
+  0.7947019867549668,
+  0.7284768211920529,
+  0.8609271523178808
+ ],
+ "best_fixed": {
+  "skill_correct_mean": 0.8875268817204301,
+  "tool_correct_mean": 0.8081720430107527,
+  "joint_correct_mean": 0.7950537634408602,
+  "skill_correct_std": 0.044866420874065616,
+  "tool_correct_std": 0.030907947050703977,
+  "joint_correct_std": 0.04196359686289856,
+  "skill_correct_all": 0.8874172185430463,
+  "tool_correct_all": 0.8079470198675497,
+  "joint_correct_all": 0.7947019867549668
+ },
+ "calibration_stats": {
+  "skill": {
+   "n": 151,
+   "ece_raw": 0.09291390728476845,
+   "brier_raw": 0.1035887417218543,
+   "ece_isotonic": 0.04084875865821362,
+   "brier_isotonic": 0.08862680868307381
+  },
+  "tool": {
+   "n": 151,
+   "ece_raw": 0.14225165562913913,
+   "brier_raw": 0.1695443708609271,
+   "ece_isotonic": 0.028960439019585796,
+   "brier_isotonic": 0.1441915756307775
+  }
+ },
+ "calibrator": {
+  "skill": "isotonic",
+  "tool": "isotonic"
+ },
+ "calibration": {
+  "skill": {
+   "x": [
+    0.95,
+    0.997708
+   ],
+   "y": [
+    0.719298,
+    0.969388
+   ]
+  },
+  "tool": {
+   "x": [
+    0.783333,
+    0.9,
+    0.95,
+    0.992
+   ],
+   "y": [
+    0.2,
+    0.5,
+    0.81203,
+    0.882353
+   ]
+  }
+ },
+ "p50_ms": 1008.0278749810532,
+ "p95_ms": 1173.838166956557,
+ "errors": 0,
+ "points": [
+  {
+   "label": "(config as is)",
+   "joint_correct_mean": 0.7950537634408602,
+   "skill_correct_mean": 0.8875268817204301,
+   "tool_correct_mean": 0.8081720430107527,
+   "p50_ms": 1008.0278749810532
+  }
+ ]
+}

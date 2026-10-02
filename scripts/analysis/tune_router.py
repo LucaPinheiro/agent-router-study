@@ -64,6 +64,7 @@ from fastmcp import Client
 from routing_study.budget import BudgetExceededError
 from routing_study.catalog import PROTOCOL_VERSION, Catalog, fetch_catalog
 from routing_study.eval.scorers import routing_failure, routing_scores
+from routing_study.eval.stats import bootstrap_mean
 from routing_study.graph.nodes import _routing_input as routing_input
 from routing_study.hangdump import Watchdog, install_sigusr1
 from routing_study.routers.base import RoutingInput
@@ -468,6 +469,7 @@ def main() -> None:
     per_fold: dict[str, list[float]] = defaultdict(list)
     held: list[dict[str, Any]] = []  # pooled held-out records (with calibrated confidences)
     chosen: list[int] = []
+    held_joint: dict[str, list[float]] = {}  # case id -> held-out joint (cluster bootstrap)
     for f in range(args.folds):
         train_ids = [cid for cid, fo in fold.items() if fo != f]
         test_ids = [cid for cid, fo in fold.items() if fo == f]
@@ -485,6 +487,7 @@ def main() -> None:
         )
         chosen.append(best)
         test = [dict(results[best][c]) for c in test_ids]
+        held_joint.update({c: [results[best][c]["joint_correct"]] for c in test_ids})
         for m in METRICS:
             per_fold[m].append(acc(test, m))
         if args.calibrate:
@@ -504,6 +507,13 @@ def main() -> None:
     print(f"\n## {args.folds}-fold CV (held-out; mean ± std over folds)")
     for m in METRICS:
         print(f"{m:14s} {fmt(per_fold[m])}")
+    joint_ci = bootstrap_mean(held_joint)
+    if joint_ci:
+        print(
+            "pooled held-out joint {:.1f} [{:.1f}, {:.1f}] (case bootstrap)".format(
+                *(100 * v for v in joint_ci)
+            )
+        )
     picks = defaultdict(int)
     for i in chosen:
         picks[label(points[i])] += 1
@@ -594,6 +604,7 @@ def main() -> None:
             "best_point": dict(points[best]),
             "selected_per_fold": dict(picks),
             "nested": {k: {"mean": mean(v), "std": pstdev(v)} for k, v in per_fold.items()},
+            "nested_joint_pooled_ci": joint_ci,
             "best_fixed": {k: m[k] for k in m if k.endswith(("_mean", "_std", "_all"))},
             "calibration_stats": cal_stats,
             "calibrator": chosen_cal,

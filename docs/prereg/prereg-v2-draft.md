@@ -59,8 +59,11 @@ change after the tag. Plan: `.omc/plans/autopilot-impl.md`. Spec: `.omc/autopilo
 - **A3 (two-sided).** Joint(E3c Cohere) − Joint(E3 local qwen3-embedding).
 - **A4 (two-sided).** Joint(E3t Titan) − Joint(E3 local).
 
-Estimation only (no test): p50/p95 latency of each new strategy against the anchors re-run in the same window
-(local Qwen, local embedding, Jev, Haiku); cost per 1k; E10c/E10t; flip rate (rep2 on 50 cases); parse-failure rate.
+Estimation only (no test): p50/p95 latency of each new strategy against the **managed** anchors re-run in the same
+window (Jev, Haiku 4.5) and against the phase-1 local latency blocks (lat-qwen, lat-embedding, lat-classifier: other
+window, same Mac; window and hardware caveat, drift = the managed anchors' Δ against their phase-1 lat-* blocks); cost
+per 1k; E10c/E10t; flip rate (rep2 on 50 cases); parse-failure rate. No local model is run in phase 2 (constraint of
+2026-10-01): the local arms are the frozen phase-1 test-v2 rows. **Part A is frozen in `docs/prereg/prereg-v2a.md`.**
 
 Decision rule for the enterprise matrix (descriptive): a managed option "qualifies" at a latency budget when its
 p95 upper CI is under the budget **and** its joint is not inferior to the local peer.
@@ -169,7 +172,7 @@ Part A (test-v2), in priority order:
 | 10 | E3c, E3t, E10c, E10t (1 rep) |
 | 20 | E6m, E6n (1 rep) |
 | 21 | E6m, E6n rep2 on 50 cases |
-| 70 | `lat-*` blocks 1–4 × {E3c, E3t, E10c, E10t, E6m, E6n} + anchors {qwen, embedding, jev, haiku}, interleaved by block, `config/manifest/latency_test_v2_b*.ids` |
+| 70 | `lat-a-*` blocks 1–4 × {E3c, E3t, E10c, E10t, E6m, E6n} + managed anchors {jev, haiku}, interleaved by block, `config/manifest/latency_test_v2_b*.ids` (no local anchor: local latency = phase-1 lat-* blocks) |
 
 Part B (test-L), in priority order:
 

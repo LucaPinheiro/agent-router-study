@@ -1,0 +1,90 @@
+# Part A run manifest (cloud addendum on the 18-tool catalog, split test-v2): prereg-v2a.
+# Frozen at the git tag `prereg-v2a` (docs/prereg/prereg-v2a.md) before the first new test-v2 row.
+#   uv run study run-manifest config/addendum_manifest.yaml --dry-run   # status + projected cost
+#   uv run study run-manifest config/addendum_manifest.yaml             # priority order
+# Run with BUDGET__AWS_USD_CAP = phase-2 AWS mark + 2.0 and the OpenRouter cap at the ledger
+# total at launch + 0.2 (plan T2.5). Same guard, resume, completion and retry rules as
+# config/study_manifest.yaml (src/routing_study/eval/manifest.py): error_budget 2%, at most 2
+# infra retries of the error rows, a run still above budget is FLAGGED, never patched.
+#
+# Phase-2 constraints (binding, 2026-10-01): no LOCAL model is run (no Ollama Qwen3-8B, no local
+# qwen3-embedding); OpenRouter only for typesafe/jev-router; everything else on Bedrock.
+# Consequences:
+# - The local comparison arms of family A are the FROZEN phase-1 test-v2 rows, re-used and
+#   paired on the same 349 cases: results/rescored/v2-e6b-qwen-canonical-routing-r1.jsonl (A1,
+#   A2), results/rescored/v2-e3-embedding-routing-r1.jsonl (A3, A4) and, for E10c/E10t
+#   (estimation), results/rescored/v2-e10-classifier-routing-r1.jsonl. Nothing local is re-run.
+# - Local latency comes from the phase-1 lat-qwen-b* / lat-embedding-b* / lat-classifier-b*
+#   blocks (other window, same Mac). Only the MANAGED anchors (Haiku 4.5 on Bedrock, Jev on
+#   OpenRouter) are re-run here, interleaved with the 6 new strategies in the same window, so
+#   the managed-vs-managed comparison is same-window and the managed-vs-local one carries a
+#   window caveat (drift = the anchors' Δ p50/p95 against their phase-1 lat-* blocks).
+#
+# Family A (Holm across A1-A4, alpha 0.05; analysis in scripts/analysis/addendum_all.py, the
+# references are phase-1 rescored files, so they are not `contrasts:` entries of this manifest):
+#   A1 NI  v2a-e6m-ministral-canonical-routing-r1 vs v2-e6b-qwen-canonical-routing-r1, margin 3 pp
+#   A2 NI  v2a-e6n-nemotron-canonical-routing-r1  vs v2-e6b-qwen-canonical-routing-r1, margin 3 pp
+#   A3 two-sided v2a-e3c-cohere-routing-r1 vs v2-e3-embedding-routing-r1
+#   A4 two-sided v2a-e3t-titan-routing-r1  vs v2-e3-embedding-routing-r1
+#
+# Every row carries catalog_hash; the Part-A catalog is the small profile 128584617807
+# (unchanged), asserted by the analysis on every row (the manifest guard covers config/prompt).
+version: 1
+split: test_v2
+results_dir: results
+error_budget: 0.02
+max_infra_retries: 2
+
+runs:
+  # ---- 10. managed free-ish routers (Bedrock embeddings), 1 rep
+  - { name: v2a-e3c-cohere-routing-r1, config_hash: 56f1708d24de, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding_cohere.yaml, mode: routing-only, reps: 1, priority: 10, purpose: "A3: Cohere Embed v4 embedding router" }
+  - { name: v2a-e3t-titan-routing-r1, config_hash: 73f81417a487, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding_titan.yaml, mode: routing-only, reps: 1, priority: 10, purpose: "A4: Titan v2 embedding router" }
+  - { name: v2a-e10c-cohere-routing-r1, config_hash: fc05bbd1c5aa, prompt_hash: c61ad0a7b7f8, config: config/experiments/e10_classifier_cohere.yaml, mode: routing-only, reps: 1, priority: 10, purpose: "estimation: probe on Cohere vectors" }
+  - { name: v2a-e10t-titan-routing-r1, config_hash: 70374caa4b59, prompt_hash: c61ad0a7b7f8, config: config/experiments/e10_classifier_titan.yaml, mode: routing-only, reps: 1, priority: 10, purpose: "estimation: probe on Titan vectors" }
+
+  # ---- 20. managed ~8B LLM routers on Bedrock, P0 canonical (no prompt search), 1 rep
+  - { name: v2a-e6m-ministral-canonical-routing-r1, config_hash: 0d8fbee553f3, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6m_llm_ministral.yaml, prompt_track: canonical, mode: routing-only, reps: 1, priority: 20, purpose: "A1: Ministral 3 8B vs local Qwen3-8B (NI)" }
+  - { name: v2a-e6n-nemotron-canonical-routing-r1, config_hash: efb00ce5b9f8, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6n_llm_nemotron.yaml, prompt_track: canonical, mode: routing-only, reps: 1, priority: 20, purpose: "A2: Nemotron Nano 9B v2 vs local Qwen3-8B (NI)" }
+
+  # ---- 21. rep 2 on 50 stratified cases (flip rate, M7; rep 1 = cache hit of the r1 run)
+  - { name: v2a-e6m-ministral-canonical-repeat50, config_hash: 0d8fbee553f3, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6m_llm_ministral.yaml, prompt_track: canonical, mode: routing-only, reps: 2, cases: { limit: 50 }, priority: 21, purpose: "flip rate (rep 1 = cache hit of the r1 run)" }
+  - { name: v2a-e6n-nemotron-canonical-repeat50, config_hash: efb00ce5b9f8, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6n_llm_nemotron.yaml, prompt_track: canonical, mode: routing-only, reps: 2, cases: { limit: 50 }, priority: 21, purpose: "flip rate (rep 1 = cache hit of the r1 run)" }
+
+  # ---- 70. latency benchmark (M8, as phase 1): response caches off and a FRESH cache_dir
+  #         (.cache/latency-a: no phase-1 vector is reused), concurrency 1, the phase-1 100
+  #         stratified test-v2 cases in 4 blocks of 25 (config/manifest/latency_test_v2_b*.ids);
+  #         every strategy runs block 1, then block 2, ... (block-level interleaving: one time
+  #         window). First case of each run = cold, the rest warm. Managed anchors only (no local
+  #         model is run): Jev and Haiku 4.5, same configs as phase-1 lat-jev / lat-haiku.
+  - { name: lat-a-e3c-b1, config_hash: dc14a444fd4b, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding_cohere.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: &lat_emb { cache_dir: .cache/latency-a, strategies.embedding.cache: false }, purpose: "latency benchmark block 1" }
+  - { name: lat-a-e3t-b1, config_hash: 310f335fdb80, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding_titan.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: *lat_emb, purpose: "latency benchmark block 1" }
+  - { name: lat-a-e10c-b1, config_hash: ab5f1d2d0d13, prompt_hash: c61ad0a7b7f8, config: config/experiments/e10_classifier_cohere.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: *lat_emb, purpose: "latency benchmark block 1" }
+  - { name: lat-a-e10t-b1, config_hash: 6377e34f786e, prompt_hash: c61ad0a7b7f8, config: config/experiments/e10_classifier_titan.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: *lat_emb, purpose: "latency benchmark block 1" }
+  - { name: lat-a-e6m-b1, config_hash: 67e47f9c08e8, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6m_llm_ministral.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: &lat_full { cache_dir: .cache/latency-a, strategies.llm.cache: false, strategies.llm_local.cache: false, strategies.jev.cache: false, strategies.embedding.cache: false }, purpose: "latency benchmark block 1" }
+  - { name: lat-a-e6n-b1, config_hash: 435d2cee8b41, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6n_llm_nemotron.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: *lat_full, purpose: "latency benchmark block 1" }
+  - { name: lat-a-jev-b1, config_hash: 5cf75faa33f3, prompt_hash: c61ad0a7b7f8, config: config/experiments/e4_jev.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: *lat_full, purpose: "latency benchmark block 1" }
+  - { name: lat-a-haiku-b1, config_hash: 5535a7588de0, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b1.ids }, concurrency: 1, priority: 70, overrides: *lat_full, purpose: "latency benchmark block 1" }
+  - { name: lat-a-e3c-b2, config_hash: dc14a444fd4b, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding_cohere.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat_emb, purpose: "latency benchmark block 2" }
+  - { name: lat-a-e3t-b2, config_hash: 310f335fdb80, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding_titan.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat_emb, purpose: "latency benchmark block 2" }
+  - { name: lat-a-e10c-b2, config_hash: ab5f1d2d0d13, prompt_hash: c61ad0a7b7f8, config: config/experiments/e10_classifier_cohere.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat_emb, purpose: "latency benchmark block 2" }
+  - { name: lat-a-e10t-b2, config_hash: 6377e34f786e, prompt_hash: c61ad0a7b7f8, config: config/experiments/e10_classifier_titan.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat_emb, purpose: "latency benchmark block 2" }
+  - { name: lat-a-e6m-b2, config_hash: 67e47f9c08e8, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6m_llm_ministral.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat_full, purpose: "latency benchmark block 2" }
+  - { name: lat-a-e6n-b2, config_hash: 435d2cee8b41, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6n_llm_nemotron.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat_full, purpose: "latency benchmark block 2" }
+  - { name: lat-a-jev-b2, config_hash: 5cf75faa33f3, prompt_hash: c61ad0a7b7f8, config: config/experiments/e4_jev.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat_full, purpose: "latency benchmark block 2" }
+  - { name: lat-a-haiku-b2, config_hash: 5535a7588de0, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b2.ids }, concurrency: 1, priority: 70, overrides: *lat_full, purpose: "latency benchmark block 2" }
+  - { name: lat-a-e3c-b3, config_hash: dc14a444fd4b, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding_cohere.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat_emb, purpose: "latency benchmark block 3" }
+  - { name: lat-a-e3t-b3, config_hash: 310f335fdb80, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding_titan.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat_emb, purpose: "latency benchmark block 3" }
+  - { name: lat-a-e10c-b3, config_hash: ab5f1d2d0d13, prompt_hash: c61ad0a7b7f8, config: config/experiments/e10_classifier_cohere.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat_emb, purpose: "latency benchmark block 3" }
+  - { name: lat-a-e10t-b3, config_hash: 6377e34f786e, prompt_hash: c61ad0a7b7f8, config: config/experiments/e10_classifier_titan.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat_emb, purpose: "latency benchmark block 3" }
+  - { name: lat-a-e6m-b3, config_hash: 67e47f9c08e8, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6m_llm_ministral.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat_full, purpose: "latency benchmark block 3" }
+  - { name: lat-a-e6n-b3, config_hash: 435d2cee8b41, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6n_llm_nemotron.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat_full, purpose: "latency benchmark block 3" }
+  - { name: lat-a-jev-b3, config_hash: 5cf75faa33f3, prompt_hash: c61ad0a7b7f8, config: config/experiments/e4_jev.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat_full, purpose: "latency benchmark block 3" }
+  - { name: lat-a-haiku-b3, config_hash: 5535a7588de0, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b3.ids }, concurrency: 1, priority: 70, overrides: *lat_full, purpose: "latency benchmark block 3" }
+  - { name: lat-a-e3c-b4, config_hash: dc14a444fd4b, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding_cohere.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat_emb, purpose: "latency benchmark block 4" }
+  - { name: lat-a-e3t-b4, config_hash: 310f335fdb80, prompt_hash: c61ad0a7b7f8, config: config/experiments/e3_embedding_titan.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat_emb, purpose: "latency benchmark block 4" }
+  - { name: lat-a-e10c-b4, config_hash: ab5f1d2d0d13, prompt_hash: c61ad0a7b7f8, config: config/experiments/e10_classifier_cohere.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat_emb, purpose: "latency benchmark block 4" }
+  - { name: lat-a-e10t-b4, config_hash: 6377e34f786e, prompt_hash: c61ad0a7b7f8, config: config/experiments/e10_classifier_titan.yaml, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat_emb, purpose: "latency benchmark block 4" }
+  - { name: lat-a-e6m-b4, config_hash: 67e47f9c08e8, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6m_llm_ministral.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat_full, purpose: "latency benchmark block 4" }
+  - { name: lat-a-e6n-b4, config_hash: 435d2cee8b41, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6n_llm_nemotron.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat_full, purpose: "latency benchmark block 4" }
+  - { name: lat-a-jev-b4, config_hash: 5cf75faa33f3, prompt_hash: c61ad0a7b7f8, config: config/experiments/e4_jev.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat_full, purpose: "latency benchmark block 4" }
+  - { name: lat-a-haiku-b4, config_hash: 5535a7588de0, prompt_hash: c61ad0a7b7f8, config: config/experiments/e6_llm_haiku.yaml, prompt_track: canonical, mode: routing-only, cases: { ids_file: config/manifest/latency_test_v2_b4.ids }, concurrency: 1, priority: 70, overrides: *lat_full, purpose: "latency benchmark block 4" }

@@ -1,0 +1,588 @@
+{
+ "config": "config/experiments/e10_classifier_titan.yaml",
+ "fixed": [],
+ "grid_points": 64,
+ "best_point": {
+  "strategies.classifier.c": 1,
+  "strategies.classifier.shots": true,
+  "strategies.classifier.description": true,
+  "strategies.classifier.probe_instruction": false,
+  "strategies.classifier.history_turns": 0
+ },
+ "selected_per_fold": {
+  "strategies.classifier.c=1 strategies.classifier.shots=True strategies.classifier.description=True strategies.classifier.probe_instruction=False strategies.classifier.history_turns=0": 5
+ },
+ "nested": {
+  "skill_correct": {
+   "mean": 0.7088172043010752,
+   "std": 0.055994152610823876
+  },
+  "tool_correct": {
+   "mean": 0.6356989247311827,
+   "std": 0.03682006822345187
+  },
+  "joint_correct": {
+   "mean": 0.609247311827957,
+   "std": 0.04413372713921839
+  }
+ },
+ "nested_joint_pooled_ci": [
+  0.609271523178808,
+  0.5298013245033113,
+  0.6887417218543046
+ ],
+ "best_fixed": {
+  "skill_correct_mean": 0.7088172043010752,
+  "tool_correct_mean": 0.6356989247311827,
+  "joint_correct_mean": 0.609247311827957,
+  "skill_correct_std": 0.055994152610823876,
+  "tool_correct_std": 0.03682006822345187,
+  "joint_correct_std": 0.04413372713921839,
+  "skill_correct_all": 0.7086092715231788,
+  "tool_correct_all": 0.6357615894039735,
+  "joint_correct_all": 0.609271523178808
+ },
+ "calibration_stats": {
+  "skill": {
+   "n": 151,
+   "ece_raw": 0.3346805158040381,
+   "brier_raw": 0.2983403850186602,
+   "ece_isotonic": 0.060442355142857944,
+   "brier_isotonic": 0.17995715073511118,
+   "ece_platt": 0.05381012551685873,
+   "brier_platt": 0.17727237536319432
+  },
+  "tool": {
+   "n": 151,
+   "ece_raw": 0.38822238916987617,
+   "brier_raw": 0.3927723913660685,
+   "ece_isotonic": 0.15414991285593121,
+   "brier_isotonic": 0.21829142772232507,
+   "ece_platt": 0.0016835365260051693,
+   "brier_platt": 0.23465254093878107
+  }
+ },
+ "calibrator": {
+  "skill": "platt",
+  "tool": "isotonic"
+ },
+ "calibration": {
+  "skill": {
+   "x": [
+    0.264097,
+    0.282671,
+    0.301244,
+    0.319818,
+    0.338391,
+    0.356965,
+    0.375538,
+    0.394111,
+    0.412685,
+    0.431258,
+    0.449832,
+    0.468405,
+    0.486979,
+    0.505552,
+    0.524126,
+    0.542699,
+    0.561273,
+    0.579846,
+    0.59842,
+    0.616993,
+    0.635566
+   ],
+   "y": [
+    0.365627,
+    0.436483,
+    0.510031,
+    0.583147,
+    0.65278,
+    0.716438,
+    0.772492,
+    0.820246,
+    0.859795,
+    0.891791,
+    0.917188,
+    0.937046,
+    0.952388,
+    0.964135,
+    0.973066,
+    0.979819,
+    0.984905,
+    0.988724,
+    0.991586,
+    0.993725,
+    0.995323
+   ]
+  },
+  "tool": {
+   "x": [
+    0.139222,
+    0.152341,
+    0.16166,
+    0.26827,
+    0.462741
+   ],
+   "y": [
+    0.125,
+    0.272727,
+    0.5,
+    0.727273,
+    0.75
+   ]
+  }
+ },
+ "p50_ms": 134.96066801599227,
+ "p95_ms": 215.29533294960856,
+ "errors": 0,
+ "points": [
+  {
+   "label": "strategies.classifier.c=1 strategies.classifier.shots=True strategies.classifier.description=True strategies.classifier.probe_instruction=False strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.609247311827957,
+   "skill_correct_mean": 0.7088172043010752,
+   "tool_correct_mean": 0.6356989247311827,
+   "p50_ms": 134.96066801599227
+  },
+  {
+   "label": "strategies.classifier.c=1 strategies.classifier.shots=True strategies.classifier.description=True strategies.classifier.probe_instruction=True strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.609247311827957,
+   "skill_correct_mean": 0.7088172043010752,
+   "tool_correct_mean": 0.6356989247311827,
+   "p50_ms": 134.96829400537536
+  },
+  {
+   "label": "strategies.classifier.c=1 strategies.classifier.shots=True strategies.classifier.description=True strategies.classifier.probe_instruction=False strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.609247311827957,
+   "skill_correct_mean": 0.7221505376344086,
+   "tool_correct_mean": 0.6421505376344085,
+   "p50_ms": 136.04687404586002
+  },
+  {
+   "label": "strategies.classifier.c=1 strategies.classifier.shots=True strategies.classifier.description=True strategies.classifier.probe_instruction=True strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.609247311827957,
+   "skill_correct_mean": 0.7221505376344086,
+   "tool_correct_mean": 0.6421505376344085,
+   "p50_ms": 136.053749040002
+  },
+  {
+   "label": "strategies.classifier.c=100 strategies.classifier.shots=True strategies.classifier.description=True strategies.classifier.probe_instruction=False strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.5894623655913979,
+   "skill_correct_mean": 0.7088172043010752,
+   "tool_correct_mean": 0.6359139784946236,
+   "p50_ms": 136.08783396193758
+  },
+  {
+   "label": "strategies.classifier.c=100 strategies.classifier.shots=True strategies.classifier.description=True strategies.classifier.probe_instruction=True strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.5894623655913979,
+   "skill_correct_mean": 0.7088172043010752,
+   "tool_correct_mean": 0.6359139784946236,
+   "p50_ms": 136.10666696331464
+  },
+  {
+   "label": "strategies.classifier.c=100 strategies.classifier.shots=True strategies.classifier.description=True strategies.classifier.probe_instruction=False strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.5827956989247312,
+   "skill_correct_mean": 0.6888172043010752,
+   "tool_correct_mean": 0.629247311827957,
+   "p50_ms": 134.95987502392381
+  },
+  {
+   "label": "strategies.classifier.c=100 strategies.classifier.shots=True strategies.classifier.description=True strategies.classifier.probe_instruction=True strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.5827956989247312,
+   "skill_correct_mean": 0.6888172043010752,
+   "tool_correct_mean": 0.629247311827957,
+   "p50_ms": 134.98166803037748
+  },
+  {
+   "label": "strategies.classifier.c=10 strategies.classifier.shots=True strategies.classifier.description=True strategies.classifier.probe_instruction=False strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.5827956989247312,
+   "skill_correct_mean": 0.7021505376344086,
+   "tool_correct_mean": 0.6359139784946236,
+   "p50_ms": 136.0490400402341
+  },
+  {
+   "label": "strategies.classifier.c=10 strategies.classifier.shots=True strategies.classifier.description=False strategies.classifier.probe_instruction=False strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.5827956989247312,
+   "skill_correct_mean": 0.7090322580645161,
+   "tool_correct_mean": 0.6027956989247312,
+   "p50_ms": 136.04995803325437
+  },
+  {
+   "label": "strategies.classifier.c=10 strategies.classifier.shots=True strategies.classifier.description=False strategies.classifier.probe_instruction=True strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.5827956989247312,
+   "skill_correct_mean": 0.7090322580645161,
+   "tool_correct_mean": 0.6027956989247312,
+   "p50_ms": 136.06199907371774
+  },
+  {
+   "label": "strategies.classifier.c=10 strategies.classifier.shots=True strategies.classifier.description=True strategies.classifier.probe_instruction=True strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.5827956989247312,
+   "skill_correct_mean": 0.7021505376344086,
+   "tool_correct_mean": 0.6359139784946236,
+   "p50_ms": 136.06983303907327
+  },
+  {
+   "label": "strategies.classifier.c=1000 strategies.classifier.shots=True strategies.classifier.description=True strategies.classifier.probe_instruction=True strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.5825806451612903,
+   "skill_correct_mean": 0.7021505376344086,
+   "tool_correct_mean": 0.6223655913978494,
+   "p50_ms": 136.1083339434117
+  },
+  {
+   "label": "strategies.classifier.c=1000 strategies.classifier.shots=True strategies.classifier.description=True strategies.classifier.probe_instruction=False strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.5825806451612903,
+   "skill_correct_mean": 0.7021505376344086,
+   "tool_correct_mean": 0.6223655913978494,
+   "p50_ms": 136.12895805272274
+  },
+  {
+   "label": "strategies.classifier.c=10 strategies.classifier.shots=True strategies.classifier.description=True strategies.classifier.probe_instruction=True strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.5761290322580646,
+   "skill_correct_mean": 0.6821505376344086,
+   "tool_correct_mean": 0.629247311827957,
+   "p50_ms": 134.94966801954433
+  },
+  {
+   "label": "strategies.classifier.c=10 strategies.classifier.shots=True strategies.classifier.description=True strategies.classifier.probe_instruction=False strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.5761290322580646,
+   "skill_correct_mean": 0.6821505376344086,
+   "tool_correct_mean": 0.629247311827957,
+   "p50_ms": 135.00354302232154
+  },
+  {
+   "label": "strategies.classifier.c=1000 strategies.classifier.shots=True strategies.classifier.description=True strategies.classifier.probe_instruction=True strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.5759139784946237,
+   "skill_correct_mean": 0.6821505376344086,
+   "tool_correct_mean": 0.6156989247311828,
+   "p50_ms": 134.9618349922821
+  },
+  {
+   "label": "strategies.classifier.c=1000 strategies.classifier.shots=True strategies.classifier.description=True strategies.classifier.probe_instruction=False strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.5759139784946237,
+   "skill_correct_mean": 0.6821505376344086,
+   "tool_correct_mean": 0.6156989247311828,
+   "p50_ms": 134.96429403312504
+  },
+  {
+   "label": "strategies.classifier.c=10 strategies.classifier.shots=True strategies.classifier.description=False strategies.classifier.probe_instruction=False strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.5627956989247311,
+   "skill_correct_mean": 0.669032258064516,
+   "tool_correct_mean": 0.5827956989247312,
+   "p50_ms": 134.952376014553
+  },
+  {
+   "label": "strategies.classifier.c=10 strategies.classifier.shots=True strategies.classifier.description=False strategies.classifier.probe_instruction=True strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.5627956989247311,
+   "skill_correct_mean": 0.669032258064516,
+   "tool_correct_mean": 0.5827956989247312,
+   "p50_ms": 134.95671001146547
+  },
+  {
+   "label": "strategies.classifier.c=100 strategies.classifier.shots=True strategies.classifier.description=False strategies.classifier.probe_instruction=False strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.5627956989247311,
+   "skill_correct_mean": 0.6956989247311828,
+   "tool_correct_mean": 0.5894623655913979,
+   "p50_ms": 136.04820804903284
+  },
+  {
+   "label": "strategies.classifier.c=100 strategies.classifier.shots=True strategies.classifier.description=False strategies.classifier.probe_instruction=True strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.5627956989247311,
+   "skill_correct_mean": 0.6956989247311828,
+   "tool_correct_mean": 0.5894623655913979,
+   "p50_ms": 136.05175004340708
+  },
+  {
+   "label": "strategies.classifier.c=1000 strategies.classifier.shots=True strategies.classifier.description=False strategies.classifier.probe_instruction=False strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.5627956989247311,
+   "skill_correct_mean": 0.6823655913978495,
+   "tool_correct_mean": 0.5827956989247312,
+   "p50_ms": 136.05729106348008
+  },
+  {
+   "label": "strategies.classifier.c=1000 strategies.classifier.shots=True strategies.classifier.description=False strategies.classifier.probe_instruction=True strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.5627956989247311,
+   "skill_correct_mean": 0.6823655913978495,
+   "tool_correct_mean": 0.5827956989247312,
+   "p50_ms": 136.0747490543872
+  },
+  {
+   "label": "strategies.classifier.c=1 strategies.classifier.shots=True strategies.classifier.description=False strategies.classifier.probe_instruction=False strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.5563440860215053,
+   "skill_correct_mean": 0.6625806451612903,
+   "tool_correct_mean": 0.5763440860215053,
+   "p50_ms": 134.9472510337364
+  },
+  {
+   "label": "strategies.classifier.c=1 strategies.classifier.shots=True strategies.classifier.description=False strategies.classifier.probe_instruction=True strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.5563440860215053,
+   "skill_correct_mean": 0.6625806451612903,
+   "tool_correct_mean": 0.5763440860215053,
+   "p50_ms": 134.96587600093335
+  },
+  {
+   "label": "strategies.classifier.c=1 strategies.classifier.shots=True strategies.classifier.description=False strategies.classifier.probe_instruction=True strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.5563440860215053,
+   "skill_correct_mean": 0.689247311827957,
+   "tool_correct_mean": 0.5763440860215053,
+   "p50_ms": 136.05183301842771
+  },
+  {
+   "label": "strategies.classifier.c=1 strategies.classifier.shots=True strategies.classifier.description=False strategies.classifier.probe_instruction=False strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.5563440860215053,
+   "skill_correct_mean": 0.689247311827957,
+   "tool_correct_mean": 0.5763440860215053,
+   "p50_ms": 136.05545705650002
+  },
+  {
+   "label": "strategies.classifier.c=1000 strategies.classifier.shots=True strategies.classifier.description=False strategies.classifier.probe_instruction=False strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.5494623655913978,
+   "skill_correct_mean": 0.6623655913978495,
+   "tool_correct_mean": 0.5694623655913978,
+   "p50_ms": 134.95046002208255
+  },
+  {
+   "label": "strategies.classifier.c=100 strategies.classifier.shots=True strategies.classifier.description=False strategies.classifier.probe_instruction=False strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.5494623655913978,
+   "skill_correct_mean": 0.669032258064516,
+   "tool_correct_mean": 0.5761290322580646,
+   "p50_ms": 134.95816802605987
+  },
+  {
+   "label": "strategies.classifier.c=1000 strategies.classifier.shots=True strategies.classifier.description=False strategies.classifier.probe_instruction=True strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.5494623655913978,
+   "skill_correct_mean": 0.6623655913978495,
+   "tool_correct_mean": 0.5694623655913978,
+   "p50_ms": 134.95908500044607
+  },
+  {
+   "label": "strategies.classifier.c=100 strategies.classifier.shots=True strategies.classifier.description=False strategies.classifier.probe_instruction=True strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.5494623655913978,
+   "skill_correct_mean": 0.669032258064516,
+   "tool_correct_mean": 0.5761290322580646,
+   "p50_ms": 134.96937602758408
+  },
+  {
+   "label": "strategies.classifier.c=100 strategies.classifier.shots=False strategies.classifier.description=True strategies.classifier.probe_instruction=False strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.4896774193548387,
+   "skill_correct_mean": 0.5363440860215054,
+   "tool_correct_mean": 0.49634408602150537,
+   "p50_ms": 134.96662600664422
+  },
+  {
+   "label": "strategies.classifier.c=10 strategies.classifier.shots=False strategies.classifier.description=True strategies.classifier.probe_instruction=False strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.4896774193548387,
+   "skill_correct_mean": 0.5363440860215054,
+   "tool_correct_mean": 0.49634408602150537,
+   "p50_ms": 134.97171000926755
+  },
+  {
+   "label": "strategies.classifier.c=10 strategies.classifier.shots=False strategies.classifier.description=True strategies.classifier.probe_instruction=True strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.4896774193548387,
+   "skill_correct_mean": 0.5363440860215054,
+   "tool_correct_mean": 0.49634408602150537,
+   "p50_ms": 134.9751680099871
+  },
+  {
+   "label": "strategies.classifier.c=100 strategies.classifier.shots=False strategies.classifier.description=True strategies.classifier.probe_instruction=True strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.4896774193548387,
+   "skill_correct_mean": 0.5363440860215054,
+   "tool_correct_mean": 0.49634408602150537,
+   "p50_ms": 134.98416799120605
+  },
+  {
+   "label": "strategies.classifier.c=10 strategies.classifier.shots=False strategies.classifier.description=True strategies.classifier.probe_instruction=False strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.4896774193548387,
+   "skill_correct_mean": 0.5363440860215054,
+   "tool_correct_mean": 0.49634408602150537,
+   "p50_ms": 136.04520706576295
+  },
+  {
+   "label": "strategies.classifier.c=100 strategies.classifier.shots=False strategies.classifier.description=True strategies.classifier.probe_instruction=False strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.4896774193548387,
+   "skill_correct_mean": 0.5363440860215054,
+   "tool_correct_mean": 0.49634408602150537,
+   "p50_ms": 136.0629160190001
+  },
+  {
+   "label": "strategies.classifier.c=10 strategies.classifier.shots=False strategies.classifier.description=True strategies.classifier.probe_instruction=True strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.4896774193548387,
+   "skill_correct_mean": 0.5363440860215054,
+   "tool_correct_mean": 0.49634408602150537,
+   "p50_ms": 136.06487400829792
+  },
+  {
+   "label": "strategies.classifier.c=100 strategies.classifier.shots=False strategies.classifier.description=True strategies.classifier.probe_instruction=True strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.4896774193548387,
+   "skill_correct_mean": 0.5363440860215054,
+   "tool_correct_mean": 0.49634408602150537,
+   "p50_ms": 136.11916598165408
+  },
+  {
+   "label": "strategies.classifier.c=1 strategies.classifier.shots=False strategies.classifier.description=True strategies.classifier.probe_instruction=False strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.483010752688172,
+   "skill_correct_mean": 0.5496774193548387,
+   "tool_correct_mean": 0.4896774193548387,
+   "p50_ms": 134.95571000385098
+  },
+  {
+   "label": "strategies.classifier.c=1 strategies.classifier.shots=False strategies.classifier.description=True strategies.classifier.probe_instruction=True strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.483010752688172,
+   "skill_correct_mean": 0.5496774193548387,
+   "tool_correct_mean": 0.4896774193548387,
+   "p50_ms": 134.9618759995792
+  },
+  {
+   "label": "strategies.classifier.c=1 strategies.classifier.shots=False strategies.classifier.description=True strategies.classifier.probe_instruction=True strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.483010752688172,
+   "skill_correct_mean": 0.5496774193548387,
+   "tool_correct_mean": 0.4896774193548387,
+   "p50_ms": 136.0595830483362
+  },
+  {
+   "label": "strategies.classifier.c=1 strategies.classifier.shots=False strategies.classifier.description=True strategies.classifier.probe_instruction=False strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.483010752688172,
+   "skill_correct_mean": 0.5496774193548387,
+   "tool_correct_mean": 0.4896774193548387,
+   "p50_ms": 136.0717910574749
+  },
+  {
+   "label": "strategies.classifier.c=1000 strategies.classifier.shots=False strategies.classifier.description=True strategies.classifier.probe_instruction=False strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.46301075268817204,
+   "skill_correct_mean": 0.5096774193548387,
+   "tool_correct_mean": 0.4696774193548387,
+   "p50_ms": 134.95629199314862
+  },
+  {
+   "label": "strategies.classifier.c=1000 strategies.classifier.shots=False strategies.classifier.description=True strategies.classifier.probe_instruction=True strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.46301075268817204,
+   "skill_correct_mean": 0.5096774193548387,
+   "tool_correct_mean": 0.4696774193548387,
+   "p50_ms": 134.96287702582777
+  },
+  {
+   "label": "strategies.classifier.c=1000 strategies.classifier.shots=False strategies.classifier.description=True strategies.classifier.probe_instruction=True strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.46301075268817204,
+   "skill_correct_mean": 0.5096774193548387,
+   "tool_correct_mean": 0.4696774193548387,
+   "p50_ms": 136.09429096686654
+  },
+  {
+   "label": "strategies.classifier.c=1000 strategies.classifier.shots=False strategies.classifier.description=True strategies.classifier.probe_instruction=False strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.46301075268817204,
+   "skill_correct_mean": 0.5096774193548387,
+   "tool_correct_mean": 0.4696774193548387,
+   "p50_ms": 136.1108329729177
+  },
+  {
+   "label": "strategies.classifier.c=1 strategies.classifier.shots=False strategies.classifier.description=False strategies.classifier.probe_instruction=True strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.39741935483870966,
+   "skill_correct_mean": 0.46344086021505376,
+   "tool_correct_mean": 0.39741935483870966,
+   "p50_ms": 134.9610020115506
+  },
+  {
+   "label": "strategies.classifier.c=1 strategies.classifier.shots=False strategies.classifier.description=False strategies.classifier.probe_instruction=False strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.39741935483870966,
+   "skill_correct_mean": 0.46344086021505376,
+   "tool_correct_mean": 0.39741935483870966,
+   "p50_ms": 134.99691800097935
+  },
+  {
+   "label": "strategies.classifier.c=1 strategies.classifier.shots=False strategies.classifier.description=False strategies.classifier.probe_instruction=True strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.39741935483870966,
+   "skill_correct_mean": 0.46344086021505376,
+   "tool_correct_mean": 0.39741935483870966,
+   "p50_ms": 136.05316606117412
+  },
+  {
+   "label": "strategies.classifier.c=1 strategies.classifier.shots=False strategies.classifier.description=False strategies.classifier.probe_instruction=False strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.39741935483870966,
+   "skill_correct_mean": 0.46344086021505376,
+   "tool_correct_mean": 0.39741935483870966,
+   "p50_ms": 136.16549904691055
+  },
+  {
+   "label": "strategies.classifier.c=1000 strategies.classifier.shots=False strategies.classifier.description=False strategies.classifier.probe_instruction=False strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.38430107526881724,
+   "skill_correct_mean": 0.436989247311828,
+   "tool_correct_mean": 0.38430107526881724,
+   "p50_ms": 134.9553769978229
+  },
+  {
+   "label": "strategies.classifier.c=100 strategies.classifier.shots=False strategies.classifier.description=False strategies.classifier.probe_instruction=False strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.38430107526881724,
+   "skill_correct_mean": 0.436989247311828,
+   "tool_correct_mean": 0.38430107526881724,
+   "p50_ms": 134.95979399885982
+  },
+  {
+   "label": "strategies.classifier.c=100 strategies.classifier.shots=False strategies.classifier.description=False strategies.classifier.probe_instruction=True strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.38430107526881724,
+   "skill_correct_mean": 0.436989247311828,
+   "tool_correct_mean": 0.38430107526881724,
+   "p50_ms": 134.95996003621258
+  },
+  {
+   "label": "strategies.classifier.c=1000 strategies.classifier.shots=False strategies.classifier.description=False strategies.classifier.probe_instruction=True strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.38430107526881724,
+   "skill_correct_mean": 0.436989247311828,
+   "tool_correct_mean": 0.38430107526881724,
+   "p50_ms": 134.97508404543623
+  },
+  {
+   "label": "strategies.classifier.c=100 strategies.classifier.shots=False strategies.classifier.description=False strategies.classifier.probe_instruction=True strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.38430107526881724,
+   "skill_correct_mean": 0.436989247311828,
+   "tool_correct_mean": 0.38430107526881724,
+   "p50_ms": 136.0460000578314
+  },
+  {
+   "label": "strategies.classifier.c=100 strategies.classifier.shots=False strategies.classifier.description=False strategies.classifier.probe_instruction=False strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.38430107526881724,
+   "skill_correct_mean": 0.436989247311828,
+   "tool_correct_mean": 0.38430107526881724,
+   "p50_ms": 136.058791045798
+  },
+  {
+   "label": "strategies.classifier.c=1000 strategies.classifier.shots=False strategies.classifier.description=False strategies.classifier.probe_instruction=True strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.38430107526881724,
+   "skill_correct_mean": 0.436989247311828,
+   "tool_correct_mean": 0.38430107526881724,
+   "p50_ms": 136.06241607340053
+  },
+  {
+   "label": "strategies.classifier.c=1000 strategies.classifier.shots=False strategies.classifier.description=False strategies.classifier.probe_instruction=False strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.38430107526881724,
+   "skill_correct_mean": 0.436989247311828,
+   "tool_correct_mean": 0.38430107526881724,
+   "p50_ms": 136.06491600512527
+  },
+  {
+   "label": "strategies.classifier.c=10 strategies.classifier.shots=False strategies.classifier.description=False strategies.classifier.probe_instruction=False strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.38408602150537635,
+   "skill_correct_mean": 0.4367741935483871,
+   "tool_correct_mean": 0.38408602150537635,
+   "p50_ms": 134.97725100023672
+  },
+  {
+   "label": "strategies.classifier.c=10 strategies.classifier.shots=False strategies.classifier.description=False strategies.classifier.probe_instruction=True strategies.classifier.history_turns=0",
+   "joint_correct_mean": 0.38408602150537635,
+   "skill_correct_mean": 0.4367741935483871,
+   "tool_correct_mean": 0.38408602150537635,
+   "p50_ms": 134.98850201722234
+  },
+  {
+   "label": "strategies.classifier.c=10 strategies.classifier.shots=False strategies.classifier.description=False strategies.classifier.probe_instruction=False strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.38408602150537635,
+   "skill_correct_mean": 0.4367741935483871,
+   "tool_correct_mean": 0.38408602150537635,
+   "p50_ms": 136.066750070313
+  },
+  {
+   "label": "strategies.classifier.c=10 strategies.classifier.shots=False strategies.classifier.description=False strategies.classifier.probe_instruction=True strategies.classifier.history_turns=2",
+   "joint_correct_mean": 0.38408602150537635,
+   "skill_correct_mean": 0.4367741935483871,
+   "tool_correct_mean": 0.38408602150537635,
+   "p50_ms": 136.0857910476625
+  }
+ ]
+}

@@ -1,0 +1,38 @@
+# E3c — managed dense embeddings on Bedrock: Cohere Embed v4 (queries as search_query, documents as search_document)
+# Peer of the local qwen3-embedding 8B router (E3). Tuned on dev only with the phase-1 D1
+# procedure (324-point grid, 5-fold CV, seed 0; docs/tuning-effort-l.md §A).
+routing:
+  mode: single
+  skill:
+    pipeline:
+      - { strategy: embedding }
+    on_abstain: escalate
+  tool:
+    expose_top_k: 2
+    pipeline:
+      - { strategy: embedding }
+
+strategies:
+  embedding:
+    provider: bedrock
+    model: 'global.cohere.embed-v4:0'
+    region: sa-east-1
+    # tuned by 5-fold CV on dev (Part A, docs/tuning-effort-l.md §A): phase-1 D1 324-point grid
+    # (similarity x top_k x temperature x instruction x history x shots); nested CV joint 59.6
+    # [51.7, 67.5]; T chosen among {0.02, 0.05, 0.1} by calibrated CV Brier (accuracy-neutral)
+    similarity: topk_vote             # kNN over all utterances, the 5 nearest vote
+    top_k: 5
+    confidence: softmax
+    softmax_temperature: 0.1
+    history_turns: 2                  # query = last 2 turns + message
+    shots: true
+    query_instruction: null           # no instruction prefix won the grid (Cohere uses input_type)
+    calibration:                      # raw -> P(correct), fitted on dev; map kept only if CV ECE drops
+      skill: { x: [0.321301, 0.354661, 0.388021, 0.421381, 0.454741, 0.488102, 0.521462, 0.554822, 0.588182, 0.621542, 0.654903, 0.688263, 0.721623, 0.754983, 0.788343, 0.821704, 0.855064, 0.888424, 0.921784, 0.955144, 0.988505], y: [0.361354, 0.398223, 0.436283, 0.47511, 0.51424, 0.553196, 0.591509, 0.628742, 0.664507, 0.698478, 0.730405, 0.760112, 0.787498, 0.812529, 0.835228, 0.855667, 0.873954, 0.89022, 0.904617, 0.917301, 0.928432] }  # platt; CV ECE 0.069->0.047
+      tool: { x: [0.212519, 0.258935, 0.272255, 0.30424, 0.40337, 0.513211, 0.547914, 0.615071, 0.751071, 0.86581], y: [0.153846, 0.222222, 0.5, 0.5625, 0.611111, 0.611111, 0.625, 0.724138, 0.75, 0.875] }  # isotonic; CV ECE 0.120->0.050
+
+executor:
+  provider: bedrock
+  model: global.anthropic.claude-sonnet-5   # fills arguments and answers
+  temperature: null                         # rejected by Sonnet 5 on Bedrock
+  max_tool_iterations: 3

@@ -1,0 +1,119 @@
+{
+ "config": "config/experiments/e10_classifier_titan.yaml",
+ "fixed": [],
+ "grid_points": 1,
+ "best_point": {},
+ "selected_per_fold": {
+  "(config as is)": 5
+ },
+ "nested": {
+  "skill_correct": {
+   "mean": 0.7090322580645161,
+   "std": 0.0655564863903689
+  },
+  "tool_correct": {
+   "mean": 0.6227956989247312,
+   "std": 0.05163709110648705
+  },
+  "joint_correct": {
+   "mean": 0.6096774193548387,
+   "std": 0.05369888597498396
+  }
+ },
+ "nested_joint_pooled_ci": [
+  0.609271523178808,
+  0.5298013245033113,
+  0.6821192052980133
+ ],
+ "best_fixed": {
+  "skill_correct_mean": 0.7090322580645161,
+  "tool_correct_mean": 0.6227956989247312,
+  "joint_correct_mean": 0.6096774193548387,
+  "skill_correct_std": 0.0655564863903689,
+  "tool_correct_std": 0.05163709110648705,
+  "joint_correct_std": 0.05369888597498396,
+  "skill_correct_all": 0.7086092715231788,
+  "tool_correct_all": 0.6225165562913907,
+  "joint_correct_all": 0.609271523178808
+ },
+ "calibration_stats": {
+  "skill": {
+   "n": 151,
+   "ece_raw": 0.44070199467488474,
+   "brier_raw": 0.39720999230527765,
+   "ece_isotonic": 0.06950546505273254,
+   "brier_isotonic": 0.1789849825842695,
+   "ece_platt": 0.07349647008750794,
+   "brier_platt": 0.1826465768729568
+  },
+  "tool": {
+   "n": 151,
+   "ece_raw": 0.4403976345101729,
+   "brier_raw": 0.4535081442690843,
+   "ece_isotonic": 0.21916233028852578,
+   "brier_isotonic": 0.2334933811519619,
+   "ece_platt": 8.935761589401459e-05,
+   "brier_platt": 0.23648182795065564
+  }
+ },
+ "calibrator": {
+  "skill": "isotonic",
+  "tool": "isotonic"
+ },
+ "calibration": {
+  "skill": {
+   "x": [
+    0.252247,
+    0.254158,
+    0.256062,
+    0.257173,
+    0.260514,
+    0.263427,
+    0.266328,
+    0.273246,
+    0.284325,
+    0.2978
+   ],
+   "y": [
+    0.4,
+    0.4,
+    0.444444,
+    0.5,
+    0.543478,
+    0.625,
+    0.71875,
+    0.916667,
+    0.923077,
+    0.923077
+   ]
+  },
+  "tool": {
+   "x": [
+    0.12669,
+    0.12784,
+    0.129137,
+    0.131642,
+    0.208965
+   ],
+   "y": [
+    0.142857,
+    0.3,
+    0.375,
+    0.611111,
+    0.735294
+   ]
+  }
+ },
+ "p50_ms": 134.9544600234367,
+ "p95_ms": 215.29637597268447,
+ "errors": 0,
+ "points": [
+  {
+   "label": "(config as is)",
+   "joint_correct_mean": 0.6096774193548387,
+   "skill_correct_mean": 0.7090322580645161,
+   "tool_correct_mean": 0.6227956989247312,
+   "p50_ms": 134.9544600234367
+  }
+ ]
+}
