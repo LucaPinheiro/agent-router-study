@@ -149,5 +149,9 @@ foram auditados por modelos, não por humanos. "Jev" aqui é o `typesafe/jev-rou
 um meta-roteador cujo modelo atendido varia por chamada, e não a API tipada nativa do Jev. Lista
 completa: [estudos/12](estudos/12-limitacoes.md).
 
+Documentação técnica em português: [`docs-ptbr/`](docs-ptbr/README.md) espelha [`docs/`](docs/)
+(pré-registro, métricas, dataset card, resultados finais). No Langfuse local há um painel
+personalizado, "Agent Router Study: operação", com 9 widgets ([estudos/13](estudos/13-reprodutibilidade.md)).
+
 O relatório anterior, só com o dev ([docs/study-results.md](docs/study-results.md)), foi
 **substituído** por este estudo.

@@ -151,7 +151,8 @@ The manifest pins each run's `config_hash` and `prompt_hash`, checks the budget 
 resumes by (case, repetition) and flags runs with more than 2% errors. Frozen hashes, the
 deviation log (D-001 to D-003) and the per-table commands are in
 [`docs/prereg/`](docs/prereg/prereg-v1.md) and [estudos/13](estudos/13-reprodutibilidade.md).
-Analysis outputs: [`docs/results/final/`](docs/results/final/). Spend for the final study:
+Analysis outputs: [`docs/results/final/`](docs/results/final/). The local Langfuse also has a
+custom dashboard, "Agent Router Study: operação" (9 widgets; see [estudos/13](estudos/13-reprodutibilidade.md)). Spend for the final study:
 US$ 34.48 Bedrock + US$ 1.43 OpenRouter (whole-project ledger: US$ 52.11 Bedrock, US$ 5.83
 OpenRouter).
 
@@ -161,6 +162,7 @@ OpenRouter).
 config/          experiments/ (E0–E12), study manifests, prompt selection, prices, regex rules, rq5/
 data/            dev, test-v1, test-v2, audit/, dataset card inputs
 docs/            prereg/ (pre-registration, hashes, deviations), results/final/ (analysis), method notes
+docs-ptbr/       Brazilian Portuguese translation of docs/ (prose only)
 estudos/         the study write-up (pt-BR) and figures
 infra/           docker compose: Langfuse v4, Redis, MCP server
 mcp_server/      FastMCP server, mock DB, skills, tests

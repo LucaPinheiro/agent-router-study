@@ -114,6 +114,43 @@ manifesto).*
 ledger) e notas. Os traces raiz `POST /{path}` e `GET /healthz` são o ruído anterior à correção
 `a6c4330`; depois dela, esses spans ficam aninhados ou não são exportados.*
 
+### Painel personalizado no Langfuse
+
+O painel **"Agent Router Study: operação"** (Langfuse local → Dashboards) tem 9 widgets montados
+para operar e auditar o agente. Os números oficiais, com IC, continuam sendo os de
+`docs/results/final/`; o painel é a visão operacional sobre os mesmos traces.
+
+| Widget | Pergunta que responde |
+|---|---|
+| Sucesso e2e por run (test-v2) | Qual configuração resolve mais turnos de ponta a ponta? (E0 0,556; E9 0,458) |
+| Acurácia conjunta por roteador (test-v2) | Qual roteador acerta skill e tool, por run e repetição? |
+| Latência p95 por nó do grafo (e2e) | Onde o tempo do turno é gasto? (executor ~7 s; nos runs e2e o roteador veio do cache) |
+| Latência p95 do span de cada estratégia | Quanto custa em tempo cada estratégia no estágio skill (benchmark `lat-*`)? |
+| Custo por experimento | Quanto custou cada run (roteador + executor)? |
+| Custo por modelo | Para onde foi o dinheiro (Sonnet, Haiku, modelos atendidos pelo Jev)? |
+| Tokens de entrada do executor (e2e) | Quanto contexto o roteador economiza (≈ 4,4 mil vs 5,3 mil tokens do nativo)? |
+| Erros de negócio das tools | Quais tools o executor chama na hora errada (ex.: `NOT_ELIGIBLE`)? |
+| Turnos ao longo do tempo | Volume de turnos por dia |
+
+![Painel personalizado: resultado e latência](figuras/langfuse-dashboard-custom.png)
+
+*Figura 5. Painel personalizado, parte 1: sucesso e2e por run e acurácia conjunta por roteador
+(test-v2), latência por nó e por estratégia.*
+
+![Painel personalizado: custo e contexto](figuras/langfuse-dashboard-custom-2.png)
+
+*Figura 6. Parte 2: custo por experimento e por modelo, tokens de entrada do executor e erros de
+negócio das tools.*
+
+![Painel personalizado: tokens, erros e volume](figuras/langfuse-dashboard-custom-3.png)
+
+*Figura 7. Parte 3: tokens do executor por run e2e, erros de negócio por tool e volume de turnos.*
+
+Ressalvas de leitura, também escritas na descrição de cada widget: o widget de latência por
+estratégia mede só o span da estratégia no estágio skill, não a latência total do roteador
+(capítulo [08](08-economia.md)); "Custo por modelo" inclui o gasto de desenvolvimento (geração e
+auditoria do dataset).
+
 Os traces de exemplo já capturados estão no capítulo [07](07-ponta-a-ponta.md).
 
 ## 6. Ambiente
